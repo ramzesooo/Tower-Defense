@@ -46,7 +46,7 @@ App::App()
 
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures->AddTexture("attackerArcher", "assets\\entities\\archer.png");
+	App::s_Textures->AddTexture("attackerArcher", "assets\\entities\\attackerArcher.png");
 
 	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);
@@ -158,8 +158,6 @@ void App::Update()
 {
 	App::s_Manager->Refresh();
 	App::s_Manager->Update();
-
-	//PlayAnimations();
 }
 
 void App::Render()
@@ -195,6 +193,7 @@ void App::Render()
 
 void App::UpdateCamera()
 {
+	// to fix:
 	Vector2D basePos = App::s_CurrentLevel->GetBase()->GetPos();
 	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapSizeX * App::s_CurrentLevel->m_ScaledTileSize);
 	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapSizeY * App::s_CurrentLevel->m_ScaledTileSize);
@@ -224,15 +223,9 @@ void App::UpdateCamera()
 void App::OnResolutionChange()
 {
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
-
 	App::s_Camera.w = (float)App::WINDOW_WIDTH;
 	App::s_Camera.h = (float)App::WINDOW_HEIGHT;
 	UpdateCamera();
-}
-
-void App::PlayAnimations()
-{
-	
 }
 
 void App::LoadLevel(uint32_t baseX, uint32_t baseY)

@@ -10,9 +10,11 @@ Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
 	destRect.h = Attacker::s_AttackerHeight * m_Scale;
 
-	Animation idle = Animation(0, 2, 300);
+	Animation idle = Animation(0, 2, 500);
+	Animation shoot = Animation(1, 4, 400);
 
 	animations.emplace("Idle", idle);
+	animations.emplace("Shoot", shoot);
 
 	PlayAnim("Idle");
 }

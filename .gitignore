@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Tower Defense/SDL2.dll
+/Tower Defense/SDL2_image.dll
+/Tower Defense/SDL2_ttf.dll

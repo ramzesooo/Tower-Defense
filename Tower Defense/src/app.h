@@ -25,8 +25,6 @@ public:
 
 	void OnResolutionChange();
 
-	void PlayAnimations();
-
 	bool IsRunning() const { return m_IsRunning; }
 
 	static int32_t WINDOW_WIDTH;
