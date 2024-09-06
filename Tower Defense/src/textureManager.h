@@ -1,5 +1,6 @@
 #pragma once
 #include "SDL.h"
+#include "SDL_ttf.h"
 
 #include <unordered_map>
 #include <string>
@@ -15,11 +16,16 @@ struct proxy_hash {
 class TextureManager
 {
 public:
+	~TextureManager();
+
 	void AddTexture(std::string_view textureID, const char* path);
 	void DrawTexture(std::string_view textureID);
 	static void DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest);
-
 	SDL_Texture* GetTexture(std::string_view textureID) const;
+
+	void AddFont(std::string_view fontID, const char* path, uint16_t fontSize);
+	TTF_Font* GetFont(std::string_view fontID) const;
 private:
 	std::unordered_map<std::string, SDL_Texture*, proxy_hash, std::equal_to<void>> textures;
+	std::unordered_map<std::string, TTF_Font*, proxy_hash, std::equal_to<void>> fonts;
 };

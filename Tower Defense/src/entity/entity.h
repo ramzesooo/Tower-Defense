@@ -12,8 +12,11 @@ enum class EntityGroup
 	enemy,
 	tower,
 	attacker,
+	label,
 	size
 };
+
+class Label;
 
 class Entity
 {
@@ -32,9 +35,14 @@ public:
 	void AddGroup(EntityGroup group);
 	void DeleteGroup(EntityGroup group) { m_GroupBitSet[(std::size_t)group] = false; }
 
+	void AttachLabel(Label* label) { m_AttachedLabel = label; }
+	Label* GetAttachedLabel() const { return m_AttachedLabel; }
+
 	bool m_IsActive = true;
 
 	std::bitset<(std::size_t)EntityGroup::size> m_GroupBitSet;
+
+	Label* m_AttachedLabel = nullptr;
 };
 
 class Manager

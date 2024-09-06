@@ -1,4 +1,5 @@
 #pragma once
+#include "entity/label.h"
 #include "entity/entity.h"
 #include "entity/attacker.h"
 #include "level.h"

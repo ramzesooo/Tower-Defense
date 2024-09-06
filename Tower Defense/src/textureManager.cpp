@@ -4,6 +4,14 @@
 
 #include "SDL_image.h"
 
+TextureManager::~TextureManager()
+{
+	for (const auto& font : fonts)
+	{
+		TTF_CloseFont(font.second);
+	}
+}
+
 void TextureManager::AddTexture(std::string_view textureID, const char* path)
 {
 	SDL_Surface* tempSurface = IMG_Load(path);
@@ -54,6 +62,32 @@ SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
 	{
 		App::s_Logger->AddLog("TextureManager::GetTexture: Missing texture ", false);
 		App::s_Logger->AddLog(textureID);
+		return nullptr;
+	}
+
+	return it->second;
+}
+
+void TextureManager::AddFont(std::string_view fontID, const char* path, uint16_t fontSize)
+{
+	TTF_Font* font = TTF_OpenFont(path, fontSize);
+
+	if (!font)
+	{
+		App::s_Logger->AddLog("Couldn't find font " + std::string(path));
+		return;
+	}
+
+	fonts.emplace(fontID, font);
+}
+
+TTF_Font* TextureManager::GetFont(std::string_view fontID) const
+{
+	auto it = fonts.find(fontID);
+	if (it == fonts.end())
+	{
+		App::s_Logger->AddLog("TextureManager::GetFont: Missing texture ", false);
+		App::s_Logger->AddLog(fontID);
 		return nullptr;
 	}
 

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-Level::Level() : towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker))
+Level::Level() : towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy))
 {}
 
 void Level::Setup(const std::string& path)
@@ -178,6 +178,7 @@ Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_
 	if (!towerTexture)
 	{
 		App::s_Logger->AddLog("Tower's texture doesn't exist!");
+		return nullptr;
 	}
 
 	auto tower = App::s_Manager->NewEntity<Tower>(posX, posY, towerTexture, tier);
@@ -188,9 +189,20 @@ Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 {
+	if (!assignedTower || assignedTower->GetAttacker())
+	{
+		App::s_Logger->AddLog("Tried to add attacker to tower not existing or already having an attacker.");
+		return;
+	}
+
 	auto attacker = App::s_Manager->NewEntity<Attacker>(*assignedTower, type, App::s_Textures->GetTexture(App::TextureOf(type)), scale);
 	attacker->AddGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
+}
+
+void Level::AddEnemy()
+{
+
 }
 
 void Level::Render()

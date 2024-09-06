@@ -38,6 +38,7 @@ public:
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
+	void AddEnemy();
 
 	void Render();
 
@@ -65,4 +66,5 @@ private:
 	std::vector<std::unique_ptr<Layer>> layers;
 	std::vector<Entity*>& towers;
 	std::vector<Entity*>& attackers;
+	std::vector<Entity*>& enemies;
 };

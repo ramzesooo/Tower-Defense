@@ -165,7 +165,9 @@
   <ItemGroup>
     <ClCompile Include="src\app.cpp" />
     <ClCompile Include="src\entity\attacker.cpp" />
+    <ClCompile Include="src\entity\enemy.cpp" />
     <ClCompile Include="src\entity\entity.cpp" />
+    <ClCompile Include="src\entity\label.cpp" />
     <ClCompile Include="src\level.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -178,7 +180,9 @@
     <ClInclude Include="src\app.h" />
     <ClInclude Include="src\entity\anim.h" />
     <ClInclude Include="src\entity\attacker.h" />
+    <ClInclude Include="src\entity\enemy.h" />
     <ClInclude Include="src\entity\entity.h" />
+    <ClInclude Include="src\entity\label.h" />
     <ClInclude Include="src\level.h" />
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\textureManager.h" />

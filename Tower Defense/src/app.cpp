@@ -18,9 +18,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 Level* App::s_CurrentLevel = nullptr;
 // END
 
-auto& tiles = App::s_Manager->GetGroup(EntityGroup::tile);
-auto& enemies = App::s_Manager->GetGroup(EntityGroup::enemy);
-auto& towers = App::s_Manager->GetGroup(EntityGroup::tower);
+auto& labels = App::s_Manager->GetGroup(EntityGroup::label);
 
 App::App()
 {
@@ -46,7 +44,10 @@ App::App()
 
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures->AddTexture("attackerArcher", "assets\\entities\\attackerArcher.png");
+	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
+	App::s_Textures->AddTexture("enemyElf", "assets\\entities\\enemy\\elf.png");
+
+	App::s_Textures->AddFont("default", "assets\\ThaleahFat.ttf", 20);
 
 	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);
@@ -58,6 +59,13 @@ App::App()
 	}
 
 	App::s_CurrentLevel = levels.at(0).get();
+
+	if (!App::s_CurrentLevel || App::s_CurrentLevel->DidLoadingFail())
+	{
+		initialized = false;
+		App::s_Logger->AddLog("Beginner level couldn't be loaded properly.");
+	}
+
 	LoadLevel(7, 7);
 
 	auto newTower = App::s_CurrentLevel->AddTower(5.0f, 5.0f, App::s_Textures->GetTexture("tower"), 1);
@@ -70,6 +78,11 @@ App::App()
 	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
 
 	UpdateCamera();
+
+	auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "dupa", App::s_Textures->GetFont("default"));
+	newLabel->AddGroup(EntityGroup::label);
+
+	App::s_CurrentLevel->GetBase()->AttachLabel(newLabel);
 
 	m_IsRunning = initialized;
 }
@@ -156,6 +169,9 @@ void App::EventHandler()
 
 void App::Update()
 {
+	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
+	label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
+
 	App::s_Manager->Refresh();
 	App::s_Manager->Update();
 }
@@ -164,36 +180,18 @@ void App::Render()
 {
 	SDL_RenderClear(App::s_Renderer);
 
-	/*if (!App::s_CurrentLevel)
-	{
-		App::s_Logger->AddLog("Tried to render not existing level");
-		return;
-	}
-
-	if (App::s_CurrentLevel->DidLoadingFail())
-	{
-		App::s_Logger->AddLog("Level " + std::to_string(App::s_CurrentLevel->GetID() + 1) + " failed to load");
-		return;
-	}*/
-
 	App::s_CurrentLevel->Render();
 
-	/*for (const auto& t : towers)
+	for (const auto& label : labels)
 	{
-		t->Draw();
+		label->Draw();
 	}
-
-	for (const auto& e : enemies)
-	{
-		e->Draw();
-	}*/
 
 	SDL_RenderPresent(App::s_Renderer);
 }
 
 void App::UpdateCamera()
 {
-	// to fix:
 	Vector2D basePos = App::s_CurrentLevel->GetBase()->GetPos();
 	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapSizeX * App::s_CurrentLevel->m_ScaledTileSize);
 	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapSizeY * App::s_CurrentLevel->m_ScaledTileSize);

@@ -8,14 +8,15 @@
 
 #include <unordered_map>
 
-class Tower;
-
 enum class AttackerType
 {
 	archer = 0,
 	size
 };
 
+class Tower;
+
+// Attacker is the entity occupying a tower
 class Attacker : public Entity
 {
 public:
