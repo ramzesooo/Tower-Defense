@@ -1,0 +1,68 @@
+#pragma once
+#include "entity/tile.h"
+#include "entity/tower.h"
+#include "entity/attacker.h"
+
+#include <vector>
+#include <memory>
+//#include <tuple>
+#include <string>
+
+class App;
+
+//Layer references to just map for level
+struct Layer
+{
+	// returns a tile from specific coordinates
+	Tile* GetTileFrom(uint32_t posX, uint32_t posY) const { return tiles.at(posY).at(posX); }
+
+	std::vector<std::vector<Tile*>>& GetTilesVector() { return tiles; }
+	std::vector<std::vector<Tile*>> tiles;
+};
+
+class Level
+{
+public:
+	Level();
+	
+	void Setup(const std::string& path);
+	void Setup(std::ifstream& mapFile);
+	void SetupBase(uint32_t posX, uint32_t posY);
+
+	// Position passed in parameters referes to left-upper square
+	// Towers take 4 tiles in this scheme:
+	// [0][1]
+	// [2][3]
+	// 
+	// Tower position depends on Vector2D and it is scaled by class Tower to tiles' size
+	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
+	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
+	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
+
+	void Render();
+
+	uint16_t GetID() const { return m_LevelID; }
+	void SetID(uint16_t levelID) { m_LevelID = levelID; }
+
+	uint16_t GetLayersAmount() const { return (uint16_t)layers.size(); }
+
+	bool DidLoadingFail() const { return m_FailedLoading; }
+
+	Tile* GetBase() const { return baseTile; }
+	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0);
+
+	const int32_t m_MapSizeX = 50;
+	const int32_t m_MapSizeY = 50;
+	uint16_t m_MapScale = 2;
+	uint16_t m_TileSize = 24;
+	uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
+private:
+	bool m_FailedLoading = false;
+	std::string_view m_TextureID = "mapSheet";
+	std::string_view m_BaseTextureID = "base";
+	Tile* baseTile = nullptr;
+	uint16_t m_LevelID = 0;
+	std::vector<std::unique_ptr<Layer>> layers;
+	std::vector<Entity*>& towers;
+	std::vector<Entity*>& attackers;
+};
