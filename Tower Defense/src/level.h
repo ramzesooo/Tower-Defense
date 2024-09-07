@@ -2,6 +2,7 @@
 #include "entity/tile.h"
 #include "entity/tower.h"
 #include "entity/attacker.h"
+#include "entity/enemy.h"
 
 #include <vector>
 #include <memory>
@@ -38,7 +39,9 @@ public:
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
-	void AddEnemy();
+	void AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
+
+	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }
 
 	void Render();
 

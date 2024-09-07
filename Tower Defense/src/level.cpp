@@ -200,9 +200,10 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	assignedTower->AssignAttacker(attacker);
 }
 
-void Level::AddEnemy()
+void Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 {
-
+	auto enemy = App::s_Manager->NewEntity<Enemy>(posX, posY, type, texture, scale);
+	enemy->AddGroup(EntityGroup::enemy);
 }
 
 void Level::Render()
@@ -220,6 +221,11 @@ void Level::Render()
 				tile->Draw();
 			}
 		}
+	}
+
+	for (const auto& enemy : enemies)
+	{
+		enemy->Draw();
 	}
 
 	for (const auto& tower : towers)

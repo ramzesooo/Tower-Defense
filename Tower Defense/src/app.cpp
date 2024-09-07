@@ -45,7 +45,7 @@ App::App()
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
-	App::s_Textures->AddTexture("enemyElf", "assets\\entities\\enemy\\elf.png");
+	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
 	App::s_Textures->AddFont("default", "assets\\ThaleahFat.ttf", 20);
 
@@ -65,8 +65,18 @@ App::App()
 		initialized = false;
 		App::s_Logger->AddLog("Beginner level couldn't be loaded properly.");
 	}
+	else
+	{
+		LoadLevel(7, 7);
 
-	LoadLevel(7, 7);
+		auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "dupa", App::s_Textures->GetFont("default"));
+		newLabel->AddGroup(EntityGroup::label);
+
+		Tile* base = App::s_CurrentLevel->GetBase();
+
+		base->AttachLabel(newLabel);
+	}
+
 
 	auto newTower = App::s_CurrentLevel->AddTower(5.0f, 5.0f, App::s_Textures->GetTexture("tower"), 1);
 	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
@@ -77,12 +87,10 @@ App::App()
 	newTower = App::s_CurrentLevel->AddTower(1.0f, 1.0f, App::s_Textures->GetTexture("tower"), 3);
 	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
 
+	App::s_CurrentLevel->AddEnemy(10.0f, 10.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
+	App::s_CurrentLevel->AddEnemy(11.0f, 11.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
+
 	UpdateCamera();
-
-	auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "dupa", App::s_Textures->GetFont("default"));
-	newLabel->AddGroup(EntityGroup::label);
-
-	App::s_CurrentLevel->GetBase()->AttachLabel(newLabel);
 
 	m_IsRunning = initialized;
 }
@@ -118,6 +126,31 @@ void App::EventHandler()
 			break;
 		case SDLK_d:
 			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
+			break;
+
+		case SDLK_UP:
+			{
+				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
+				enemy->Move(Vector2D(0.0f, -1.0f));
+			}
+			break;
+		case SDLK_DOWN:
+			{
+				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
+				enemy->Move(Vector2D(0.0f, 1.0f));
+			}
+			break;
+		case SDLK_LEFT:
+			{
+				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
+				enemy->Move(Vector2D(-1.0f, 0.0f));
+			}
+			break;
+		case SDLK_RIGHT:
+			{
+				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
+				enemy->Move(Vector2D(1.0f, 0.0f));
+			}
 			break;
 
 		// Function keys
@@ -170,7 +203,11 @@ void App::EventHandler()
 void App::Update()
 {
 	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
-	label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
+	
+	if (label)
+	{
+		label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
+	}
 
 	App::s_Manager->Refresh();
 	App::s_Manager->Update();

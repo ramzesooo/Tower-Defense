@@ -1,7 +1,9 @@
 #pragma once
 #include "entity/label.h"
 #include "entity/entity.h"
+#include "entity/tile.h"
 #include "entity/attacker.h"
+#include "entity/enemy.h"
 #include "level.h"
 #include "textureManager.h"
 #include "logger.h"
@@ -57,6 +59,16 @@ public:
 		{
 		case AttackerType::archer:
 			return "attackerArcher";
+		}
+		return "";
+	}
+
+	static inline std::string_view TextureOf(EnemyType type)
+	{
+		switch (type)
+		{
+		case EnemyType::elf:
+			return "enemyElf";
 		}
 		return "";
 	}
