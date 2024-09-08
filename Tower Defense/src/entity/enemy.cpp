@@ -1,15 +1,18 @@
 #include "enemy.h"
+#include "tower.h"
 #include "../app.h"
 #include "../level.h"
 
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
-	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos)
+	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos), towers(App::s_Manager->GetGroup(EntityGroup::tower))
 {
 	destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
 	destRect.w = Enemy::s_EnemyWidth * m_Scale;
 	destRect.h = Enemy::s_EnemyHeight * m_Scale;
+
+	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
 	Animation idle = Animation(0, 2, 500);
 	animations.emplace("Idle", idle);
@@ -34,13 +37,31 @@ void Enemy::Update()
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_AnimSpeed) % m_AnimFrames);
 	srcRect.y = m_AnimIndex * Enemy::s_EnemyHeight;
 
-	if (IsMoving())
+	UpdateMovement();
+
+	Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
+
+	if (newOccupiedTile && newOccupiedTile != m_OccupiedTile)
 	{
-		UpdateMovement();
+		m_OccupiedTile->SetOccupyingEntity(nullptr);
+
+		m_OccupiedTile = newOccupiedTile;
+		newOccupiedTile->SetOccupyingEntity(this);
 	}
 
-	destRect.x = static_cast<int32_t>(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.x) - App::s_CurrentLevel->m_ScaledTileSize / 4;
-	destRect.y = static_cast<int32_t>(m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.y) - App::s_CurrentLevel->m_ScaledTileSize / 4;
+	for (const auto& tower : towers)
+	{
+		if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+		{
+			continue;
+		}
+
+		Attacker* attacker = static_cast<Tower*>(tower)->GetAttacker();
+		attacker->InitAttack(this);
+	}
+
+	destRect.x = static_cast<int32_t>(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.x) - destRect.w / 8;
+	destRect.y = static_cast<int32_t>(m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.y) - destRect.h / 8;
 }
 
 void Enemy::Draw()
@@ -92,6 +113,18 @@ void Enemy::Move(Vector2D destination)
 
 	m_Destination.x = m_Pos.x + destination.x;
 	m_Destination.y = m_Pos.y + destination.y;
+
+	if (m_Destination.x < 0.0f)
+	{
+		m_Destination.x = 0.0f;
+		m_Velocity.x = 0.0f;
+	}
+
+	if (m_Destination.y < 0.0f)
+	{
+		m_Destination.y = 0.0f;
+		m_Velocity.y = 0.0f;
+	}
 }
 
 void Enemy::Move(float destinationX, float destinationY)
@@ -101,6 +134,12 @@ void Enemy::Move(float destinationX, float destinationY)
 
 void Enemy::UpdateMovement()
 {
+	// Movement should be updated only if velocity is different than 0
+	if (!IsMoving())
+	{
+		return;
+	}
+
 	if (m_Velocity.x < 0.0f)
 	{
 		m_Pos.x = trunc((m_Pos.x + m_Velocity.x) * 100) / 100;
@@ -139,6 +178,18 @@ void Enemy::UpdateMovement()
 		}
 	}
 
+	if (m_Destination.x < 0.0f)
+	{
+		m_Destination.x = 0.0f;
+		m_Velocity.x = 0.0f;
+	}
+
+	if (m_Destination.y < 0.0f)
+	{
+		m_Destination.y = 0.0f;
+		m_Velocity.y = 0.0f;
+	}
+
 	if (m_Velocity.x == 0.0f && m_Velocity.y == 0.0f)
 	{
 		PlayAnim("Idle");
@@ -147,4 +198,38 @@ void Enemy::UpdateMovement()
 		m_Destination.x = trunc(m_Destination.x);
 		m_Destination.y = trunc(m_Destination.y);
 	}
+}
+
+bool Enemy::IsTowerInRange(Tower* tower, int32_t range) const
+{
+	if (range < 0)
+	{
+		range = 0;
+	}
+
+	if (range >= App::s_CurrentLevel->m_MapSizeX)
+	{
+		range = App::s_CurrentLevel->m_MapSizeX - 1;
+	}
+
+	int32_t posX = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
+	int32_t posY = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
+	int32_t enemyX = (int32_t)m_Pos.x;
+	int32_t enemyY = (int32_t)m_Pos.y;
+
+	// Tower's position is based on left-upper tile occupied by the tower
+
+	for (int y = 0; y <= 1; y++)
+	{
+		for (int x = 0; x <= 1; x++)
+		{
+			if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
+				&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include "../Vector2D.h"
+
 #include "SDL.h"
 
 #include <vector>
@@ -27,6 +29,8 @@ public:
 
 	virtual void Update() {}
 	virtual void Draw() {}
+
+	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
 
 	void Destroy() { m_IsActive = false; }
 	bool IsActive() const { return m_IsActive; }

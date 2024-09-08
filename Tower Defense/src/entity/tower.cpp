@@ -27,7 +27,7 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 			{
 				tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + x, (uint32_t)posY + y);
 
-				occupiedTiles[i] = tile;
+				m_OccupiedTiles[i] = tile;
 				i++;
 			}
 		}
@@ -45,7 +45,9 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 }
 
 Tower::~Tower()
-{}
+{
+	m_Attacker->Destroy();
+}
 
 void Tower::Update()
 {

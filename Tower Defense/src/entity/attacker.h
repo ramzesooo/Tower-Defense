@@ -1,5 +1,7 @@
 #pragma once
 #include "entity.h"
+#include "enemy.h"
+#include "projectile.h"
 #include "../Vector2D.h"
 #include "anim.h"
 #include "../textureManager.h"
@@ -25,13 +27,19 @@ public:
 	void Update() override;
 	void Draw() override;
 
+	Vector2D GetPos() const override { return m_Pos; }
+
 	void PlayAnim(std::string_view animID);
+
+	void InitAttack(Enemy* target);
+	Enemy* GetTarget() const { return m_Target; }
 private:
 	static constexpr int32_t s_AttackerWidth = 32;
 	static constexpr int32_t s_AttackerHeight = 32;
 	Tower& m_OccupiedTower;
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture* m_ArrowTexture = nullptr;
 	uint16_t m_Scale = 1;
 	Vector2D m_Pos;
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
@@ -39,5 +47,10 @@ private:
 	int32_t m_AnimIndex = 0;
 	int32_t m_AnimFrames = 1;
 	int32_t m_AnimSpeed = 100;
+	std::string m_AnimID;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
+
+	Enemy* m_Target = nullptr;
+	uint32_t m_NextShot = NULL;
+	std::vector<std::unique_ptr<Projectile>> projectiles;
 };

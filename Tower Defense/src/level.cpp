@@ -4,9 +4,11 @@
 #include <fstream>
 #include <sstream>
 
-Level::Level() : towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy))
+Level::Level() 
+	: towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy))
 {}
 
+// This one Setup is probably unnecessary anymore
 void Level::Setup(const std::string& path)
 {
 	std::ifstream mapFile(path);
@@ -58,7 +60,7 @@ void Level::Setup(const std::string& path)
 			int32_t srcX = tileCode % 10;
 			int32_t srcY = tileCode / 10;
 			//Tile* tile = app.AddTile(srcX * m_TileSize, srcY * m_TileSize, x * (m_MapScale * m_TileSize), y * (m_MapScale * m_TileSize), m_TileSize, m_MapScale, m_TextureID);
-			Tile* tile = App::s_Manager->NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * (m_MapScale * m_TileSize), y * (m_MapScale * m_TileSize), m_TileSize, m_MapScale, m_TextureID);
+			Tile* tile = App::s_Manager->NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID);
 			tile->AddGroup(EntityGroup::tile);
 
 			if (!tile)
@@ -66,9 +68,9 @@ void Level::Setup(const std::string& path)
 				tile = nullptr;
 				m_FailedLoading = true;
 				App::s_Logger->AddLog("Couldn't load a tile (", false);
-				App::s_Logger->AddLog(std::to_string(x * (m_MapScale * m_TileSize)), false);
+				App::s_Logger->AddLog(std::to_string(x * m_ScaledTileSize), false);
 				App::s_Logger->AddLog(", ", false);
-				App::s_Logger->AddLog(std::to_string(y * (m_MapScale * m_TileSize)), false);
+				App::s_Logger->AddLog(std::to_string(y * m_ScaledTileSize), false);
 				App::s_Logger->AddLog(")");
 			}
 
@@ -86,8 +88,6 @@ void Level::Setup(const std::string& path)
 
 void Level::Setup(std::ifstream& mapFile)
 {
-	//std::ifstream mapFile(path);
-
 	if (mapFile.fail())
 	{
 		App::s_Logger->AddLog("Failed to load level ", false);
@@ -120,6 +120,8 @@ void Level::Setup(std::ifstream& mapFile)
 
 	int32_t tileCode;
 
+	layers.reserve(1);
+
 	std::unique_ptr<Layer> newLayer = std::make_unique<Layer>();
 
 	auto& tiles = newLayer->GetTilesVector();
@@ -134,18 +136,17 @@ void Level::Setup(std::ifstream& mapFile)
 			tileCode = mapData[y][x];
 			int32_t srcX = tileCode % 10;
 			int32_t srcY = tileCode / 10;
-			//Tile* tile = app.AddTile(srcX * m_TileSize, srcY * m_TileSize, x * (m_MapScale * m_TileSize), y * (m_MapScale * m_TileSize), m_TileSize, m_MapScale, m_TextureID);
-			Tile* tile = App::s_Manager->NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * (m_MapScale * m_TileSize), y * (m_MapScale * m_TileSize), m_TileSize, m_MapScale, m_TextureID);
+			Tile* tile = App::s_Manager->NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID);
 			tile->AddGroup(EntityGroup::tile);
 
 			if (!tile)
 			{
-				tile = nullptr;
+				tile = nullptr; // not sure is it needed
 				m_FailedLoading = true;
 				App::s_Logger->AddLog("Couldn't load a tile (", false);
-				App::s_Logger->AddLog(std::to_string(x * (m_MapScale * m_TileSize)), false);
+				App::s_Logger->AddLog(std::to_string(x * m_ScaledTileSize), false);
 				App::s_Logger->AddLog(", ", false);
-				App::s_Logger->AddLog(std::to_string(y * (m_MapScale * m_TileSize)), false);
+				App::s_Logger->AddLog(std::to_string(y * m_ScaledTileSize), false);
 				App::s_Logger->AddLog(")");
 			}
 
@@ -155,16 +156,15 @@ void Level::Setup(std::ifstream& mapFile)
 		tiles.emplace_back(rowOfTiles);
 	}
 
-	layers.push_back(std::move(newLayer));
+	layers.emplace_back(std::move(newLayer));
 
 	mapFile.close();
-	//App::s_Logger->AddLog("Loaded map");
 }
 
 void Level::SetupBase(uint32_t posX, uint32_t posY)
 {
-	baseTile = App::s_Manager->NewEntity<Tile>(0, 0, posX * m_ScaledTileSize, posY * m_ScaledTileSize, m_TileSize, m_MapScale, m_BaseTextureID);
-	baseTile->AddGroup(EntityGroup::tile);
+	m_BaseTile = App::s_Manager->NewEntity<Tile>(0, 0, posX * m_ScaledTileSize, posY * m_ScaledTileSize, m_TileSize, m_MapScale, m_BaseTextureID);
+	m_BaseTile->AddGroup(EntityGroup::tile);
 
 	App::s_Logger->AddLog("Created base (", false);
 	App::s_Logger->AddLog(std::to_string(posX * m_ScaledTileSize), false);
@@ -223,6 +223,8 @@ void Level::Render()
 		}
 	}
 
+	m_BaseTile->Draw();
+
 	for (const auto& enemy : enemies)
 	{
 		enemy->Draw();
@@ -237,11 +239,9 @@ void Level::Render()
 	{
 		attacker->Draw();
 	}
-
-	baseTile->Draw();
 }
 
-Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer)
+Tile* Level::GetTileFrom(int32_t posX, int32_t posY, uint16_t layer)
 {
 	if (layer < 0 || layer >= layers.size())
 	{
@@ -250,5 +250,41 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer)
 		return nullptr;
 	}
 
+	if (posX < 0 || posX >= m_MapSizeX || posY < 0 || posY >= m_MapSizeY)
+	{
+		return nullptr;
+	}
+
 	return layers.at(layer)->GetTileFrom(posX, posY);
+}
+
+std::vector<std::vector<Tile*>> Level::GetChunkOf(Entity* entity, uint16_t range)
+{
+	if (range < 1)
+	{
+		App::s_Logger->AddLog("Requested chunk in range less than 1, range has been modified to 1");
+		range = 1;
+	}
+
+	std::vector<std::vector<Tile*>> chunk;
+	const uint16_t sizeToReserve = range * 2 + 1;
+	chunk.reserve(sizeToReserve);
+
+	int32_t posX = (int32_t)entity->GetPos().x;
+	int32_t posY = (int32_t)entity->GetPos().y;
+
+	for (int32_t y = -range; y < range; y++)
+	{
+		std::vector<Tile*> rowOfTiles;
+		rowOfTiles.reserve(sizeToReserve);
+
+		for (int32_t x = -range; x < range; x++)
+		{
+			rowOfTiles.emplace_back(GetTileFrom(posX + x, posY + y));
+		}
+
+		chunk.emplace_back(rowOfTiles);
+	}
+
+	return chunk;
 }

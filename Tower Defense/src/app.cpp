@@ -16,6 +16,8 @@ SDL_Event App::s_Event;
 SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WINDOW_HEIGHT };
 
 Level* App::s_CurrentLevel = nullptr;
+
+int32_t App::s_TowerRange = 2;
 // END
 
 auto& labels = App::s_Manager->GetGroup(EntityGroup::label);
@@ -44,10 +46,12 @@ App::App()
 
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
+	App::s_Textures->AddTexture("arrow", "assets\\arrow.png");
 	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
-	App::s_Textures->AddFont("default", "assets\\ThaleahFat.ttf", 20);
+	App::s_Textures->AddFont("default", "assets\\F25_Bank_Printer.ttf", 16);
+	//App::s_Textures->AddFont("default", "assets\\ThaleahFat.ttf", 20);
 
 	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);
@@ -132,6 +136,19 @@ void App::EventHandler()
 			{
 				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
 				enemy->Move(Vector2D(0.0f, -1.0f));
+
+				/*std::vector<std::vector<Tile*>> chunk = s_CurrentLevel->GetChunkOf(enemy, 2);
+
+				for (const auto& row : chunk)
+				{
+					for (const auto& tile : row)
+					{
+						if (tile)
+							s_Logger->AddLog("(" + std::to_string(tile->GetPos().x) + ", " + std::to_string(tile->GetPos().y) + ")");
+						else
+							s_Logger->AddLog("missing tile");
+					}
+				}*/
 			}
 			break;
 		case SDLK_DOWN:
@@ -280,12 +297,4 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
 	App::s_Logger->AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
-}
-
-// probably ready to remove, don't need this
-Tile* App::AddTile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID)
-{
-	Tile* tile = App::s_Manager->NewEntity<Tile>(srcX, srcY, posX, posY, tileSize, tileScale, textureID);
-	tile->AddGroup(EntityGroup::tile);
-	return tile;
 }

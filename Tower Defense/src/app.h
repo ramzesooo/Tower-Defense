@@ -42,6 +42,7 @@ public:
 	static SDL_FRect s_Camera;
 
 	static class Level* s_CurrentLevel;
+	static int32_t s_TowerRange;
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;

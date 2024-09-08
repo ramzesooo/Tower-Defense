@@ -55,6 +55,11 @@ void TextureManager::DrawTexture(SDL_Texture* texture, const SDL_Rect& src, cons
 	SDL_RenderCopyEx(App::s_Renderer, texture, &src, &dest, NULL, NULL, SDL_FLIP_NONE);
 }
 
+void TextureManager::DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle, SDL_RendererFlip flip)
+{
+	SDL_RenderCopyEx(App::s_Renderer, texture, &src, &dest, angle, NULL, flip);
+}
+
 SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
 {
 	auto it = textures.find(textureID);

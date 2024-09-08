@@ -35,12 +35,13 @@ public:
 	// [0][1]
 	// [2][3]
 	// 
-	// Tower position depends on Vector2D and it is scaled by class Tower to tiles' size
+	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
 	void AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
 
+	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
 	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }
 
 	void Render();
@@ -52,8 +53,14 @@ public:
 
 	bool DidLoadingFail() const { return m_FailedLoading; }
 
-	Tile* GetBase() const { return baseTile; }
-	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0);
+	Tile* GetBase() const { return m_BaseTile; }
+
+	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't texist
+	Tile* GetTileFrom(int32_t posX, int32_t posY, uint16_t layer = 0);
+
+	// Chunk can contain nullptr as a tile which means it's out of a map
+	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
+	std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
 
 	const int32_t m_MapSizeX = 50;
 	const int32_t m_MapSizeY = 50;
@@ -64,7 +71,7 @@ private:
 	bool m_FailedLoading = false;
 	std::string_view m_TextureID = "mapSheet";
 	std::string_view m_BaseTextureID = "base";
-	Tile* baseTile = nullptr;
+	Tile* m_BaseTile = nullptr;
 	uint16_t m_LevelID = 0;
 	std::vector<std::unique_ptr<Layer>> layers;
 	std::vector<Entity*>& towers;
