@@ -77,4 +77,5 @@ private:
 	std::vector<Entity*>& towers;
 	std::vector<Entity*>& attackers;
 	std::vector<Entity*>& enemies;
+	std::vector<Entity*>& projectiles;
 };

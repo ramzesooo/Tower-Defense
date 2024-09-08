@@ -46,7 +46,7 @@ App::App()
 
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures->AddTexture("arrow", "assets\\arrow.png");
+	App::s_Textures->AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 

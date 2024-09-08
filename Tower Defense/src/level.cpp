@@ -5,7 +5,8 @@
 #include <sstream>
 
 Level::Level() 
-	: towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy))
+	: towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy)),
+	projectiles(App::s_Manager->GetGroup(EntityGroup::projectile))
 {}
 
 // This one Setup is probably unnecessary anymore
@@ -238,6 +239,11 @@ void Level::Render()
 	for (const auto& attacker : attackers)
 	{
 		attacker->Draw();
+	}
+
+	for (const auto& projectile : projectiles)
+	{
+		projectile->Draw();
 	}
 }
 

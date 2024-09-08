@@ -39,7 +39,6 @@ private:
 	Tower& m_OccupiedTower;
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;
-	SDL_Texture* m_ArrowTexture = nullptr;
 	uint16_t m_Scale = 1;
 	Vector2D m_Pos;
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
@@ -52,5 +51,5 @@ private:
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
-	std::vector<std::unique_ptr<Projectile>> projectiles;
+	std::vector<Entity*>& projectiles;
 };

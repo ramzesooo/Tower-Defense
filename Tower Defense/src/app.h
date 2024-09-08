@@ -4,6 +4,7 @@
 #include "entity/tile.h"
 #include "entity/attacker.h"
 #include "entity/enemy.h"
+#include "entity/projectile.h"
 #include "level.h"
 #include "textureManager.h"
 #include "logger.h"
@@ -70,6 +71,16 @@ public:
 		{
 		case EnemyType::elf:
 			return "enemyElf";
+		}
+		return "";
+	}
+
+	static inline std::string_view TextureOf(ProjectileType type)
+	{
+		switch (type)
+		{
+		case ProjectileType::arrow:
+			return "projectileArrow";
 		}
 		return "";
 	}
