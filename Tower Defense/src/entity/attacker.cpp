@@ -40,7 +40,6 @@ void Attacker::Update()
 			m_NextShot = SDL_GetTicks() + shotCooldown;
 			Projectile* projectile = App::s_Manager->NewEntity<Projectile>(ProjectileType::arrow, this, m_Target);
 			projectile->AddGroup(EntityGroup::projectile);
-			printf("time to shoot!\n");
 		}
 	}
 
