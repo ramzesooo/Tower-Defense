@@ -72,7 +72,7 @@ App::App()
 	}
 	else
 	{
-		LoadLevel(7, 7);
+		LoadLevel(3, 3);
 
 		auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "dupa", App::s_Textures->GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
@@ -102,8 +102,12 @@ App::App()
 
 App::~App()
 {
-	SDL_DestroyRenderer(App::s_Renderer);
-	SDL_DestroyWindow(m_Window);
+	if (App::s_Renderer)
+		SDL_DestroyRenderer(App::s_Renderer);
+
+	if (m_Window)
+		SDL_DestroyWindow(m_Window);
+
 	SDL_Quit();
 }
 
@@ -137,19 +141,6 @@ void App::EventHandler()
 			{
 				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
 				enemy->Move(Vector2D(0.0f, -1.0f));
-
-				/*std::vector<std::vector<Tile*>> chunk = s_CurrentLevel->GetChunkOf(enemy, 2);
-
-				for (const auto& row : chunk)
-				{
-					for (const auto& tile : row)
-					{
-						if (tile)
-							s_Logger->AddLog("(" + std::to_string(tile->GetPos().x) + ", " + std::to_string(tile->GetPos().y) + ")");
-						else
-							s_Logger->AddLog("missing tile");
-					}
-				}*/
 			}
 			break;
 		case SDLK_DOWN:

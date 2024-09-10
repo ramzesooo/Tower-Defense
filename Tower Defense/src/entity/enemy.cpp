@@ -5,7 +5,8 @@
 
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
-	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos), towers(App::s_Manager->GetGroup(EntityGroup::tower))
+	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
+	towers(App::s_Manager->GetGroup(EntityGroup::tower))
 {
 	destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
@@ -32,12 +33,27 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	PlayAnim("Idle");
 }
 
+Enemy::~Enemy()
+{
+	for (const auto& projectile : projectiles)
+	{
+		projectile->UpdateTarget(nullptr);
+	}
+}
+
 void Enemy::Update()
 {
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_AnimSpeed) % m_AnimFrames);
 	srcRect.y = m_AnimIndex * Enemy::s_EnemyHeight;
 
-	UpdateMovement();
+	if (IsMoving())
+	{
+		UpdateMovement();
+	}
+	else if (m_AnimID == "Walk")
+	{
+		PlayAnim("Idle");
+	}
 
 	Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
@@ -78,12 +94,14 @@ void Enemy::PlayAnim(std::string_view animID)
 		return;
 	}
 
+	m_AnimID = animID;
+
 	m_AnimFrames = it->second.frames;
 	m_AnimIndex = it->second.index;
 	m_AnimSpeed = it->second.speed;
 }
 
-void Enemy::Move(Vector2D destination)
+/*void Enemy::Move(Vector2D destination)
 {
 	// Wait for current movement to finish, before making another one
 	if (IsMoving())
@@ -125,6 +143,68 @@ void Enemy::Move(Vector2D destination)
 		m_Destination.y = 0.0f;
 		m_Velocity.y = 0.0f;
 	}
+}*/
+
+void Enemy::Move(Vector2D destination)
+{
+	if (IsMoving())
+	{
+		return;
+	}
+
+	// destination should be rounded in case it will get some digits after a comma
+	// to avoid improper rendering like between of 2 tiles
+	destination.x = roundf(destination.x);
+	destination.y = roundf(destination.y);
+
+	m_Destination.x = m_Pos.x + destination.x;
+	m_Destination.y = m_Pos.y + destination.y;
+
+	// block moving outside of map
+	if (m_Destination.x < 0.0f)
+	{
+		m_Destination.x = 0.0f;
+		destination.x = 0.0f;
+	}
+
+	if (m_Destination.y < 0.0f)
+	{
+		m_Destination.y = 0.0f;
+		destination.x = 0.0f;
+	}
+
+	if (destination.x < 0.0f)
+	{
+		m_Velocity.x = -s_MovementSpeed;
+	}
+	else if (destination.x > 0.0f)
+	{
+		m_Velocity.x = s_MovementSpeed;
+	}
+	else
+	{
+		m_Velocity.x = 0.0f;
+	}
+
+	if (destination.y < 0.0f)
+	{
+		m_Velocity.y = -s_MovementSpeed;
+	}
+	else if (destination.y > 0.0f)
+	{
+		m_Velocity.y = s_MovementSpeed;
+	}
+	else
+	{
+		m_Velocity.y = 0.0f;
+	}
+
+	// TODO:
+	// Make more needed animations for walking and code it right for every direction
+	if (IsMoving())
+	{
+		PlayAnim("Walk");
+	}
 }
 
 void Enemy::Move(float destinationX, float destinationY)
@@ -133,6 +213,31 @@ void Enemy::Move(float destinationX, float destinationY)
 }
 
 void Enemy::UpdateMovement()
+{
+	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
+	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
+
+	if (fabs(m_Pos.x - m_Destination.x) < 0.05f)
+	{
+		m_Velocity.x = 0.0f;
+	}
+
+	if (fabs(m_Pos.y - m_Destination.y) < 0.05f)
+	{
+		m_Velocity.y = 0.0f;
+	}
+
+	if (!IsMoving())
+	{
+		PlayAnim("Idle");
+		m_Pos.x = roundf(m_Pos.x);
+		m_Pos.y = roundf(m_Pos.y);
+		m_Destination.x = roundf(m_Destination.x);
+		m_Destination.y = roundf(m_Destination.y);
+	}
+}
+
+/*void Enemy::UpdateMovement()
 {
 	// Movement should be updated only if velocity is different than 0
 	if (!IsMoving())
@@ -178,18 +283,6 @@ void Enemy::UpdateMovement()
 		}
 	}
 
-	if (m_Destination.x < 0.0f)
-	{
-		m_Destination.x = 0.0f;
-		m_Velocity.x = 0.0f;
-	}
-
-	if (m_Destination.y < 0.0f)
-	{
-		m_Destination.y = 0.0f;
-		m_Velocity.y = 0.0f;
-	}
-
 	if (m_Velocity.x == 0.0f && m_Velocity.y == 0.0f)
 	{
 		PlayAnim("Idle");
@@ -198,7 +291,7 @@ void Enemy::UpdateMovement()
 		m_Destination.x = trunc(m_Destination.x);
 		m_Destination.y = trunc(m_Destination.y);
 	}
-}
+}*/
 
 bool Enemy::IsTowerInRange(Tower* tower, int32_t range) const
 {
@@ -232,4 +325,29 @@ bool Enemy::IsTowerInRange(Tower* tower, int32_t range) const
 	}
 
 	return false;
+}
+
+void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
+{
+	Projectile* projectile = App::s_Manager->NewEntity<Projectile>(type, projectileOwner, this);
+	projectile->AddGroup(EntityGroup::projectile);
+	projectiles.push_back(projectile);
+}
+
+void Enemy::DelProjectile(Projectile* projectile)
+{
+	for (auto it = projectiles.begin(); it != projectiles.end(); it++)
+	{
+		if ((*it) != projectile)
+		{
+			continue;
+		}
+		else
+		{
+			projectiles.erase(it);
+			break;
+		}
+	}
+
+	projectile->Destroy();
 }

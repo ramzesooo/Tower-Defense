@@ -3,10 +3,10 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr int32_t shotCooldown = 300 * 4; // 400 is delay between frames in Shoot anim times 4 frames (milliseconds)
+constexpr int32_t shotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 
 Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
-	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower.GetPos()), projectiles(App::s_Manager->GetGroup(EntityGroup::projectile))
+	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower.GetPos())
 {
 	m_Pos.x += (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
@@ -32,14 +32,11 @@ void Attacker::Update()
 			m_Target = nullptr;
 			m_NextShot = NULL;
 			PlayAnim("Idle");
-			return;
 		}
-
-		if (SDL_TICKS_PASSED(ticks, m_NextShot))
+		else if (SDL_TICKS_PASSED(ticks, m_NextShot))
 		{
 			m_NextShot = SDL_GetTicks() + shotCooldown;
-			Projectile* projectile = App::s_Manager->NewEntity<Projectile>(ProjectileType::arrow, this, m_Target);
-			projectile->AddGroup(EntityGroup::projectile);
+			m_Target->AddProjectile(ProjectileType::arrow, this);
 		}
 	}
 

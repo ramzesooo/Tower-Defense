@@ -1,6 +1,5 @@
 #pragma once
 #include "entity.h"
-#include "enemy.h"
 #include "../Vector2D.h"
 
 #include "SDL.h"
@@ -12,6 +11,7 @@ enum class ProjectileType
 };
 
 class Attacker;
+class Enemy;
 
 class Projectile : public Entity
 {
@@ -20,6 +20,8 @@ public:
 
 	void Update() override;
 	void Draw() override;
+
+	void UpdateTarget(Enemy* newTarget) { m_Target = newTarget; }
 private:
 	SDL_Texture* m_Texture = nullptr;
 	double m_Angle = 360;

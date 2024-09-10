@@ -51,5 +51,4 @@ private:
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
-	std::vector<Entity*>& projectiles;
 };
