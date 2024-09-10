@@ -60,7 +60,6 @@ void Level::Setup(const std::string& path)
 			tileCode = mapData[y][x];
 			int32_t srcX = tileCode % 10;
 			int32_t srcY = tileCode / 10;
-			//Tile* tile = app.AddTile(srcX * m_TileSize, srcY * m_TileSize, x * (m_MapScale * m_TileSize), y * (m_MapScale * m_TileSize), m_TileSize, m_MapScale, m_TextureID);
 			Tile* tile = App::s_Manager->NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID);
 			tile->AddGroup(EntityGroup::tile);
 

@@ -3,6 +3,8 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
+#include <chrono>
+
 int main(int argc, char** arg)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -21,6 +23,11 @@ int main(int argc, char** arg)
 	constexpr uint32_t logsCooldown = 500;
 	uint32_t logsTime = SDL_GetTicks() + logsCooldown;
 
+	auto tp1 = std::chrono::system_clock::now();
+	auto tp2 = std::chrono::system_clock::now();
+
+	float fElapsedTime = NULL;
+
 	App app;
 
 	while (app.IsRunning())
@@ -32,8 +39,13 @@ int main(int argc, char** arg)
 			logsTime = SDL_GetTicks() + logsCooldown;
 		}
 
+		tp2 = std::chrono::system_clock::now();
+		std::chrono::duration<float> elapsedTime = tp2 - tp1;
+		tp1 = tp2;
+		fElapsedTime = elapsedTime.count();
+
 		app.EventHandler();
-		app.Update();
+		app.Update(fElapsedTime);
 		app.Render();
 	}
 

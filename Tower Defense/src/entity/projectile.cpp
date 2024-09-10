@@ -4,7 +4,7 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr float baseVelocity = 0.3f;
+constexpr float baseVelocity = 100.0f;
 
 Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
@@ -23,8 +23,8 @@ void Projectile::Update()
 		return;
 	}
 
-	if (m_Pos.x >= m_Destination.x - m_Velocity.x && m_Pos.x <= m_Destination.x + m_Velocity.x
-		&& m_Pos.y >= m_Destination.y - m_Velocity.y && m_Pos.y <= m_Destination.y + m_Velocity.y)
+	if (m_Pos.x >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
+		&& m_Pos.y >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))
 	{
 		Destroy();
 		return;
@@ -32,8 +32,8 @@ void Projectile::Update()
 
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
-	m_Destination.x = m_Target->GetPos().x * scaledTileSize;
-	m_Destination.y = m_Target->GetPos().y * scaledTileSize - round(float(scaledTileSize) / 2.0f);
+	m_Destination.x = m_Target->GetPos().x * scaledTileSize - float(scaledTileSize) / 2.0f;
+	m_Destination.y = m_Target->GetPos().y * scaledTileSize - float(scaledTileSize) / 2.0f;
 
 	if (m_Destination.x < trunc(m_Pos.x))
 	{
@@ -64,63 +64,34 @@ void Projectile::Update()
 	// TODO:
 	// Change the way velocity and texture drawing has been done
 	// Remove all those if statements and replace it with correct math
-	if (m_Velocity.y == 0.0f)
+	if (m_Velocity.y == 0.0f && m_Velocity.x == 0.0f)
 	{
-		if (m_Velocity.x == 0.0f)
-		{
-			Destroy();
-			return;
-		}
-		else if (m_Velocity.x > 0.0f)
-		{
-			m_TextureFlip = SDL_FLIP_NONE;
-			m_Angle = 90;
-		}
-		else
-		{
-			m_TextureFlip = SDL_FLIP_NONE;
-			m_Angle = 270;
-		}
+		Destroy();
+		return;
 	}
-	else if (m_Velocity.y > 0.0f)
+
+	double dx = m_Destination.x - m_Pos.x;
+	double dy = m_Destination.y - m_Pos.y;
+	
+	// If angle is equal to zero, then it supposed to be directed into right
+	// std::atan2(dy, dx) returns radian
+	// To convert it to degrees it has to be multiplied by 180 and divided by PI
+	double angle = std::atan2(dy, dx) * 180.0f / M_PI;
+
+	/*if (angle < 0)
 	{
-		if (m_Velocity.x == 0.0f)
-		{
-			m_TextureFlip = SDL_FLIP_VERTICAL;
-			m_Angle = 0;
-		}
-		else if (m_Velocity.x > 0.0f)
-		{
-			m_TextureFlip = SDL_FLIP_VERTICAL;
-			m_Angle = 315;
-		}
-		else
-		{
-			m_TextureFlip = SDL_FLIP_VERTICAL;
-			m_Angle = 45;
-		}
+		angle += 360;
+		m_TextureFlip = SDL_FLIP_VERTICAL;
 	}
 	else
 	{
-		if (m_Velocity.x == 0.0f)
-		{
-			m_TextureFlip = SDL_FLIP_NONE;
-			m_Angle = 0;
-		}
-		else if (m_Velocity.x > 0.0f)
-		{
-			m_TextureFlip = SDL_FLIP_NONE;
-			m_Angle = 45;
-		}
-		else
-		{
-			m_TextureFlip = SDL_FLIP_NONE;
-			m_Angle = 315;
-		}
-	}
+		m_TextureFlip = SDL_FLIP_NONE;
+	}*/
+	
+	m_Angle = angle;
 
-	m_Pos.x += m_Velocity.x;
-	m_Pos.y += m_Velocity.y;
+	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
+	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
 	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2;
 	destRect.y = (int32_t)m_Pos.y;

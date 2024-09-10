@@ -1,6 +1,5 @@
 #include "app.h"
 
-#include <typeinfo>
 #include <fstream>
 
 // class App STATIC VARIABLES
@@ -18,6 +17,8 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 Level* App::s_CurrentLevel = nullptr;
 
 int32_t App::s_TowerRange = 2;
+
+float App::s_ElapsedTime = NULL;
 // END
 
 auto& labels = App::s_Manager->GetGroup(EntityGroup::label);
@@ -191,6 +192,15 @@ void App::EventHandler()
 			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			OnResolutionChange();
 			break;
+		case SDLK_F5:
+			{
+				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
+				if (enemy)
+				{
+					enemy->Destroy();
+				}
+			}
+			break;
 		case SDLK_F11:
 			if (m_IsFullscreen)
 			{
@@ -217,8 +227,10 @@ void App::EventHandler()
 	}
 }
 
-void App::Update()
+void App::Update(float fElapsedTime)
 {
+	App::s_ElapsedTime = fElapsedTime;
+
 	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
 	
 	if (label)

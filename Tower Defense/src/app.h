@@ -22,7 +22,7 @@ public:
 	~App();
 
 	void EventHandler();
-	void Update();
+	void Update(float elapsedTime);
 	void Render();
 
 	void UpdateCamera();
@@ -44,6 +44,7 @@ public:
 
 	static class Level* s_CurrentLevel;
 	static int32_t s_TowerRange;
+	static float s_ElapsedTime;
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
@@ -84,9 +85,6 @@ public:
 		}
 		return "";
 	}
-
-	// probably don't need this since tiles are added directly in class Level in Setup()
-	Tile* AddTile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID);
 private:
 	std::vector<std::unique_ptr<Level>> levels;
 // LEVEL SECTION END

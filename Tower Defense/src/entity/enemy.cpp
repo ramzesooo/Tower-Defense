@@ -219,9 +219,9 @@ bool Enemy::IsTowerInRange(Tower* tower, int32_t range) const
 
 	// Tower's position is based on left-upper tile occupied by the tower
 
-	for (int y = 0; y <= 1; y++)
+	for (int y = 0; y < 2; y++)
 	{
-		for (int x = 0; x <= 1; x++)
+		for (int x = 0; x < 2; x++)
 		{
 			if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
 				&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
