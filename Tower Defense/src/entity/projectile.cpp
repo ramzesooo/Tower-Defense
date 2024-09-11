@@ -14,6 +14,16 @@ Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 {
 	destRect.x = (int32_t)m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2;
 	destRect.y = (int32_t)m_Pos.y;
+
+	switch (type)
+	{
+	case ProjectileType::arrow:
+		m_Damage = 5;
+		break;
+	default:
+		m_Damage = 0;
+		break;
+	}
 }
 
 void Projectile::Update()
@@ -30,10 +40,10 @@ void Projectile::Update()
 		return;
 	}
 
-	if (m_Pos.x >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
-		&& m_Pos.y >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))
+	if (m_Pos.x + (float)destRect.w >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x - (float)destRect.w <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
+		&& m_Pos.y + (float)destRect.h >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y - (float)destRect.h <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))
 	{
-		m_Target->DelProjectile(this);
+		m_Target->DelProjectile(this, true);
 		return;
 	}
 
@@ -59,13 +69,10 @@ void Projectile::Update()
 	{
 		m_Velocity.y = m_Destination.y > trunc(m_Pos.y) ? baseVelocity : -baseVelocity;
 	}
-
-	// TODO:
-	// Change the way velocity has been done
-	// Remove all those if statements and replace it with correct math
+	
 	if (m_Velocity.y == 0.0f && m_Velocity.x == 0.0f)
 	{
-		m_Target->DelProjectile(this);
+		m_Target->DelProjectile(this, true);
 		return;
 	}
 
@@ -86,5 +93,5 @@ void Projectile::Update()
 
 void Projectile::Draw()
 {
-	TextureManager::DrawTexture(m_Texture, srcRect, destRect, m_Angle, m_TextureFlip);
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect, m_Angle, SDL_FLIP_NONE);
 }

@@ -58,6 +58,7 @@ public:
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't texist
 	Tile* GetTileFrom(int32_t posX, int32_t posY, uint16_t layer = 0);
 
+	// NOTE: It's not used anywhere and probably it's not needed anymore.
 	// Chunk can contain nullptr as a tile which means it's out of a map
 	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
 	std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);

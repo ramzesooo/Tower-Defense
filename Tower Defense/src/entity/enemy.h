@@ -8,6 +8,15 @@
 
 #include "SDL.h"
 
+struct RectHP
+{
+	static constexpr SDL_Rect srcRect{ 0, 0, 32, 32 };
+	SDL_FRect squareRect{ 0.0f, 0.0f, 32.0f, 32.0f };
+	SDL_FRect barRect{ 0.0f, 0.0f, 32.0f, 32.0f };
+	SDL_Texture* squareTexture = nullptr;
+	SDL_Texture* greenTexture = nullptr;
+};
+
 enum class EnemyType
 {
 	elf = 0,
@@ -20,6 +29,8 @@ class Enemy : public Entity
 {
 public:
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
+
+	// Enemy destructor destroys all projectiles targeting the destroyed enemy
 	~Enemy();
 
 	void Update() override;
@@ -41,28 +52,42 @@ public:
 	void UpdateMovement();
 
 	// Returns true if specific tower has been found in forwarded range
-	// range works from x: -range, y: -range to: x: range, y: range
+	// Range works in loop for every tower's tile
+	// And searches towers from x: -range, y: -range to: x: range, y: range
 	bool IsTowerInRange(Tower* tower, int32_t range = 2) const;
 
 	void AddProjectile(ProjectileType type, Attacker* projectileOwner);
-	void DelProjectile(Projectile* projectile);
+
+	// DelProjectile should be always triggered to destroy it
+	// Only one exception is in case when Enemy object has been destroyed before
+	// Or projectile somehow has no assigned Enemy object
+	// IsHit is responsible for executing appropriate code for hitting target
+	void DelProjectile(Projectile* projectile, bool IsHit = false);
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
-	static constexpr float s_MovementSpeed = 2.0f;
+	static constexpr float s_MovementSpeed = 4.0f;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
+
+	// m_Pos for Enemy is based on tiles' count and it's scaled with tiles' size only while rendering in destRect.x and destRect.y
 	Vector2D m_Pos;
+
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
-	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
+	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 }, hp;
 	uint16_t m_Scale = 1;
 
 	Tile* m_OccupiedTile = nullptr;
 	std::vector<Entity*>& towers;
-	std::vector<Projectile*> projectiles; // contains all projectiles targeting this enemy
 
+	// Local vector for every enemy object
+	// Contains all projectiles targeting this enemy
+	std::vector<Projectile*> projectiles;
+
+	RectHP m_RectHP;
 	uint16_t m_HP = 100;
+	uint16_t m_MaxHP = 100;
 
 	std::string_view m_AnimID;
 	int32_t m_AnimIndex = 0;

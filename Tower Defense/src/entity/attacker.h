@@ -40,7 +40,12 @@ private:
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;
 	uint16_t m_Scale = 1;
+
+	// m_Pos for Attacker is taken from appropriate tower and it's already scaled with tiles' size
+	// The difference is (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f has been added to m_Pos.x
+	// to make it look more like it's on the tower
 	Vector2D m_Pos;
+
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 
 	int32_t m_AnimIndex = 0;

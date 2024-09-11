@@ -20,8 +20,15 @@ public:
 
 	void AddTexture(std::string_view textureID, const char* path);
 	void DrawTexture(std::string_view textureID);
-	static void DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest);
-	static void DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle, SDL_RendererFlip flip);
+
+	// DrawTexture is responsible for drawing rectangles with integer values
+	// angle is NULL and flip is SDL_FLIP_NONE by default
+	static void DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+
+	// DrawTextureF is responsible for drawing rectangles with float values
+	// angle is NULL and flip is SDL_FLIP_NONE by default
+	static void DrawTextureF(SDL_Texture* texture, const SDL_Rect& src, const SDL_FRect& dest, double angle = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+
 	SDL_Texture* GetTexture(std::string_view textureID) const;
 
 	void AddFont(std::string_view fontID, const char* path, uint16_t fontSize);
