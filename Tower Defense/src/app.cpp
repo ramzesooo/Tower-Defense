@@ -21,6 +21,7 @@ int32_t App::s_TowerRange = 2;
 float App::s_ElapsedTime = NULL;
 // END
 
+auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
 auto& labels = App::s_Manager->GetGroup(EntityGroup::label);
 
 App::App()

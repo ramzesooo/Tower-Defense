@@ -23,6 +23,7 @@ class Attacker : public Entity
 {
 public:
 	Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
+	~Attacker();
 
 	void Update() override;
 	void Draw() override;
@@ -35,8 +36,10 @@ public:
 	// All this method does is playing animation and setting up cooldown at m_NextShoot
 	// And the true code for attacking happens in Update()
 	void InitAttack(Enemy* target);
+	void StopAttacking();
 
 	Enemy* GetTarget() const { return m_Target; }
+	void SetTarget(Enemy* target) { m_Target = target; }
 private:
 	static constexpr int32_t s_AttackerWidth = 32;
 	static constexpr int32_t s_AttackerHeight = 32;

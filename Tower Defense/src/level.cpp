@@ -242,11 +242,6 @@ void Level::Render()
 
 	for (const auto& projectile : projectiles)
 	{
-		if (!projectile || !projectile->IsActive())
-		{
-			continue;
-		}
-
 		projectile->Draw();
 	}
 }

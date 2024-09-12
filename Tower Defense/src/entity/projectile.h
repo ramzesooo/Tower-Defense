@@ -21,9 +21,14 @@ public:
 	void Update() override;
 	void Draw() override;
 
-	void UpdateTarget(Enemy* newTarget) { m_Target = newTarget; }
+	void SetOwner(Attacker* owner) { m_Owner = owner; }
+
+	Enemy* GetTarget() const { return m_Target; }
+	Attacker* GetOwner() const { return m_Owner; }
 
 	uint16_t GetDamage() const { return m_Damage; }
+
+	bool m_ToDestroy = false;
 private:
 	static constexpr float baseVelocity = 130.0f;
 	SDL_Texture* m_Texture = nullptr;

@@ -46,7 +46,11 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 
 Tower::~Tower()
 {
-	m_Attacker->Destroy();
+	if (m_Attacker)
+	{
+		m_Attacker->Destroy();
+		m_Attacker = nullptr;
+	}
 }
 
 void Tower::Update()

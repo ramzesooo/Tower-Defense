@@ -3,7 +3,7 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr int32_t shotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
+constexpr int32_t shotCooldown = 300 * 4 + 150; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 
 Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
 	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower.GetPos())
@@ -21,17 +21,45 @@ Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture
 	PlayAnim("Idle");
 }
 
+Attacker::~Attacker()
+{
+	m_Target = nullptr;
+
+	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
+
+	for (const auto& projectile : projectiles)
+	{
+		if (!projectile->IsActive())
+		{
+			continue;
+		}
+
+		Projectile* p = static_cast<Projectile*>(projectile);
+		if (!p->GetOwner())
+		{
+			p->Destroy();
+			continue;
+		}
+
+		if (p->GetOwner() != this)
+		{
+			continue;
+		}
+
+		p->SetOwner(nullptr);
+		p->Destroy();
+	}
+}
+
 void Attacker::Update()
 {
 	uint32_t ticks = SDL_GetTicks();
 
 	if (m_Target)
 	{
-		if (!m_Target->IsTowerInRange(&m_OccupiedTower, App::s_TowerRange) || !m_Target->IsActive())
+		if (!m_Target->IsActive() || !m_Target->IsTowerInRange(&m_OccupiedTower, App::s_TowerRange))
 		{
-			m_Target = nullptr;
-			m_NextShot = NULL;
-			PlayAnim("Idle");
+			StopAttacking();
 		} 
 		else if (SDL_TICKS_PASSED(ticks, m_NextShot))
 		{
@@ -85,4 +113,11 @@ void Attacker::InitAttack(Enemy* target)
 	m_Target = target;
 
 	PlayAnim("Shoot");
+}
+
+void Attacker::StopAttacking()
+{
+	m_Target = nullptr;
+	m_NextShot = NULL;
+	PlayAnim("Idle");
 }

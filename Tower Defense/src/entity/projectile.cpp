@@ -26,17 +26,29 @@ Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 
 void Projectile::Update()
 {
-	if (!m_Target || !m_Target->IsActive())
-	{
-		Destroy();
-		return;
-	}
-
 	if (!m_Owner || !m_Owner->IsActive())
 	{
 		m_Target->DelProjectile(this);
 		return;
 	}
+
+	if (m_ToDestroy)
+	{
+		Destroy();
+		return;
+	}
+
+
+	/*if (m_Owner->GetTarget() != m_Target)
+	{
+		m_Target = m_Owner->GetTarget();
+	}
+
+	if (!m_Target || !m_Target->IsActive())
+	{
+		Destroy();
+		return;
+	}*/
 
 	if (m_Pos.x + (float)destRect.w >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x - (float)destRect.w <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
 		&& m_Pos.y + (float)destRect.h >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y - (float)destRect.h <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))

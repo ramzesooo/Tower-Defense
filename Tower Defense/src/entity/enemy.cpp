@@ -40,17 +40,48 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_AttachedLabel = App::s_Manager->NewEntity<Label>(0, 0, "-0", App::s_Textures->GetFont("hpBar"), SDL_Color(255, 255, 255, 255));
+	m_AttachedLabel = App::s_Manager->NewEntity<Label>(0, 0, "-0", App::s_Textures->GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
 	m_AttachedLabel->AddGroup(EntityGroup::label);
 }
 
 Enemy::~Enemy()
 {
-	m_AttachedLabel->Destroy();
-
-	for (const auto& projectile : projectiles)
+	if (m_AttachedLabel)
 	{
-		projectile->UpdateTarget(nullptr);
+		m_AttachedLabel->m_AttachedTo = nullptr;
+		m_AttachedLabel->Destroy();
+	}
+
+	auto& attackers = App::s_Manager->GetGroup(EntityGroup::attacker);
+	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
+	
+	{
+		Attacker* attacker = nullptr;
+
+		for (const auto& a : attackers)
+		{
+			attacker = static_cast<Attacker*>(a);
+
+			if (attacker->GetTarget() != this)
+			{
+				continue;
+			}
+
+			attacker->StopAttacking();
+		}
+	}
+
+	{
+		Projectile* projectile = nullptr;
+		for (const auto& p : projectiles)
+		{
+			projectile = static_cast<Projectile*>(p);
+
+			if (projectile->GetTarget() == this)
+			{
+				projectile->m_ToDestroy = true;
+			}
+		}
 	}
 }
 
@@ -84,15 +115,24 @@ void Enemy::Update()
 		newOccupiedTile->SetOccupyingEntity(this);
 	}
 
-	for (const auto& tower : towers)
 	{
-		if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+		Attacker* attacker = nullptr;
+		for (const auto& tower : towers)
 		{
-			continue;
-		}
+			attacker = static_cast<Tower*>(tower)->GetAttacker();
 
-		Attacker* attacker = static_cast<Tower*>(tower)->GetAttacker();
-		attacker->InitAttack(this);
+			if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+			{
+				if (attacker->GetTarget() == this)
+				{
+					attacker->StopAttacking();
+				}
+
+				continue;
+			}
+
+			attacker->InitAttack(this);
+		}
 	}
 
 	destRect.x = static_cast<int32_t>(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.x) - destRect.w / 8;
@@ -198,8 +238,8 @@ void Enemy::Move(Vector2D destination)
 
 	// destination should be rounded in case it will get some digits after a comma
 	// to avoid improper rendering like between of 2 tiles
-	destination.x = roundf(destination.x);
-	destination.y = roundf(destination.y);
+	destination.x = std::roundf(destination.x);
+	destination.y = std::roundf(destination.y);
 
 	m_Destination.x = m_Pos.x + destination.x;
 	m_Destination.y = m_Pos.y + destination.y;
@@ -261,12 +301,12 @@ void Enemy::UpdateMovement()
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
-	if (fabs(m_Pos.x - m_Destination.x) < s_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabs(m_Pos.x - m_Destination.x) < s_MovementSpeed * App::s_ElapsedTime)
 	{
 		m_Velocity.x = 0.0f;
 	}
 
-	if (fabs(m_Pos.y - m_Destination.y) < s_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabs(m_Pos.y - m_Destination.y) < s_MovementSpeed * App::s_ElapsedTime)
 	{
 		m_Velocity.y = 0.0f;
 	}
@@ -274,10 +314,10 @@ void Enemy::UpdateMovement()
 	if (!IsMoving())
 	{
 		PlayAnim("Idle");
-		m_Pos.x = roundf(m_Pos.x);
-		m_Pos.y = roundf(m_Pos.y);
-		m_Destination.x = roundf(m_Destination.x);
-		m_Destination.y = roundf(m_Destination.y);
+		m_Pos.x = std::roundf(m_Pos.x);
+		m_Pos.y = std::roundf(m_Pos.y);
+		m_Destination.x = std::roundf(m_Destination.x);
+		m_Destination.y = std::roundf(m_Destination.y);
 	}
 }
 
@@ -375,11 +415,15 @@ void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
 {
 	Projectile* projectile = App::s_Manager->NewEntity<Projectile>(type, projectileOwner, this);
 	projectile->AddGroup(EntityGroup::projectile);
-	projectiles.push_back(projectile);
 }
 
 void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 {
+	if (!projectile)
+	{
+		return;
+	}
+
 	if (IsHit)
 	{
 		uint16_t dmg = projectile->GetDamage();
@@ -391,19 +435,6 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 		else
 		{
 			m_HP = 0;
-		}
-	}
-
-	for (auto it = projectiles.begin(); it != projectiles.end(); it++)
-	{
-		if ((*it) != projectile)
-		{
-			continue;
-		}
-		else
-		{
-			projectiles.erase(it);
-			break;
 		}
 	}
 

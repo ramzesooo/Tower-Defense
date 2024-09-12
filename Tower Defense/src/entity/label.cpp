@@ -1,8 +1,8 @@
 #include "label.h"
 #include "../app.h"
 
-Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, SDL_Color color)
-	: m_Text(text), m_Font(font), m_Color(color)
+Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, SDL_Color color, Entity* attachedTo)
+	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)
 {
 	destRect.x = posX;
 	destRect.y = posY;
@@ -12,6 +12,14 @@ Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, 
 	SDL_FreeSurface(surface);
 
 	SDL_QueryTexture(m_Texture, nullptr, nullptr, &destRect.w, &destRect.h);
+}
+
+Label::~Label()
+{
+	if (m_AttachedTo)
+	{
+		m_AttachedTo->m_AttachedLabel = nullptr;
+	}
 }
 
 void Label::Draw()

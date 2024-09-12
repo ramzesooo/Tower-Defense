@@ -85,10 +85,6 @@ private:
 	Tile* m_OccupiedTile = nullptr;
 	std::vector<Entity*>& towers;
 
-	// Local vector for every enemy object
-	// Contains all projectiles targeting this enemy
-	std::vector<Projectile*> projectiles;
-
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;
 	uint16_t m_MaxHP = 0;
