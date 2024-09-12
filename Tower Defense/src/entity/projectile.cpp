@@ -5,8 +5,6 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr float baseVelocity = 100.0f;
-
 Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetPos().x * App::s_CurrentLevel->m_ScaledTileSize, target->GetPos().y * App::s_CurrentLevel->m_ScaledTileSize), 
@@ -76,16 +74,25 @@ void Projectile::Update()
 		return;
 	}
 
+	Vector2D fixedVelocity(m_Velocity);
+
+	float magnitude = std::sqrtf(m_Velocity.x * m_Velocity.x + m_Velocity.y * m_Velocity.y);
+	if (magnitude > 0)
+	{
+		fixedVelocity.x /= magnitude;
+		fixedVelocity.y /= magnitude;
+	}
+
+	m_Pos.x += (m_Velocity.x + fixedVelocity.x) * App::s_ElapsedTime;
+	m_Pos.y += (m_Velocity.y + fixedVelocity.y) * App::s_ElapsedTime;
+
 	double dx = m_Destination.x - m_Pos.x;
 	double dy = m_Destination.y - m_Pos.y;
-	
+
 	// If angle is equal to zero, then it is supposed to be directed into right
 	// std::atan2(dy, dx) returns radian
 	// To convert it to degrees it has to be multiplied by 180 and divided by PI
 	m_Angle = std::atan2(dy, dx) * 180.0f / M_PI;
-
-	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
-	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
 	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2;
 	destRect.y = (int32_t)m_Pos.y + destRect.h / 2;

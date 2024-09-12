@@ -48,13 +48,3 @@ void Manager::Update()
 		e->Update();
 	}
 }
-
-void Manager::AddToGroup(Entity* entity, EntityGroup group)
-{
-	groupedEntities[(std::size_t)group].emplace_back(entity);
-}
-
-std::vector<Entity*>& Manager::GetGroup(EntityGroup group)
-{
-	return groupedEntities[(std::size_t)group];
-}

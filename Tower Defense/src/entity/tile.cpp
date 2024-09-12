@@ -28,6 +28,5 @@ void Tile::Update()
 
 void Tile::Draw()
 {
-	//App::s_Textures->DrawTexture(m_TextureID);
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }

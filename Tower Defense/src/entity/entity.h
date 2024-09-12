@@ -56,9 +56,9 @@ public:
 	void Refresh();
 	void Update();
 
-	void AddToGroup(Entity* entity, EntityGroup group);
+	void AddToGroup(Entity* entity, EntityGroup group) { groupedEntities[(std::size_t)group].emplace_back(entity); }
 
-	std::vector<Entity*>& GetGroup(EntityGroup group);
+	std::vector<Entity*>& GetGroup(EntityGroup group) { return groupedEntities[(std::size_t)group]; }
 
 	template<class T, class... Args>
 	T* NewEntity(Args&&... args)
@@ -66,7 +66,6 @@ public:
 		entities.push_back(std::make_unique<T>(std::forward<Args>(args)...));
 		return (T*)entities.back().get();
 	}
-
 private:
 	std::vector<std::unique_ptr<Entity>> entities;
 	std::array<std::vector<Entity*>, (std::size_t)EntityGroup::size> groupedEntities;

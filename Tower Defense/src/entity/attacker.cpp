@@ -32,7 +32,7 @@ void Attacker::Update()
 			m_Target = nullptr;
 			m_NextShot = NULL;
 			PlayAnim("Idle");
-		}
+		} 
 		else if (SDL_TICKS_PASSED(ticks, m_NextShot))
 		{
 			m_NextShot = SDL_GetTicks() + shotCooldown;

@@ -19,6 +19,8 @@ public:
 	~TextureManager();
 
 	void AddTexture(std::string_view textureID, const char* path);
+
+	// Don't need this, since there are static methods for drawing
 	void DrawTexture(std::string_view textureID);
 
 	// DrawTexture is responsible for drawing rectangles with integer values

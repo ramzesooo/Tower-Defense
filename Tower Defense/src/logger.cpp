@@ -14,11 +14,6 @@ void Logger::AddLog(std::string_view newLog, bool endLine)
 
 void Logger::PrintQueuedLogs()
 {
-	if (logs.size() <= 0)
-	{
-		return;
-	}
-
 	for (const auto& log : logs)
 	{
 		std::cout << log;

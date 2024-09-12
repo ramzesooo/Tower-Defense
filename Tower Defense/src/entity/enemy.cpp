@@ -30,6 +30,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 		{
 			Animation walk = Animation(1, 3, 100);
 			animations.emplace("Walk", walk);
+
+			m_HP = m_MaxHP = 200;
 		}
 		break;
 	default:
@@ -37,10 +39,15 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	}
 
 	PlayAnim("Idle");
+
+	m_AttachedLabel = App::s_Manager->NewEntity<Label>(0, 0, "-0", App::s_Textures->GetFont("hpBar"), SDL_Color(255, 255, 255, 255));
+	m_AttachedLabel->AddGroup(EntityGroup::label);
 }
 
 Enemy::~Enemy()
 {
+	m_AttachedLabel->Destroy();
+
 	for (const auto& projectile : projectiles)
 	{
 		projectile->UpdateTarget(nullptr);
@@ -49,16 +56,14 @@ Enemy::~Enemy()
 
 void Enemy::Update()
 {
-	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_AnimSpeed) % m_AnimFrames);
-	srcRect.y = m_AnimIndex * Enemy::s_EnemyHeight;
-
-	float hpPercent = ((float)m_MaxHP * (float)m_HP) / 100.0f;
-
-	if (hpPercent <= 0.0f)
+	if (m_HP <= 0)
 	{
 		Destroy();
 		return;
 	}
+
+	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_AnimSpeed) % m_AnimFrames);
+	srcRect.y = m_AnimIndex * Enemy::s_EnemyHeight;
 
 	if (IsMoving())
 	{
@@ -96,8 +101,25 @@ void Enemy::Update()
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
 
+	if (m_RectHP.squareRect.x < 0.5f)
+	{
+		m_RectHP.squareRect.x = 0.5f;
+	}
+
+	if (m_RectHP.squareRect.y < 0.5f)
+	{
+		m_RectHP.squareRect.y = 0.5f;
+	}
+
+	float hpPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+
 	m_RectHP.barRect = m_RectHP.squareRect;
-	m_RectHP.barRect.w = (m_RectHP.squareRect.w * hpPercent / 100.0f);
+	m_RectHP.barRect.w = std::abs(m_RectHP.squareRect.w / 100 * (-hpPercent));
+
+	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
+
+	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	m_AttachedLabel->UpdateText(std::to_string((int32_t)hpPercent) + "%");
 }
 
 void Enemy::Draw()
@@ -192,7 +214,7 @@ void Enemy::Move(Vector2D destination)
 	if (m_Destination.y < 0.0f)
 	{
 		m_Destination.y = 0.0f;
-		destination.x = 0.0f;
+		destination.y = 0.0f;
 	}
 
 	if (destination.x < 0.0f)
@@ -370,12 +392,6 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 		{
 			m_HP = 0;
 		}
-
-		App::s_Logger->AddLog("Enemy has " + std::to_string(m_HP) + " HP");
-	}
-	else
-	{
-		App::s_Logger->AddLog("Triggered DelProjectile without hitting");
 	}
 
 	for (auto it = projectiles.begin(); it != projectiles.end(); it++)

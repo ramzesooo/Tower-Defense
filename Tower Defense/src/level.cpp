@@ -141,7 +141,7 @@ void Level::Setup(std::ifstream& mapFile)
 
 			if (!tile)
 			{
-				tile = nullptr; // not sure is it needed
+				tile = nullptr; // probably it's not even needed
 				m_FailedLoading = true;
 				App::s_Logger->AddLog("Couldn't load a tile (", false);
 				App::s_Logger->AddLog(std::to_string(x * m_ScaledTileSize), false);
@@ -177,7 +177,7 @@ Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_
 {
 	if (!towerTexture)
 	{
-		App::s_Logger->AddLog("Tower's texture doesn't exist!");
+		App::s_Logger->AddLog("Level::AddTower: Tower's texture doesn't exist!");
 		return nullptr;
 	}
 
@@ -191,7 +191,7 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 {
 	if (!assignedTower || assignedTower->GetAttacker())
 	{
-		App::s_Logger->AddLog("Tried to add attacker to tower not existing or already having an attacker.");
+		App::s_Logger->AddLog("Tried to add attacker to not existing tower or already having an attacker.");
 		return;
 	}
 

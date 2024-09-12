@@ -54,7 +54,7 @@ App::App()
 	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
 	App::s_Textures->AddFont("default", "assets\\F25_Bank_Printer.ttf", 16);
-	//App::s_Textures->AddFont("default", "assets\\ThaleahFat.ttf", 20);
+	App::s_Textures->AddFont("hpBar", "assets\\Rostack.otf", 13);
 
 	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);

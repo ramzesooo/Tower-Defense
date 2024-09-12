@@ -2,6 +2,7 @@
 #include "entity.h"
 #include "tile.h"
 #include "projectile.h"
+#include "label.h"
 #include "anim.h"
 #include "../Vector2D.h"
 #include "../textureManager.h"
@@ -63,6 +64,9 @@ public:
 	// Or projectile somehow has no assigned Enemy object
 	// IsHit is responsible for executing appropriate code for hitting target
 	void DelProjectile(Projectile* projectile, bool IsHit = false);
+
+	void SetOccupiedTile(Tile* newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
+	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
@@ -86,8 +90,8 @@ private:
 	std::vector<Projectile*> projectiles;
 
 	RectHP m_RectHP;
-	uint16_t m_HP = 100;
-	uint16_t m_MaxHP = 100;
+	uint16_t m_HP = 0;
+	uint16_t m_MaxHP = 0;
 
 	std::string_view m_AnimID;
 	int32_t m_AnimIndex = 0;

@@ -31,7 +31,11 @@ public:
 
 	void PlayAnim(std::string_view animID);
 
+	// InitAttack method is canceled if there is already targeted enemy
+	// All this method does is playing animation and setting up cooldown at m_NextShoot
+	// And the true code for attacking happens in Update()
 	void InitAttack(Enemy* target);
+
 	Enemy* GetTarget() const { return m_Target; }
 private:
 	static constexpr int32_t s_AttackerWidth = 32;
