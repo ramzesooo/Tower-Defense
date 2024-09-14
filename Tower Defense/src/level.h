@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <memory>
-//#include <tuple>
 #include <string>
 
 class App;
@@ -21,13 +20,21 @@ struct Layer
 	std::vector<std::vector<Tile*>> tiles;
 };
 
+// Level's map should contain at least 3 layers counting from zero
+// Layer 0 should be general layer
+// Layer 1 should be layer of overriden tiles: stuff like grass or whatever without collisions
+// Layer 2 should contain colliders and also things with collision like trees (including spawn tiles)
+// Anymore layers can be added if needed, but that's not necessary I guess
+// More layers are just supposed to work like layer 1
+// Spawn tile ID: 305
 class Level
 {
 public:
 	Level();
-	
-	void Setup(const std::string& path);
+
 	void Setup(std::ifstream& mapFile);
+
+	// Base is signed as regular tile
 	void SetupBase(uint32_t posX, uint32_t posY);
 
 	// Position passed in parameters referes to left-upper square
@@ -63,11 +70,18 @@ public:
 	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
 	std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
 
-	const int32_t m_MapSizeX = 50;
-	const int32_t m_MapSizeY = 50;
-	uint16_t m_MapScale = 2;
-	uint16_t m_TileSize = 24;
-	uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
+	const int32_t m_MapSizeX = 70;
+	const int32_t m_MapSizeY = 70;
+	const uint16_t m_MapScale = 2;
+	const uint16_t m_TileSize = 24;
+	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
+
+	// Temporary level's config
+	uint16_t m_Waves = 3;
+	uint16_t m_CurrentWave = 1;
+	// enemiesPerWave are multiplied by current wave
+	uint16_t m_EnemiesPerWave = 50;
+	Vector2D m_BasePos{ 34, 34 };
 private:
 	bool m_FailedLoading = false;
 	std::string_view m_TextureID = "mapSheet";
@@ -79,4 +93,5 @@ private:
 	std::vector<Entity*>& attackers;
 	std::vector<Entity*>& enemies;
 	std::vector<Entity*>& projectiles;
+	std::vector<Tile*> spawners;
 };

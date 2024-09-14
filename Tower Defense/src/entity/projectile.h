@@ -32,8 +32,8 @@ public:
 private:
 	static constexpr float baseVelocity = 130.0f;
 	SDL_Texture* m_Texture = nullptr;
-	double m_Angle = 360;
 	SDL_Rect srcRect{ 0, 0, 16, 16 }, destRect{ 0, 0, 18, 18 };
+	double m_Angle = 360;
 	Vector2D m_Pos{ 0.0f, 0.0f };
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f,0.0f };

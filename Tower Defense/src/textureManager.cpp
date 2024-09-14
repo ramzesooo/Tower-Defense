@@ -79,7 +79,8 @@ void TextureManager::AddFont(std::string_view fontID, const char* path, uint16_t
 
 	if (!font)
 	{
-		App::s_Logger->AddLog("Couldn't find font " + std::string(path));
+		App::s_Logger->AddLog("TextureManager::GetFont: Couldn't open font ", false);
+		App::s_Logger->AddLog(path);
 		return;
 	}
 
@@ -91,7 +92,7 @@ TTF_Font* TextureManager::GetFont(std::string_view fontID) const
 	auto it = fonts.find(fontID);
 	if (it == fonts.end())
 	{
-		App::s_Logger->AddLog("TextureManager::GetFont: Missing texture ", false);
+		App::s_Logger->AddLog("TextureManager::GetFont: Missing font ", false);
 		App::s_Logger->AddLog(fontID);
 		return nullptr;
 	}

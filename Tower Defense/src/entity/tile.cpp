@@ -2,8 +2,8 @@
 #include "../app.h"
 #include "../textureManager.h"
 
-Tile::Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID) 
-	: m_Pos((float)posX, (float)posY), m_TextureID(textureID)
+Tile::Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID, TileTypes type) 
+	: m_Pos((float)posX, (float)posY), m_TextureID(textureID), m_Type(type)
 {
 	m_Texture = App::s_Textures->GetTexture(m_TextureID);
 	if (!m_Texture)
@@ -18,6 +18,14 @@ Tile::Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, 
 	destRect.x = posX;
 	destRect.y = posY;
 	destRect.w = destRect.h = tileSize * tileScale;
+}
+
+Tile::~Tile()
+{
+	if (static_cast<Enemy*>(m_EntityOccupying))
+	{
+		static_cast<Enemy*>(m_EntityOccupying)->SetOccupiedTile(nullptr);
+	}
 }
 
 void Tile::Update()

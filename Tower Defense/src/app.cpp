@@ -75,9 +75,9 @@ App::App()
 	}
 	else
 	{
-		LoadLevel(3, 3);
+		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
-		auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "dupa", App::s_Textures->GetFont("default"));
+		auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "pos", App::s_Textures->GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
 
 		Tile* base = App::s_CurrentLevel->GetBase();
@@ -85,18 +85,17 @@ App::App()
 		base->AttachLabel(newLabel);
 	}
 
+	//auto newTower = App::s_CurrentLevel->AddTower(5.0f, 5.0f, App::s_Textures->GetTexture("tower"), 1);
+	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
 
-	auto newTower = App::s_CurrentLevel->AddTower(5.0f, 5.0f, App::s_Textures->GetTexture("tower"), 1);
-	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
+	//newTower = App::s_CurrentLevel->AddTower(3.0f, 3.0f, App::s_Textures->GetTexture("tower"), 2);
+	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
 
-	newTower = App::s_CurrentLevel->AddTower(3.0f, 3.0f, App::s_Textures->GetTexture("tower"), 2);
-	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
+	//newTower = App::s_CurrentLevel->AddTower(1.0f, 1.0f, App::s_Textures->GetTexture("tower"), 3);
+	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
 
-	newTower = App::s_CurrentLevel->AddTower(1.0f, 1.0f, App::s_Textures->GetTexture("tower"), 3);
-	App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
-
-	App::s_CurrentLevel->AddEnemy(10.0f, 10.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
-	App::s_CurrentLevel->AddEnemy(11.0f, 11.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
+	//App::s_CurrentLevel->AddEnemy(10.0f, 10.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
+	//App::s_CurrentLevel->AddEnemy(11.0f, 11.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
 
 	UpdateCamera();
 

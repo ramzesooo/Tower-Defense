@@ -5,6 +5,8 @@
 #include "../level.h"
 #include "../app.h"
 
+#include <cmath>
+
 Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetPos().x * App::s_CurrentLevel->m_ScaledTileSize, target->GetPos().y * App::s_CurrentLevel->m_ScaledTileSize), 
@@ -37,18 +39,6 @@ void Projectile::Update()
 		Destroy();
 		return;
 	}
-
-
-	/*if (m_Owner->GetTarget() != m_Target)
-	{
-		m_Target = m_Owner->GetTarget();
-	}
-
-	if (!m_Target || !m_Target->IsActive())
-	{
-		Destroy();
-		return;
-	}*/
 
 	if (m_Pos.x + (float)destRect.w >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x - (float)destRect.w <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
 		&& m_Pos.y + (float)destRect.h >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y - (float)destRect.h <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))

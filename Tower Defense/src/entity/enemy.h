@@ -76,7 +76,6 @@ private:
 
 	// m_Pos for Enemy is based on tiles' count and it's scaled with tiles' size only while rendering in destRect.x and destRect.y
 	Vector2D m_Pos;
-
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 }, hp;

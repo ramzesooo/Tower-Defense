@@ -4,10 +4,22 @@
 
 #include "SDL.h"
 
+// This enum is adjusted to layers
+// 0 suits to all tiles placed at first place
+// 1 suits to all additional stuff, but without collision
+// 2 suits to layer with collisions (e.g. trees) including spawners
+enum class TileTypes
+{
+	regular = 0,
+	additional,
+	spawner
+};
+
 class Tile : public Entity
 {
 public:
-	Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID);
+	Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID, TileTypes type = TileTypes::regular);
+	~Tile();
 
 	void Update() override;
 	void Draw() override;
@@ -38,6 +50,7 @@ private:
 	Vector2D m_Pos;
 	std::string_view m_TextureID;
 	SDL_Texture* m_Texture = nullptr;
+	TileTypes m_Type;
 
 	Entity* m_EntityOccupying = nullptr;
 };
