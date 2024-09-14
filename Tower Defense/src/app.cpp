@@ -231,6 +231,8 @@ void App::Update(float fElapsedTime)
 		label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 	}
 
+	App::s_CurrentLevel->ManageWaves();
+
 	App::s_Manager->Refresh();
 	App::s_Manager->Update();
 }

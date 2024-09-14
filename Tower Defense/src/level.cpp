@@ -5,10 +5,12 @@
 #include <sstream>
 
 constexpr uint16_t spawnerID = 305;
+constexpr uint16_t waveCooldown = 3500; // miliseconds
 
 Level::Level() 
 	: towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy)),
-	projectiles(App::s_Manager->GetGroup(EntityGroup::projectile))
+	projectiles(App::s_Manager->GetGroup(EntityGroup::projectile)),
+	m_Wave{ WaveProgress::OnCooldown, 1, 0 }
 {}
 
 void Level::Setup(std::ifstream& mapFile)
@@ -151,6 +153,49 @@ void Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* textur
 {
 	auto enemy = App::s_Manager->NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
+}
+
+void Level::InitWave()
+{
+	static std::default_random_engine rng(rnd());
+	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size());
+
+	App::s_Logger->AddLog(std::to_string(spawnerDistr(rng)));
+}
+
+void Level::ManageWaves()
+{
+	switch (m_Wave.waveProgress)
+	{
+	case WaveProgress::OnCooldown:
+		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
+		{
+			InitWave();
+		}
+		break;
+	case WaveProgress::Initializing:
+		if (m_Wave.spawnedEnemies < m_EnemiesPerWave * m_Wave.waveNumber)
+		{
+			InitWave();
+		}
+		else
+		{
+			m_Wave.waveProgress = WaveProgress::InProgress;
+		}
+		break;
+	case WaveProgress::InProgress:
+		if (enemies.size() == 0)
+		{
+			m_Wave.waveProgress = WaveProgress::Finished;
+		}
+		break;
+	case WaveProgress::Finished:
+		m_WaveCooldown = SDL_GetTicks() + waveCooldown;
+		m_Wave.waveProgress = WaveProgress::OnCooldown;
+		break;
+	default:
+		break;
+	}
 }
 
 void Level::Render()

@@ -7,10 +7,11 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <random>
 
 class App;
 
-//Layer references to just map for level
+//Layer references to just map's layer
 struct Layer
 {
 	// returns a tile from specific coordinates
@@ -18,6 +19,21 @@ struct Layer
 
 	std::vector<std::vector<Tile*>>& GetTilesVector() { return tiles; }
 	std::vector<std::vector<Tile*>> tiles;
+};
+
+enum class WaveProgress
+{
+	OnCooldown,
+	Initializing,
+	InProgress,
+	Finished
+};
+
+struct Wave
+{
+	WaveProgress waveProgress = WaveProgress::OnCooldown;
+	uint16_t waveNumber = 0;
+	uint16_t spawnedEnemies = 0;
 };
 
 // Level's map should contain at least 3 layers counting from zero
@@ -51,6 +67,9 @@ public:
 	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
 	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }
 
+	void InitWave();
+	void ManageWaves();
+
 	void Render();
 
 	uint16_t GetID() const { return m_LevelID; }
@@ -78,7 +97,6 @@ public:
 
 	// Temporary level's config
 	uint16_t m_Waves = 3;
-	uint16_t m_CurrentWave = 1;
 	// enemiesPerWave are multiplied by current wave
 	uint16_t m_EnemiesPerWave = 50;
 	Vector2D m_BasePos{ 34, 34 };
@@ -94,4 +112,11 @@ private:
 	std::vector<Entity*>& enemies;
 	std::vector<Entity*>& projectiles;
 	std::vector<Tile*> spawners;
+
+	Wave m_Wave;
+
+	std::random_device rnd;
+	
+	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
+	uint32_t m_WaveCooldown = NULL;
 };
