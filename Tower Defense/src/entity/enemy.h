@@ -14,8 +14,6 @@ struct RectHP
 	static constexpr SDL_Rect srcRect{ 0, 0, 32, 32 };
 	SDL_FRect squareRect{ 0.0f, 0.0f, 32.0f, 32.0f };
 	SDL_FRect barRect{ 0.0f, 0.0f, 32.0f, 32.0f };
-	SDL_Texture* squareTexture = nullptr;
-	SDL_Texture* greenTexture = nullptr;
 };
 
 enum class EnemyType
@@ -71,6 +69,8 @@ private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
 	static constexpr float s_MovementSpeed = 2.0f;
+	static SDL_Texture* s_Square;
+	static SDL_Texture* s_GreenTex;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
 

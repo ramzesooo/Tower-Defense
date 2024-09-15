@@ -33,9 +33,6 @@
     <ClCompile Include="src\entity\tile.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="src\Vector2D.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
     <ClCompile Include="src\entity\tower.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>

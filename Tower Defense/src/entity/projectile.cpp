@@ -49,8 +49,9 @@ void Projectile::Update()
 
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
-	m_Destination.x = m_Target->GetPos().x * scaledTileSize;
-	m_Destination.y = m_Target->GetPos().y * scaledTileSize;
+	m_Destination = m_Target->GetPos() * scaledTileSize;
+	//m_Destination.x = m_Target->GetPos().x * scaledTileSize;
+	//m_Destination.y = m_Target->GetPos().y * scaledTileSize;
 
 	if (m_Destination.x == trunc(m_Pos.x))
 	{

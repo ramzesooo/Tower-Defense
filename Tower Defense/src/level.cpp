@@ -112,8 +112,7 @@ void Level::Setup(std::ifstream& mapFile)
 			}
 			else if (tileCode == spawnerID)
 			{
-				spawners.reserve(1);
-				spawners.emplace_back(tile);
+				spawners.push_back(tile);
 			}
 
 			rowOfTiles.emplace_back(tile);
@@ -175,17 +174,24 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 
 void Level::InitWave()
 {
+	if (spawners.empty())
+	{
+		return;
+	}
+
 	static std::default_random_engine rng(rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
-	Tile* spawner = spawners.at(spawnerDistr(rng));
+	std::size_t spawnPlace = spawnerDistr(rng);
+
+	Tile* spawner = spawners.at(spawnPlace);
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
 	Vector2D moveVector(0.0f, 0.0f);
 
 	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, EnemyType::elf, App::s_Textures->GetTexture(App::TextureOf(EnemyType::elf)), 2);
-	
+
 	moveVector.x = dest.x - spawnPos.x;
 	moveVector.y = dest.y - spawnPos.y;
 

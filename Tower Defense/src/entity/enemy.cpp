@@ -5,6 +5,9 @@
 
 #include <cmath>
 
+SDL_Texture* Enemy::s_Square = nullptr;
+SDL_Texture* Enemy::s_GreenTex = nullptr;
+
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	towers(App::s_Manager->GetGroup(EntityGroup::tower))
@@ -14,11 +17,11 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	destRect.w = Enemy::s_EnemyWidth * m_Scale;
 	destRect.h = Enemy::s_EnemyHeight * m_Scale;
 
+	Enemy::s_Square = App::s_Textures->GetTexture("square");
+	Enemy::s_GreenTex = App::s_Textures->GetTexture("green");
+
 	m_RectHP.squareRect.w = float(App::s_CurrentLevel->m_ScaledTileSize);
 	m_RectHP.squareRect.h = float(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
-
-	m_RectHP.squareTexture = App::s_Textures->GetTexture("square");
-	m_RectHP.greenTexture = App::s_Textures->GetTexture("green");
 
 	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
@@ -166,8 +169,8 @@ void Enemy::Update()
 void Enemy::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
-	TextureManager::DrawTextureF(m_RectHP.greenTexture, RectHP::srcRect, m_RectHP.barRect);
-	TextureManager::DrawTextureF(m_RectHP.squareTexture, RectHP::srcRect, m_RectHP.squareRect);
+	TextureManager::DrawTextureF(Enemy::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
+	TextureManager::DrawTextureF(Enemy::s_Square, RectHP::srcRect, m_RectHP.squareRect);
 }
 
 void Enemy::PlayAnim(std::string_view animID)
@@ -195,8 +198,7 @@ void Enemy::Move(Vector2D destination)
 
 	// destination should be rounded in case it will get some digits after a comma
 	// to avoid improper rendering like between of 2 tiles
-	destination.x = std::roundf(destination.x);
-	destination.y = std::roundf(destination.y);
+	destination.Roundf();
 
 	m_Destination.x = m_Pos.x + destination.x;
 	m_Destination.y = m_Pos.y + destination.y;
@@ -207,7 +209,6 @@ void Enemy::Move(Vector2D destination)
 		m_Destination.x = 0.0f;
 		destination.x = 0.0f;
 	}
-
 	if (m_Destination.y < 0.0f)
 	{
 		m_Destination.y = 0.0f;
@@ -255,6 +256,7 @@ void Enemy::Move(float destinationX, float destinationY)
 
 void Enemy::UpdateMovement()
 {
+	//m_Pos += (m_Velocity * App::s_ElapsedTime);
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
@@ -271,10 +273,12 @@ void Enemy::UpdateMovement()
 	if (!IsMoving())
 	{
 		PlayAnim("Idle");
-		m_Pos.x = std::roundf(m_Pos.x);
-		m_Pos.y = std::roundf(m_Pos.y);
-		m_Destination.x = std::roundf(m_Destination.x);
-		m_Destination.y = std::roundf(m_Destination.y);
+		m_Pos.Roundf();
+		m_Destination.Roundf();
+		//m_Pos.x = std::roundf(m_Pos.x);
+		//m_Pos.y = std::roundf(m_Pos.y);
+		//m_Destination.x = std::roundf(m_Destination.x);
+		//m_Destination.y = std::roundf(m_Destination.y);
 	}
 }
 
@@ -290,8 +294,8 @@ bool Enemy::IsTowerInRange(Tower* tower, int32_t range) const
 		range = App::s_CurrentLevel->m_MapSizeX - 1;
 	}
 
-	int32_t posX = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
-	int32_t posY = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
+	int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
+	int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t enemyX = (int32_t)m_Pos.x;
 	int32_t enemyY = (int32_t)m_Pos.y;
 
