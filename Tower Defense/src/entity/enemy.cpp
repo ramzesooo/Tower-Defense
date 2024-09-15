@@ -53,11 +53,6 @@ Enemy::~Enemy()
 		m_AttachedLabel->Destroy();
 	}
 
-	if (m_OccupiedTile)
-	{
-		m_OccupiedTile->SetOccupyingEntity(nullptr);
-	}
-
 	auto& attackers = App::s_Manager->GetGroup(EntityGroup::attacker);
 	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
 	

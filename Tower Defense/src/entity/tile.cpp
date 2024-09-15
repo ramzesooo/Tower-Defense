@@ -20,14 +20,6 @@ Tile::Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, 
 	destRect.w = destRect.h = tileSize * tileScale;
 }
 
-Tile::~Tile()
-{
-	if (static_cast<Enemy*>(m_EntityOccupying))
-	{
-		static_cast<Enemy*>(m_EntityOccupying)->SetOccupiedTile(nullptr);
-	}
-}
-
 void Tile::Update()
 {
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);

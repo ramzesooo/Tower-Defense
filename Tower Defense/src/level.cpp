@@ -13,6 +13,23 @@ Level::Level()
 	m_Wave{ WaveProgress::OnCooldown, 1, 0 }
 {}
 
+Level::~Level()
+{
+	for (const auto& enemy : enemies)
+	{
+		static_cast<Enemy*>(enemy)->GetOccupiedTile()->SetOccupyingEntity(nullptr);
+		static_cast<Enemy*>(enemy)->SetOccupiedTile(nullptr);
+		enemy->Destroy();
+	}
+
+	for (const auto& tower : towers)
+	{
+		tower->Destroy();
+	}
+
+	m_BaseTile->Destroy();
+}
+
 void Level::Setup(std::ifstream& mapFile)
 {
 	if (mapFile.fail())
@@ -149,18 +166,32 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	assignedTower->AssignAttacker(attacker);
 }
 
-void Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
+Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 {
 	auto enemy = App::s_Manager->NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
+	return enemy;
 }
 
 void Level::InitWave()
 {
 	static std::default_random_engine rng(rnd());
-	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size());
+	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
-	App::s_Logger->AddLog(std::to_string(spawnerDistr(rng)));
+	Tile* spawner = spawners.at(spawnerDistr(rng));
+
+	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
+	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
+	Vector2D moveVector(0.0f, 0.0f);
+
+	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, EnemyType::elf, App::s_Textures->GetTexture(App::TextureOf(EnemyType::elf)), 2);
+	
+	moveVector.x = dest.x - spawnPos.x;
+	moveVector.y = dest.y - spawnPos.y;
+
+	enemy->Move(moveVector);
+
+	m_Wave.spawnedEnemies++;
 }
 
 void Level::ManageWaves()
@@ -171,6 +202,7 @@ void Level::ManageWaves()
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
 		{
 			InitWave();
+			m_Wave.waveProgress = WaveProgress::Initializing;
 		}
 		break;
 	case WaveProgress::Initializing:

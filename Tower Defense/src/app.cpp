@@ -35,6 +35,10 @@ App::App()
 		initialized = false;
 	}
 
+	SDL_Surface* iconSurface = IMG_Load("assets\\gugu.png");
+	SDL_SetWindowIcon(m_Window, iconSurface);
+	SDL_FreeSurface(iconSurface);
+
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
 	if (!App::s_Renderer)
 	{
@@ -93,9 +97,6 @@ App::App()
 
 	//newTower = App::s_CurrentLevel->AddTower(1.0f, 1.0f, App::s_Textures->GetTexture("tower"), 3);
 	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
-
-	//App::s_CurrentLevel->AddEnemy(10.0f, 10.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
-	//App::s_CurrentLevel->AddEnemy(11.0f, 11.0f, EnemyType::elf, App::s_Textures->GetTexture(TextureOf(EnemyType::elf)), 2);
 
 	UpdateCamera();
 

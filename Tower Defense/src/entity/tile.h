@@ -19,7 +19,6 @@ class Tile : public Entity
 {
 public:
 	Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID, TileTypes type = TileTypes::regular);
-	~Tile();
 
 	void Update() override;
 	void Draw() override;
