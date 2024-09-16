@@ -14,14 +14,6 @@ Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, 
 	SDL_QueryTexture(m_Texture, nullptr, nullptr, &destRect.w, &destRect.h);
 }
 
-Label::~Label()
-{
-	if (m_AttachedTo)
-	{
-		m_AttachedTo->m_AttachedLabel = nullptr;
-	}
-}
-
 void Label::Draw()
 {
 	SDL_RenderCopy(App::s_Renderer, m_Texture, nullptr, &destRect);

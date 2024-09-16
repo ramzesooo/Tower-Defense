@@ -44,7 +44,7 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 	destRect.w = destRect.h = scaledTileSize * 2;
 }
 
-Tower::~Tower()
+void Tower::Destroy()
 {
 	if (m_Attacker)
 	{

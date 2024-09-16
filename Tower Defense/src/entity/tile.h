@@ -18,9 +18,9 @@ enum class TileTypes
 class Tile : public Entity
 {
 public:
-	Tile(int srcX, int srcY, int posX, int posY, int tileSize, int tileScale, std::string_view textureID, TileTypes type = TileTypes::regular);
-
-	void Update() override;
+	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, std::string_view textureID, TileTypes type = TileTypes::regular);
+	
+	void AdjustToView();
 	void Draw() override;
 
 	// Position for Tile class is already scaled tile size with map scale
@@ -36,6 +36,8 @@ public:
 			m_Pos.x + (x * destRect.w), 
 			m_Pos.y + (y * destRect.h) 
 		};
+
+		AdjustToView();
 	}
 	void Move(Vector2D newPos) { Move(newPos.x, newPos.y); }
 

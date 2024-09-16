@@ -16,7 +16,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 
 Level* App::s_CurrentLevel = nullptr;
 
-int32_t App::s_TowerRange = 2;
+uint16_t App::s_TowerRange = 2;
 
 float App::s_ElapsedTime = NULL;
 // END
@@ -39,7 +39,7 @@ App::App()
 	SDL_SetWindowIcon(m_Window, iconSurface);
 	SDL_FreeSurface(iconSurface);
 
-	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
+	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
 	{
 		App::s_Logger->AddLog(SDL_GetError());
@@ -58,7 +58,7 @@ App::App()
 	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
-	App::s_Textures->AddFont("default", "assets\\F25_Bank_Printer.ttf", 16);
+	App::s_Textures->AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures->AddFont("hpBar", "assets\\Rostack.otf", 13);
 
 	constexpr uint16_t levelsToLoad = 1;
@@ -123,6 +123,12 @@ void App::EventHandler()
 	case SDL_QUIT:
 		m_IsRunning = false;
 		break;
+	case SDL_MOUSEMOTION:
+		break;
+	case SDL_MOUSEBUTTONUP:
+	case SDL_MOUSEBUTTONDOWN:
+		App::s_CurrentLevel->HandleMouseButtonEvent();
+		break;
 	case SDL_KEYDOWN:
 		switch (App::s_Event.key.keysym.sym)
 		{
@@ -138,31 +144,6 @@ void App::EventHandler()
 			break;
 		case SDLK_d:
 			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
-			break;
-
-		case SDLK_UP:
-			{
-				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
-				enemy->Move(Vector2D(0.0f, -1.0f));
-			}
-			break;
-		case SDLK_DOWN:
-			{
-				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
-				enemy->Move(Vector2D(0.0f, 1.0f));
-			}
-			break;
-		case SDLK_LEFT:
-			{
-				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
-				enemy->Move(Vector2D(-1.0f, 0.0f));
-			}
-			break;
-		case SDLK_RIGHT:
-			{
-				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
-				enemy->Move(Vector2D(1.0f, 0.0f));
-			}
 			break;
 
 		// Function keys
@@ -278,6 +259,8 @@ void App::UpdateCamera()
 	{
 		App::s_Camera.y = calculatedMapSizeY - App::s_Camera.h;
 	}
+
+	App::s_CurrentLevel->AdjustTilesView();
 }
 
 void App::OnResolutionChange()

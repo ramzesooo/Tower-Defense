@@ -9,16 +9,23 @@
 #include <string>
 #include <random>
 
+constexpr uint16_t mapWidth = 70;
+constexpr uint16_t mapHeight = 70;
+
 class App;
 
 //Layer references to just map's layer
 struct Layer
 {
 	// returns a tile from specific coordinates
-	Tile* GetTileFrom(uint32_t posX, uint32_t posY) const { return tiles.at(posY).at(posX); }
+	//Tile* GetTileFrom(uint32_t posX, uint32_t posY) const { return tiles.at(posY).at(posX); }
 
-	std::vector<std::vector<Tile*>>& GetTilesVector() { return tiles; }
-	std::vector<std::vector<Tile*>> tiles;
+	//std::vector<std::vector<Tile*>>& GetTilesVector() { return tiles; }
+	//std::vector<std::vector<Tile*>> tiles;
+
+	Tile* GetTileFrom(std::size_t posX, std::size_t posY) const { return tiles.at(posY * mapWidth + posX); }
+
+	std::vector<Tile*> tiles;
 };
 
 enum class WaveProgress
@@ -68,6 +75,8 @@ public:
 	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
 	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }
 
+	void HandleMouseButtonEvent();
+
 	void InitWave();
 	void ManageWaves();
 
@@ -82,16 +91,20 @@ public:
 
 	Tile* GetBase() const { return m_BaseTile; }
 
-	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't texist
-	Tile* GetTileFrom(int32_t posX, int32_t posY, uint16_t layer = 0);
+	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
+	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
+	Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
+
+	// Adjust tiles' view to current camera
+	void AdjustTilesView();
 
 	// NOTE: It's not used anywhere and probably it's not needed anymore.
 	// Chunk can contain nullptr as a tile which means it's out of a map
 	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
-	std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
+	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
 
-	const int32_t m_MapSizeX = 70;
-	const int32_t m_MapSizeY = 70;
+	const uint16_t m_MapSizeX = mapWidth;
+	const uint16_t m_MapSizeY = mapHeight;
 	const uint16_t m_MapScale = 2;
 	const uint16_t m_TileSize = 24;
 	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
@@ -107,7 +120,7 @@ private:
 	std::string_view m_BaseTextureID = "base";
 	Tile* m_BaseTile = nullptr;
 	uint16_t m_LevelID = 0;
-	std::vector<std::unique_ptr<Layer>> layers;
+	std::vector<Layer> layers;
 	std::vector<Entity*>& towers;
 	std::vector<Entity*>& attackers;
 	std::vector<Entity*>& enemies;

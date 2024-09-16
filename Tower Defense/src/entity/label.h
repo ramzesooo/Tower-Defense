@@ -11,7 +11,16 @@ class Label : public Entity
 {
 public:
 	Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, SDL_Color color = { 255, 255, 255, 255 }, Entity* attachedTo = nullptr);
-	~Label();
+
+	inline void Destroy() override
+	{
+		m_IsActive = false;
+
+		if (m_AttachedTo)
+		{
+			m_AttachedTo->m_AttachedLabel = nullptr;
+		}
+	}
 
 	void Draw() override;
 

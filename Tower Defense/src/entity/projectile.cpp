@@ -86,8 +86,9 @@ void Projectile::Update()
 		fixedVelocity.y /= magnitude;
 	}
 
-	m_Pos.x += (m_Velocity.x + fixedVelocity.x) * App::s_ElapsedTime;
-	m_Pos.y += (m_Velocity.y + fixedVelocity.y) * App::s_ElapsedTime;
+	m_Pos += (m_Velocity + fixedVelocity) * App::s_ElapsedTime;
+	//m_Pos.x += (m_Velocity.x + fixedVelocity.x) * App::s_ElapsedTime;
+	//m_Pos.y += (m_Velocity.y + fixedVelocity.y) * App::s_ElapsedTime;
 
 	double dx = m_Destination.x - m_Pos.x;
 	double dy = m_Destination.y - m_Pos.y;

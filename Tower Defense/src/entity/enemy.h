@@ -32,6 +32,17 @@ public:
 	// Enemy destructor destroys all projectiles targeting the destroyed enemy
 	~Enemy();
 
+	inline void Destroy() override
+	{
+		m_IsActive = false;
+
+		if (m_AttachedLabel)
+		{
+			m_AttachedLabel->m_AttachedTo = nullptr;
+			m_AttachedLabel->Destroy();
+		}
+	}
+
 	void Update() override;
 	void Draw() override;
 
@@ -53,7 +64,7 @@ public:
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
 	// And searches towers from x: -range, y: -range to: x: range, y: range
-	bool IsTowerInRange(Tower* tower, int32_t range = 2) const;
+	bool IsTowerInRange(Tower* tower, uint16_t range = 2) const;
 
 	void AddProjectile(ProjectileType type, Attacker* projectileOwner);
 
@@ -86,6 +97,7 @@ private:
 
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;
+	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
 
 	std::string_view m_AnimID;

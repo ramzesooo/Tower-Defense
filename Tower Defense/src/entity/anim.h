@@ -2,8 +2,7 @@
 
 struct Animation
 {
-	Animation()
-	{}
+	Animation() = default;
 
 	Animation(int32_t i, int32_t f, int32_t s) : index(i), frames(f), speed(s)
 	{}

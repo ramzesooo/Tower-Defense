@@ -43,15 +43,14 @@ public:
 	static SDL_FRect s_Camera;
 
 	static class Level* s_CurrentLevel;
-	static int32_t s_TowerRange;
+	static uint16_t s_TowerRange;
 	static float s_ElapsedTime;
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window* m_Window = nullptr;
 // MAIN SECTION END
-// 
-// LEVEL SECTION
+
 public:
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
@@ -87,5 +86,4 @@ public:
 	}
 private:
 	std::vector<std::unique_ptr<Level>> levels;
-// LEVEL SECTION END
 };

@@ -11,7 +11,8 @@ class Tower : public Entity
 {
 public:
 	Tower(float posX, float posY, SDL_Texture* texture, int32_t tier = 1);
-	~Tower();
+
+	void Destroy() override;
 
 	void Update() override;
 	void Draw() override;
