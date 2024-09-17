@@ -233,18 +233,18 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	App::s_Logger->AddLog(")");
 }
 
-Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier)
+void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier)
 {
 	if (!towerTexture)
 	{
 		App::s_Logger->AddLog("Level::AddTower: Tower's texture doesn't exist!");
-		return nullptr;
+		return;
 	}
 
 	auto tower = App::s_Manager->NewEntity<Tower>(posX, posY, towerTexture, tier);
 	tower->AddGroup(EntityGroup::tower);
 
-	return tower;
+	AddAttacker(tower, AttackerType::archer, 2);
 }
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
@@ -283,11 +283,7 @@ void Level::HandleMouseButtonEvent()
 		Tile* tile = GetTileFrom(coordinates.x, coordinates.y, 1);
 		if (tile)
 		{
-			printf("Got a tile (%d, %d) (%.1f, %.1f)\n", mouseX / m_ScaledTileSize, mouseY / m_ScaledTileSize, tile->GetPos().x / m_ScaledTileSize, tile->GetPos().y / m_ScaledTileSize);
-		}
-		else
-		{
-			printf("Didn't get a tile (%d, %d)\n", mouseX / m_ScaledTileSize, mouseY / m_ScaledTileSize);
+			AddTower(coordinates.x, coordinates.y, App::s_Textures->GetTexture("tower"), 1);
 		}
 	}
 	else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
@@ -410,7 +406,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	return layers.at(layer).GetTileFrom(posX, posY);
 }
 
-void Level::AdjustTilesView()
+void Level::OnUpdateCamera()
 {
 	for (const auto& layer : layers)
 	{
@@ -426,6 +422,11 @@ void Level::AdjustTilesView()
 	}
 
 	m_BaseTile->AdjustToView();
+
+	for (const auto& enemy : enemies)
+	{
+		static_cast<Enemy*>(enemy)->OnUpdateCamera();
+	}
 }
 
 //std::vector<std::vector<Tile*>> Level::GetChunkOf(Entity* entity, uint16_t range)

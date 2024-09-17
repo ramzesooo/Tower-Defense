@@ -49,7 +49,7 @@ void Projectile::Update()
 
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
-	m_Destination = m_Target->GetPos() * scaledTileSize;
+	m_Destination = (m_Target->GetPos() * scaledTileSize);
 	//m_Destination.x = m_Target->GetPos().x * scaledTileSize;
 	//m_Destination.y = m_Target->GetPos().y * scaledTileSize;
 
@@ -98,8 +98,8 @@ void Projectile::Update()
 	// To convert it to degrees it has to be multiplied by 180 and divided by PI
 	m_Angle = std::atan2(dy, dx) * 180.0f / M_PI;
 
-	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2;
-	destRect.y = (int32_t)m_Pos.y + destRect.h / 2;
+	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2 - (int32_t)App::s_Camera.x;
+	destRect.y = (int32_t)m_Pos.y + destRect.h / 2 - (int32_t)App::s_Camera.y;
 }
 
 void Projectile::Draw()

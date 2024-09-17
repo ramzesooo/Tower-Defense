@@ -10,12 +10,16 @@ SDL_Texture* Enemy::s_GreenTex = nullptr;
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
+	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize),
 	towers(App::s_Manager->GetGroup(EntityGroup::tower))
 {
 	//destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	//destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
 	destRect.w = Enemy::s_EnemyWidth * m_Scale;
 	destRect.h = Enemy::s_EnemyHeight * m_Scale;
+
+	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
+	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
 	Enemy::s_Square = App::s_Textures->GetTexture("square");
 	Enemy::s_GreenTex = App::s_Textures->GetTexture("green");
@@ -46,9 +50,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_AttachedLabel = App::s_Manager->NewEntity<Label>(0, 0, "-0", App::s_Textures->GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
 	m_AttachedLabel->AddGroup(EntityGroup::label);
-
-	destRect.x = static_cast<int32_t>(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.x) - destRect.w / 8;
-	destRect.y = static_cast<int32_t>(m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.y) - destRect.h / 8;
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
@@ -233,10 +234,9 @@ void Enemy::Move(float destinationX, float destinationY)
 	Move(Vector2D(destinationX, destinationY));
 }
 
-// TODO:
-// Fix bug with enemy's position every time after updating player's view when base has changed its position
 void Enemy::UpdateMovement()
 {
+	//m_Pos += m_Velocity * App::s_ElapsedTime;
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
@@ -267,21 +267,16 @@ void Enemy::UpdateMovement()
 		newOccupiedTile->SetOccupyingEntity(this);
 	}
 
-	destRect.x = static_cast<int32_t>(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.x) - destRect.w / 8;
-	destRect.y = static_cast<int32_t>(m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize - App::s_Camera.y) - destRect.h / 8;
+	m_ScaledPos = m_Pos;
+	m_ScaledPos * App::s_CurrentLevel->m_ScaledTileSize;
 
-	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
+	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
+	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
+
+	UpdateHealthBar();
+
+	/*m_RectHP.squareRect.x = scaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
-
-	if (m_RectHP.squareRect.x < 0.5f)
-	{
-		m_RectHP.squareRect.x = 0.5f;
-	}
-
-	if (m_RectHP.squareRect.y < 0.5f)
-	{
-		m_RectHP.squareRect.y = 0.5f;
-	}
 
 	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
 
@@ -289,7 +284,27 @@ void Enemy::UpdateMovement()
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
+	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));*/
+}
+
+void Enemy::UpdateHealthBar()
+{
+	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
+	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
+
+	m_RectHP.barRect = m_RectHP.squareRect;
+	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
+
+	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
 	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+}
+
+void Enemy::OnUpdateCamera()
+{
+	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
+	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
+
+	UpdateHealthBar();
 }
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
@@ -333,11 +348,6 @@ void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
 
 void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 {
-	if (!projectile)
-	{
-		return;
-	}
-
 	if (IsHit)
 	{
 		uint16_t dmg = projectile->GetDamage();
@@ -351,7 +361,11 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 			m_HP = 0;
 		}
 
+		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+
 		m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+
+		UpdateHealthBar();
 	}
 
 	projectile->Destroy();

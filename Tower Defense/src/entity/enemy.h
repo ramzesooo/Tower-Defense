@@ -60,6 +60,9 @@ public:
 	void Move(float destinationX, float destinationY);
 	bool IsMoving() const { return m_Velocity.x != 0.0f || m_Velocity.y != 0.0f; }
 	void UpdateMovement();
+	
+	void UpdateHealthBar();
+	void OnUpdateCamera();
 
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
@@ -79,7 +82,7 @@ public:
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
-	static constexpr float s_MovementSpeed = 2.0f;
+	static constexpr float s_MovementSpeed = 3.0f;
 	static SDL_Texture* s_Square;
 	static SDL_Texture* s_GreenTex;
 	SDL_Texture* m_Texture = nullptr;
@@ -87,6 +90,7 @@ private:
 
 	// m_Pos for Enemy is based on tiles' count and it's scaled with tiles' size only while rendering in destRect.x and destRect.y
 	Vector2D m_Pos;
+	Vector2D m_ScaledPos;
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 }, hp;

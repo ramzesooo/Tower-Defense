@@ -80,7 +80,7 @@ public:
 	}
 
 	template<typename T>
-	inline Vector2D& operator*(T& i)
+	inline Vector2D& operator*(const T& i)
 	//Vector2D& operator*(const int& i)
 	{
 		this->x *= i;
@@ -88,6 +88,7 @@ public:
 
 		return *this;
 	}
+
 	inline Vector2D& Zero()
 	{
 		this->x = 0.0f;

@@ -146,6 +146,10 @@ void App::EventHandler()
 			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
 			break;
 
+		case SDLK_LEFT:
+			App::s_CurrentLevel->GetEnemy()->Move(-1.0f, 0.0f);
+			break;
+
 		// Function keys
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
@@ -260,7 +264,7 @@ void App::UpdateCamera()
 		App::s_Camera.y = calculatedMapSizeY - App::s_Camera.h;
 	}
 
-	App::s_CurrentLevel->AdjustTilesView();
+	App::s_CurrentLevel->OnUpdateCamera();
 }
 
 void App::OnResolutionChange()

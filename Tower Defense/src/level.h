@@ -68,7 +68,7 @@ public:
 	// 
 	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
-	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
+	void AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
 
@@ -96,7 +96,7 @@ public:
 	Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
 
 	// Adjust tiles' view to current camera
-	void AdjustTilesView();
+	void OnUpdateCamera();
 
 	// NOTE: It's not used anywhere and probably it's not needed anymore.
 	// Chunk can contain nullptr as a tile which means it's out of a map
