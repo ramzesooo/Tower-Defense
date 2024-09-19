@@ -21,8 +21,8 @@ Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t t
 	srcRect.y = srcY;
 	srcRect.w = srcRect.h = tileSize; // 24 by default
 
-	destRect.x = posX;
-	destRect.y = posY;
+	destRect.x = static_cast<int32_t>(posX - App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(posY - App::s_Camera.y);
 	destRect.w = destRect.h = tileSize * tileScale;
 }
 

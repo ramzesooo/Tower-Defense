@@ -124,10 +124,7 @@ void App::EventHandler()
 		m_IsRunning = false;
 		break;
 	case SDL_MOUSEMOTION:
-		if (s_UIState == UIState::building)
-		{
-			ManageBuildingState();
-		}
+		ManageBuildingState();
 		break;
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
@@ -184,6 +181,12 @@ void App::EventHandler()
 				}
 			}
 			break;
+		case SDLK_F6:
+			s_UIState = UIState::building;
+			break;
+		case SDLK_F7:
+			s_UIState = UIState::none;
+			break;
 		case SDLK_F11:
 			if (m_IsFullscreen)
 			{
@@ -195,12 +198,6 @@ void App::EventHandler()
 				SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN);
 			}
 			m_IsFullscreen = !m_IsFullscreen;
-			break;
-		case SDLK_F6:
-			s_UIState = UIState::building;
-			break;
-		case SDLK_F7:
-			s_UIState = UIState::none;
 			break;
 		// End of function keys
 
@@ -221,16 +218,12 @@ void App::Update(float fElapsedTime) const
 	App::s_ElapsedTime = fElapsedTime;
 
 	if (IsGamePaused())
-	{
 		return;
-	}
 
 	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
 	
 	if (label)
-	{
 		label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
-	}
 
 	App::s_CurrentLevel->ManageWaves();
 
@@ -319,8 +312,14 @@ void App::ManageBuildingState()
 	coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)mouseY / s_CurrentLevel->m_ScaledTileSize);
 
 	Tile* pointedTile = App::s_CurrentLevel->GetTileFrom(coordinates.x, coordinates.y, 0);
+	if (!pointedTile)
+		return;
 
 	s_BuildingPlace->SetPos(pointedTile->GetPos());
-	s_BuildingPlace->AdjustToView();
+	s_BuildingPlace->AdjustToView(); // in this case this function works like Update()
+
+	if (s_UIState != UIState::building)
+		return;
+
 	s_BuildingPlace->Draw();
 }

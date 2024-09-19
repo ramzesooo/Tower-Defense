@@ -50,8 +50,6 @@ void Projectile::Update()
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
 	m_Destination = (m_Target->GetPos() * scaledTileSize);
-	//m_Destination.x = m_Target->GetPos().x * scaledTileSize;
-	//m_Destination.y = m_Target->GetPos().y * scaledTileSize;
 
 	if (m_Destination.x == trunc(m_Pos.x))
 	{
@@ -99,6 +97,12 @@ void Projectile::Update()
 	m_Angle = std::atan2(dy, dx) * 180.0f / M_PI;
 
 	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2 - (int32_t)App::s_Camera.x;
+	destRect.y = (int32_t)m_Pos.y + destRect.h / 2 - (int32_t)App::s_Camera.y;
+}
+
+void Projectile::AdjustToView()
+{
+	destRect.x = (int32_t)m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2 - (int32_t)App::s_Camera.x;
 	destRect.y = (int32_t)m_Pos.y + destRect.h / 2 - (int32_t)App::s_Camera.y;
 }
 

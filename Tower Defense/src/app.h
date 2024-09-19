@@ -121,6 +121,7 @@ public:
 		return "";
 	}
 
+	// this Tile is the tile following mouse showing exactly the place where tower will be placed
 	static Tile* s_BuildingPlace;
 private:
 	std::vector<std::unique_ptr<Level>> levels;

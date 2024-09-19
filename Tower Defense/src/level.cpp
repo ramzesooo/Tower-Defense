@@ -276,14 +276,17 @@ void Level::HandleMouseButtonEvent()
 	
 	if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)
 	{
-		Vector2D coordinates;
-		coordinates.x = std::floorf((App::s_Camera.x / m_ScaledTileSize) + (float)mouseX / m_ScaledTileSize);
-		coordinates.y = std::floorf((App::s_Camera.y / m_ScaledTileSize) + (float)mouseY / m_ScaledTileSize);
-
-		Tile* tile = GetTileFrom(coordinates.x, coordinates.y, 1);
-		if (tile)
+		if (App::s_UIState == UIState::building)
 		{
-			AddTower(coordinates.x, coordinates.y, App::s_Textures->GetTexture("tower"), 1);
+			Vector2D coordinates;
+			coordinates.x = std::floorf((App::s_Camera.x / m_ScaledTileSize) + (float)mouseX / m_ScaledTileSize);
+			coordinates.y = std::floorf((App::s_Camera.y / m_ScaledTileSize) + (float)mouseY / m_ScaledTileSize);
+
+			Tile* tile = GetTileFrom(coordinates.x, coordinates.y, 1);
+			if (tile)
+			{
+				AddTower(coordinates.x, coordinates.y, App::s_Textures->GetTexture("tower"), 1);
+			}
 		}
 	}
 	else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
@@ -428,9 +431,20 @@ void Level::OnUpdateCamera()
 
 	m_BaseTile->AdjustToView();
 
-	for (const auto& enemy : enemies)
+	for (const auto& e : enemies)
 	{
-		static_cast<Enemy*>(enemy)->OnUpdateCamera();
+		e->AdjustToView();
+	}
+
+	for (const auto& t : towers)
+	{
+		// Towers trigger method AdjustToView() for attackers by themselves
+		t->AdjustToView();
+	}
+
+	for (const auto& p : projectiles)
+	{
+		p->AdjustToView();
 	}
 }
 

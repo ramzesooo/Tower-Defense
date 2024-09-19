@@ -9,6 +9,8 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos())
 {
 	m_Pos.x += (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
 	destRect.h = Attacker::s_AttackerHeight * m_Scale;
 
@@ -20,36 +22,6 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 
 	PlayAnim("Idle");
 }
-
-//Attacker::~Attacker()
-//{
-//	m_Target = nullptr;
-//
-//	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
-//
-//	for (const auto& projectile : projectiles)
-//	{
-//		if (!projectile->IsActive())
-//		{
-//			continue;
-//		}
-//
-//		Projectile* p = static_cast<Projectile*>(projectile);
-//		if (!p->GetOwner())
-//		{
-//			p->Destroy();
-//			continue;
-//		}
-//
-//		if (p->GetOwner() != this)
-//		{
-//			continue;
-//		}
-//
-//		p->SetOwner(nullptr);
-//		p->Destroy();
-//	}
-//}
 
 void Attacker::Destroy()
 {
@@ -100,14 +72,17 @@ void Attacker::Update()
 
 	srcRect.x = srcRect.w * ((ticks / m_AnimSpeed) % m_AnimFrames);
 	srcRect.y = m_AnimIndex * Attacker::s_AttackerHeight;
-
-	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
-	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 }
 
 void Attacker::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}
+
+void Attacker::AdjustToView()
+{
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 }
 
 void Attacker::PlayAnim(std::string_view animID)

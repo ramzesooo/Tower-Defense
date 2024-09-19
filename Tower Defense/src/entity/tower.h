@@ -35,7 +35,7 @@ public:
 
 	void Destroy() override;
 
-	void Update() override;
+	void AdjustToView() override;
 	void Draw() override;
 
 	Vector2D GetPos() const override { return m_Pos; }

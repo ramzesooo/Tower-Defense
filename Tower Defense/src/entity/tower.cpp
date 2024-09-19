@@ -39,8 +39,10 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 	srcRect.w = (imageWidth / 3);
 	srcRect.h = 64;
 
-	destRect.x = (int32_t)m_Pos.x;
-	destRect.y = (int32_t)m_Pos.y;
+	//destRect.x = (int32_t)m_Pos.x;
+	//destRect.y = (int32_t)m_Pos.y;
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = destRect.h = scaledTileSize * 2;
 }
 
@@ -53,10 +55,17 @@ void Tower::Destroy()
 	}
 }
 
-void Tower::Update()
+void Tower::AdjustToView()
 {
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
+
+	if (!m_Attacker)
+	{
+		return;
+	}
+
+	m_Attacker->AdjustToView();
 }
 
 void Tower::Draw()

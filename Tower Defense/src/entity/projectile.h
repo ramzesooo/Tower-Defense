@@ -47,6 +47,8 @@ public:
 	void Update() override;
 	void Draw() override;
 
+	void AdjustToView() override;
+
 	void SetOwner(Attacker* owner) { m_Owner = owner; }
 
 	Enemy* GetTarget() const { return m_Target; }

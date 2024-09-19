@@ -307,7 +307,7 @@ void Enemy::UpdateHealthBar()
 	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
 
-void Enemy::OnUpdateCamera()
+void Enemy::AdjustToView()
 {
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;

@@ -61,6 +61,8 @@ public:
 	void Update() override;
 	void Draw() override;
 
+	void AdjustToView() override;
+
 	Vector2D GetPos() const override { return m_Pos; }
 
 	void PlayAnim(std::string_view animID);

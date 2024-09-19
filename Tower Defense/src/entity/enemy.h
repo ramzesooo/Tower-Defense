@@ -86,7 +86,7 @@ public:
 	void UpdateMovement();
 	
 	void UpdateHealthBar();
-	void OnUpdateCamera();
+	void AdjustToView() override;
 
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile

@@ -44,7 +44,7 @@ public:
 		return *this;
 	}
 
-	void AdjustToView();
+	void AdjustToView() override;
 	void Draw() override;
 
 	void SetTexture(SDL_Texture* texture) { m_Texture = texture; }

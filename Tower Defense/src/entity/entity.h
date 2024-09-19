@@ -39,6 +39,8 @@ public:
 	virtual void Update() {}
 	virtual void Draw() {}
 
+	virtual void AdjustToView() {}
+
 	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
 
 	virtual void Destroy() { m_IsActive = false; }
