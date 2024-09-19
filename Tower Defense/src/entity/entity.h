@@ -25,8 +25,16 @@ class Entity
 {
 public:
 	Entity() = default;
+	Entity(const Entity& r) : m_IsActive(r.m_IsActive), m_AttachedLabel(r.m_AttachedLabel), m_GroupBitSet(r.m_GroupBitSet) {}
+	virtual ~Entity() = default;
 
-	virtual ~Entity() {}
+	inline Entity& operator=(const Entity& r)
+	{
+		m_IsActive = r.m_IsActive;
+		m_AttachedLabel = r.m_AttachedLabel;
+		m_GroupBitSet = r.m_GroupBitSet;
+		return *this;
+	}
 
 	virtual void Update() {}
 	virtual void Draw() {}

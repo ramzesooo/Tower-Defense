@@ -5,8 +5,8 @@
 
 constexpr int32_t shotCooldown = 300 * 4 + 150; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 
-Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
-	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower.GetPos())
+Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
+	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos())
 {
 	m_Pos.x += (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
@@ -21,7 +21,37 @@ Attacker::Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture
 	PlayAnim("Idle");
 }
 
-Attacker::~Attacker()
+//Attacker::~Attacker()
+//{
+//	m_Target = nullptr;
+//
+//	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
+//
+//	for (const auto& projectile : projectiles)
+//	{
+//		if (!projectile->IsActive())
+//		{
+//			continue;
+//		}
+//
+//		Projectile* p = static_cast<Projectile*>(projectile);
+//		if (!p->GetOwner())
+//		{
+//			p->Destroy();
+//			continue;
+//		}
+//
+//		if (p->GetOwner() != this)
+//		{
+//			continue;
+//		}
+//
+//		p->SetOwner(nullptr);
+//		p->Destroy();
+//	}
+//}
+
+void Attacker::Destroy()
 {
 	m_Target = nullptr;
 
@@ -57,7 +87,7 @@ void Attacker::Update()
 
 	if (m_Target)
 	{
-		if (!m_Target->IsActive() || !m_Target->IsTowerInRange(&m_OccupiedTower, App::s_TowerRange))
+		if (!m_Target->IsActive() || !m_Target->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
 		{
 			StopAttacking();
 		} 

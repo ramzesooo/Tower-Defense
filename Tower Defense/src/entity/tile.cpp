@@ -2,6 +2,12 @@
 #include "../app.h"
 #include "../textureManager.h"
 
+Tile::Tile(TileTypes type, int32_t tileScale) : m_Type(type)
+{
+	destRect.w = srcRect.w * tileScale * 2;
+	destRect.h = srcRect.h * tileScale * 2;
+}
+
 Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, std::string_view textureID, TileTypes type)
 	: m_Pos((float)posX, (float)posY), m_TextureID(textureID), m_Type(type)
 {

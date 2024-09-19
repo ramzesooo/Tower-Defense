@@ -18,11 +18,6 @@ class App;
 struct Layer
 {
 	// returns a tile from specific coordinates
-	//Tile* GetTileFrom(uint32_t posX, uint32_t posY) const { return tiles.at(posY).at(posX); }
-
-	//std::vector<std::vector<Tile*>>& GetTilesVector() { return tiles; }
-	//std::vector<std::vector<Tile*>> tiles;
-
 	Tile* GetTileFrom(std::size_t posX, std::size_t posY) const { return tiles.at(posY * mapWidth + posX); }
 
 	std::vector<Tile*> tiles;

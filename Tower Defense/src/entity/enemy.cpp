@@ -74,11 +74,19 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
 }
 
-Enemy::~Enemy()
+void Enemy::Destroy()
 {
+	m_IsActive = false;
+
+	if (m_AttachedLabel)
+	{
+		m_AttachedLabel->m_AttachedTo = nullptr;
+		m_AttachedLabel->Destroy();
+	}
+
 	auto& attackers = App::s_Manager->GetGroup(EntityGroup::attacker);
 	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
-	
+
 	{
 		Attacker* attacker = nullptr;
 

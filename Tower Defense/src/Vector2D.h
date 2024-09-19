@@ -6,18 +6,25 @@
 class Vector2D
 {
 public:
-	float x;
-	float y;
+	float x = 0.0f;
+	float y = 0.0f;
 
-	Vector2D() 
-	{ 
-		x = 0.0f;
-		y = 0.0f;
-	}
-	Vector2D(float x, float y) 
-	{ 
-		this->x = x;
-		this->y = y; 
+	Vector2D() = default;
+	Vector2D(float setX, float setY) : x(setX), y(setY) {}
+	Vector2D(const Vector2D& r) : x(r.x), y(r.y) {}
+	~Vector2D() = default;
+
+	Vector2D& operator=(const Vector2D& r)
+	{
+		if (this == &r)
+		{
+			return *this;
+		}
+
+		this->x = r.x;
+		this->y = r.y;
+
+		return *this;
 	}
 
 	inline Vector2D& Add(const Vector2D& vec)

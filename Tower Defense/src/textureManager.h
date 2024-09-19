@@ -16,6 +16,7 @@ struct proxy_hash {
 class TextureManager
 {
 public:
+	TextureManager() = default;
 	~TextureManager();
 
 	void AddTexture(std::string_view textureID, const char* path);

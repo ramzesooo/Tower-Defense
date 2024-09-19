@@ -1,5 +1,6 @@
 #pragma once
 #include "entity.h"
+#include "attacker.h"
 #include "tile.h"
 #include "projectile.h"
 #include "label.h"
@@ -28,20 +29,43 @@ class Enemy : public Entity
 {
 public:
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
+	Enemy(const Enemy& r) : Entity(r), towers(r.towers), destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
+		m_Type(r.m_Type), m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent) {}
+	~Enemy() = default;
 
-	// Enemy destructor destroys all projectiles targeting the destroyed enemy
-	~Enemy();
-
-	inline void Destroy() override
+	inline Enemy& operator=(const Enemy& r)
 	{
-		m_IsActive = false;
-
-		if (m_AttachedLabel)
+		if (this == &r)
 		{
-			m_AttachedLabel->m_AttachedTo = nullptr;
-			m_AttachedLabel->Destroy();
+			return *this;
 		}
+
+		Entity::operator=(r);
+		m_Texture = r.m_Texture;
+		m_Type = r.m_Type;
+		m_Pos = r.m_Pos;
+		m_ScaledPos = r.m_ScaledPos;
+
+		m_OccupiedTile = r.m_OccupiedTile;
+
+		m_Velocity = r.m_Velocity;
+		m_Destination = r.m_Destination;
+		srcRect = r.srcRect;
+		destRect = r.destRect;
+		m_Scale = r.m_Scale;
+		m_RectHP = r.m_RectHP;
+		m_HP = r.m_HP;
+		m_MaxHP = r.m_MaxHP;
+		m_HPPercent = r.m_HPPercent;
+		m_AnimFrames = r.m_AnimFrames;
+		m_AnimID = r.m_AnimID;
+		m_AnimIndex = r.m_AnimIndex;
+		m_AnimSpeed = r.m_AnimSpeed;
+
+		return *this;
 	}
+
+	void Destroy() override;
 
 	void Update() override;
 	void Draw() override;
@@ -93,7 +117,7 @@ private:
 	Vector2D m_ScaledPos;
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
-	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 }, hp;
+	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 	uint16_t m_Scale = 1;
 
 	Tile* m_OccupiedTile = nullptr;

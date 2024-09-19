@@ -22,8 +22,41 @@ class Tower;
 class Attacker : public Entity
 {
 public:
-	Attacker(Tower& occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
-	~Attacker();
+	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
+	Attacker(const Attacker& r) : Entity(r), m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
+		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_AnimFrames(r.m_AnimFrames), m_AnimID(r.m_AnimID), m_AnimIndex(r.m_AnimIndex), m_AnimSpeed(r.m_AnimSpeed),
+		m_Target(r.m_Target), m_NextShot(r.m_NextShot), animations(r.animations) {}
+	~Attacker() = default;
+
+	inline Attacker& operator=(const Attacker& r)
+	{
+		if (this == &r)
+		{
+			return *this;
+		}
+
+		Entity::operator=(r);
+
+		m_OccupiedTower = r.m_OccupiedTower;
+		m_Type = r.m_Type;
+		m_Texture = r.m_Texture;
+		m_Scale = r.m_Scale;
+		m_Pos = r.m_Pos;
+		srcRect = r.srcRect;
+		destRect = r.destRect;
+		m_AnimFrames = r.m_AnimFrames;
+		m_AnimID = r.m_AnimID;
+		m_AnimIndex = r.m_AnimIndex;
+		m_AnimSpeed = r.m_AnimSpeed;
+		m_Target = r.m_Target;
+		m_NextShot = r.m_NextShot;
+
+		animations = r.animations;
+
+		return *this;
+	}
+
+	void Destroy() override;
 
 	void Update() override;
 	void Draw() override;
@@ -43,7 +76,7 @@ public:
 private:
 	static constexpr int32_t s_AttackerWidth = 32;
 	static constexpr int32_t s_AttackerHeight = 32;
-	Tower& m_OccupiedTower;
+	Tower* m_OccupiedTower;
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;
 	uint16_t m_Scale = 1;

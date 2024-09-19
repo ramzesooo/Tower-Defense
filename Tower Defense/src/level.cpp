@@ -255,7 +255,7 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 		return;
 	}
 
-	auto attacker = App::s_Manager->NewEntity<Attacker>(*assignedTower, type, App::s_Textures->GetTexture(App::TextureOf(type)), scale);
+	auto attacker = App::s_Manager->NewEntity<Attacker>(assignedTower, type, App::s_Textures->GetTexture(App::TextureOf(type)), scale);
 	attacker->AddGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
 }
@@ -364,6 +364,11 @@ void Level::Render()
 
 			tile->Draw();
 		}
+	}
+
+	if (App::s_UIState == UIState::building)
+	{
+		App::s_BuildingPlace->Draw();
 	}
 
 	m_BaseTile->Draw();

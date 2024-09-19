@@ -11,6 +11,27 @@ class Tower : public Entity
 {
 public:
 	Tower(float posX, float posY, SDL_Texture* texture, int32_t tier = 1);
+	Tower(const Tower& r) : Entity(r), m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
+		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker) {}
+	~Tower() = default;
+
+	inline Tower& operator=(const Tower& r)
+	{
+		if (this == &r)
+		{
+			return *this;
+		}
+
+		Entity::operator=(r);
+		m_Texture = r.m_Texture;
+		m_Pos = r.m_Pos;
+		srcRect = r.srcRect;
+		destRect = r.destRect;
+		m_OccupiedTiles = r.m_OccupiedTiles;
+		m_Attacker = r.m_Attacker;
+
+		return *this;
+	}
 
 	void Destroy() override;
 
@@ -42,6 +63,5 @@ private:
 	Vector2D m_Pos;
 	SDL_Rect srcRect{ 0, 0, 144, 64 }, destRect{ 0, 0, 48, 21 };
 	std::array<Tile*, 4> m_OccupiedTiles;
-	uint16_t m_HP = 10000; // Still not sure of game's mechanics I want to do, maybe it will be needed in future, at the moment it's not used anywhere
 	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown in the top of tower
 };

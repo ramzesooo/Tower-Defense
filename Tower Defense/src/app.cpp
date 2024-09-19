@@ -19,6 +19,10 @@ Level* App::s_CurrentLevel = nullptr;
 uint16_t App::s_TowerRange = 2;
 
 float App::s_ElapsedTime = NULL;
+
+UIState App::s_UIState = UIState::none;
+
+Tile* App::s_BuildingPlace = nullptr;
 // END
 
 auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
@@ -50,6 +54,8 @@ App::App()
 
 	App::s_Textures->AddTexture("mapSheet", "assets\\tileset.png");
 
+	App::s_Textures->AddTexture("canBuild", "assets\\tile_CanBuild.png");
+	App::s_Textures->AddTexture("cantBuild", "assets\\tile_CantBuild.png");
 	App::s_Textures->AddTexture("base", "assets\\base.png");
 	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures->AddTexture("square", "assets\\square_32x32.png");
@@ -89,14 +95,8 @@ App::App()
 		base->AttachLabel(newLabel);
 	}
 
-	//auto newTower = App::s_CurrentLevel->AddTower(5.0f, 5.0f, App::s_Textures->GetTexture("tower"), 1);
-	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
-
-	//newTower = App::s_CurrentLevel->AddTower(3.0f, 3.0f, App::s_Textures->GetTexture("tower"), 2);
-	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
-
-	//newTower = App::s_CurrentLevel->AddTower(1.0f, 1.0f, App::s_Textures->GetTexture("tower"), 3);
-	//App::s_CurrentLevel->AddAttacker(newTower, AttackerType::archer, 2);
+	s_BuildingPlace = App::s_Manager->NewEntity<Tile>(TileTypes::special, 2);
+	s_BuildingPlace->SetTexture(App::s_Textures->GetTexture("canBuild"));
 
 	UpdateCamera();
 
@@ -124,6 +124,10 @@ void App::EventHandler()
 		m_IsRunning = false;
 		break;
 	case SDL_MOUSEMOTION:
+		if (s_UIState == UIState::building)
+		{
+			ManageBuildingState();
+		}
 		break;
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
@@ -192,6 +196,12 @@ void App::EventHandler()
 			}
 			m_IsFullscreen = !m_IsFullscreen;
 			break;
+		case SDLK_F6:
+			s_UIState = UIState::building;
+			break;
+		case SDLK_F7:
+			s_UIState = UIState::none;
+			break;
 		// End of function keys
 
 		case SDLK_ESCAPE:
@@ -206,9 +216,14 @@ void App::EventHandler()
 	}
 }
 
-void App::Update(float fElapsedTime)
+void App::Update(float fElapsedTime) const
 {
 	App::s_ElapsedTime = fElapsedTime;
+
+	if (IsGamePaused())
+	{
+		return;
+	}
 
 	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
 	
@@ -292,4 +307,20 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
 	App::s_Logger->AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
+}
+
+void App::ManageBuildingState()
+{
+	int32_t mouseX = App::s_Event.motion.x;
+	int32_t mouseY = App::s_Event.motion.y;
+
+	Vector2D coordinates;
+	coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)mouseX / s_CurrentLevel->m_ScaledTileSize);
+	coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)mouseY / s_CurrentLevel->m_ScaledTileSize);
+
+	Tile* pointedTile = App::s_CurrentLevel->GetTileFrom(coordinates.x, coordinates.y, 0);
+
+	s_BuildingPlace->SetPos(pointedTile->GetPos());
+	s_BuildingPlace->AdjustToView();
+	s_BuildingPlace->Draw();
 }

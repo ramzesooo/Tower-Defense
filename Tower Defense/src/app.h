@@ -14,6 +14,12 @@
 #include "SDL_ttf.h"
 #include <memory>
 
+enum class UIState
+{
+	none = 0, // none means game is running by default
+	building
+};
+
 class App
 {
 // MAIN SECTION
@@ -22,7 +28,7 @@ public:
 	~App();
 
 	void EventHandler();
-	void Update(float elapsedTime);
+	void Update(float elapsedTime) const;
 	void Render();
 
 	void UpdateCamera();
@@ -30,6 +36,34 @@ public:
 	void OnResolutionChange();
 
 	bool IsRunning() const { return m_IsRunning; }
+
+	// for checking is currently the game paused
+	static inline bool IsGamePaused()
+	{
+		switch (s_UIState)
+		{
+		case UIState::none:
+			return false;
+		case UIState::building:
+			return true;
+		}
+
+		return false;
+	}
+
+	// for checking is specific state going to pause the game
+	static inline bool IsGamePaused(UIState state)
+	{
+		switch (state)
+		{
+		case UIState::none:
+			return false;
+		case UIState::building:
+			return true;
+		}
+
+		return false;
+	}
 
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
@@ -45,6 +79,7 @@ public:
 	static class Level* s_CurrentLevel;
 	static uint16_t s_TowerRange;
 	static float s_ElapsedTime;
+	static UIState s_UIState;
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
@@ -54,6 +89,7 @@ private:
 public:
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
+	void ManageBuildingState();
 
 	static inline std::string_view TextureOf(AttackerType type)
 	{
@@ -84,6 +120,8 @@ public:
 		}
 		return "";
 	}
+
+	static Tile* s_BuildingPlace;
 private:
 	std::vector<std::unique_ptr<Level>> levels;
 };
