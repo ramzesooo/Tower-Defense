@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <fstream>
+#include <cmath>
 
 // class App STATIC VARIABLES
 int32_t App::WINDOW_WIDTH = 800;
@@ -22,7 +23,10 @@ float App::s_ElapsedTime = NULL;
 
 UIState App::s_UIState = UIState::none;
 
-Tile* App::s_BuildingPlace = nullptr;
+int32_t App::s_MouseX = 0;
+int32_t App::s_MouseY = 0;
+
+BuildingState App::s_Building;
 // END
 
 auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
@@ -32,7 +36,7 @@ App::App()
 {
 	bool initialized = true;
 
-	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, 0);
+	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if (!m_Window)
 	{
 		App::s_Logger->AddLog(SDL_GetError());
@@ -50,6 +54,7 @@ App::App()
 		initialized = false;
 	}
 
+	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
 
 	App::s_Textures->AddTexture("mapSheet", "assets\\tileset.png");
@@ -95,8 +100,8 @@ App::App()
 		base->AttachLabel(newLabel);
 	}
 
-	s_BuildingPlace = App::s_Manager->NewEntity<Tile>(TileTypes::special, 2);
-	s_BuildingPlace->SetTexture(App::s_Textures->GetTexture("canBuild"));
+	s_Building.m_BuildingPlace = App::s_Manager->NewEntity<Tile>(TileTypes::special, 2);
+	s_Building.m_BuildingPlace->SetTexture(App::s_Textures->GetTexture("canBuild"));
 
 	UpdateCamera();
 
@@ -120,10 +125,18 @@ void App::EventHandler()
 
 	switch (App::s_Event.type)
 	{
+	case SDL_WINDOWEVENT:
+		if (App::s_Event.window.event == SDL_WINDOWEVENT_RESIZED)
+		{
+			OnResolutionChange();
+		}
+		break;
 	case SDL_QUIT:
 		m_IsRunning = false;
 		break;
 	case SDL_MOUSEMOTION:
+		s_MouseX = App::s_Event.motion.x;
+		s_MouseY = App::s_Event.motion.y;
 		ManageBuildingState();
 		break;
 	case SDL_MOUSEBUTTONUP:
@@ -154,23 +167,23 @@ void App::EventHandler()
 		// Function keys
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
-			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-			OnResolutionChange();
+			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+			//OnResolutionChange();
 			break;
 		case SDLK_F2:
 			SDL_SetWindowSize(m_Window, 1024, 768);
-			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-			OnResolutionChange();
+			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+			//OnResolutionChange();
 			break;
 		case SDLK_F3:
 			SDL_SetWindowSize(m_Window, 1280, 720);
-			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-			OnResolutionChange();
+			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+			//OnResolutionChange();
 			break;
 		case SDLK_F4:
 			SDL_SetWindowSize(m_Window, 1920, 1080);
-			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-			OnResolutionChange();
+			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+			//OnResolutionChange();
 			break;
 		case SDLK_F5:
 			{
@@ -182,16 +195,16 @@ void App::EventHandler()
 			}
 			break;
 		case SDLK_F6:
-			s_UIState = UIState::building;
+			SetUIState(UIState::building);
 			break;
 		case SDLK_F7:
-			s_UIState = UIState::none;
+			SetUIState(UIState::none);
 			break;
 		case SDLK_F11:
 			if (m_IsFullscreen)
 			{
 				SDL_SetWindowFullscreen(m_Window, 0);
-				SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+				SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			}
 			else
 			{
@@ -304,22 +317,40 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 
 void App::ManageBuildingState()
 {
-	int32_t mouseX = App::s_Event.motion.x;
-	int32_t mouseY = App::s_Event.motion.y;
+	s_Building.m_Coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize);
+	s_Building.m_Coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize);
 
-	Vector2D coordinates;
-	coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)mouseX / s_CurrentLevel->m_ScaledTileSize);
-	coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)mouseY / s_CurrentLevel->m_ScaledTileSize);
-
-	Tile* pointedTile = App::s_CurrentLevel->GetTileFrom(coordinates.x, coordinates.y, 0);
-	if (!pointedTile)
+	s_Building.m_PointedTile = App::s_CurrentLevel->GetTileFrom(s_Building.m_Coordinates.x, s_Building.m_Coordinates.y, 0);
+	if (!s_Building.m_PointedTile)
 		return;
 
-	s_BuildingPlace->SetPos(pointedTile->GetPos());
-	s_BuildingPlace->AdjustToView(); // in this case this function works like Update()
+	s_Building.m_BuildingPlace->SetPos(s_Building.m_PointedTile->GetPos());
+	s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("canBuild"));
+	s_Building.m_CanBuild = true;
+	
+	s_Building.m_BuildingPlace->AdjustToView();
+
 
 	if (s_UIState != UIState::building)
 		return;
 
-	s_BuildingPlace->Draw();
+	{
+		bool breakLoop = false;
+		for (const auto& t : towers)
+		{
+			for (const auto& tile : static_cast<Tower*>(t)->GetOccupiedTiles())
+			{
+				if (tile == s_Building.m_PointedTile)
+				{
+					s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
+					s_Building.m_CanBuild = false;
+					breakLoop = true;
+					break;
+				}
+			}
+
+			if (breakLoop)
+				break;
+		}
+	}
 }

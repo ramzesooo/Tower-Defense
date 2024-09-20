@@ -269,24 +269,15 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 
 void Level::HandleMouseButtonEvent()
 {
-	int32_t mouseX, mouseY;
-
-	mouseX = App::s_Event.button.x;
-	mouseY = App::s_Event.button.y;
-	
 	if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)
 	{
 		if (App::s_UIState == UIState::building)
 		{
-			Vector2D coordinates;
-			coordinates.x = std::floorf((App::s_Camera.x / m_ScaledTileSize) + (float)mouseX / m_ScaledTileSize);
-			coordinates.y = std::floorf((App::s_Camera.y / m_ScaledTileSize) + (float)mouseY / m_ScaledTileSize);
+			if (!App::s_Building.m_CanBuild)
+				return;
 
-			Tile* tile = GetTileFrom(coordinates.x, coordinates.y, 1);
-			if (tile)
-			{
-				AddTower(coordinates.x, coordinates.y, App::s_Textures->GetTexture("tower"), 1);
-			}
+			AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures->GetTexture("tower"), 1);
+			App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures->GetTexture("cantBuild"));
 		}
 	}
 	else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
@@ -369,16 +360,16 @@ void Level::Render()
 		}
 	}
 
-	if (App::s_UIState == UIState::building)
-	{
-		App::s_BuildingPlace->Draw();
-	}
-
 	m_BaseTile->Draw();
 
 	for (const auto& enemy : enemies)
 	{
 		enemy->Draw();
+	}
+
+	if (App::s_UIState == UIState::building)
+	{
+		App::s_Building.m_BuildingPlace->Draw();
 	}
 
 	for (const auto& tower : towers)

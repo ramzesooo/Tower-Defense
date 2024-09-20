@@ -14,6 +14,16 @@
 #include "SDL_ttf.h"
 #include <memory>
 
+//struct BuildingState contains all needed informations and it's one static variable in App class
+//It helps to avoid duplicating code
+struct BuildingState
+{
+	Tile* m_BuildingPlace = nullptr; // tile shown in building state
+	Tile* m_PointedTile = nullptr; // tile pointed by a mouse
+	Vector2D m_Coordinates{ 0.0f, 0.0f };
+	bool m_CanBuild = false;
+};
+
 enum class UIState
 {
 	none = 0, // none means game is running by default
@@ -65,6 +75,18 @@ public:
 		return false;
 	}
 
+	inline void SetUIState(UIState state)
+	{
+		s_UIState = state;
+
+		switch (state)
+		{
+		case UIState::building:
+			ManageBuildingState();
+			break;
+		}
+	}
+
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
 
@@ -80,6 +102,9 @@ public:
 	static uint16_t s_TowerRange;
 	static float s_ElapsedTime;
 	static UIState s_UIState;
+	static int32_t s_MouseX;
+	static int32_t s_MouseY;
+	static BuildingState s_Building;
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
@@ -120,9 +145,7 @@ public:
 		}
 		return "";
 	}
-
-	// this Tile is the tile following mouse showing exactly the place where tower will be placed
-	static Tile* s_BuildingPlace;
 private:
 	std::vector<std::unique_ptr<Level>> levels;
+	std::vector<Entity*>& towers = App::s_Manager->GetGroup(EntityGroup::tower);
 };
