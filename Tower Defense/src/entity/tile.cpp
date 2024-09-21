@@ -1,4 +1,5 @@
 #include "tile.h"
+#include "tower.h"
 #include "../app.h"
 #include "../textureManager.h"
 

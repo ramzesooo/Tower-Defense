@@ -10,7 +10,7 @@ constexpr uint16_t waveCooldown = 3500; // miliseconds
 Level::Level() 
 	: towers(App::s_Manager->GetGroup(EntityGroup::tower)), attackers(App::s_Manager->GetGroup(EntityGroup::attacker)), enemies(App::s_Manager->GetGroup(EntityGroup::enemy)),
 	projectiles(App::s_Manager->GetGroup(EntityGroup::projectile)),
-	m_Wave{ WaveProgress::OnCooldown, 1, 0 }
+	m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }
 {}
 
 Level::~Level()
@@ -291,9 +291,7 @@ void Level::InitWave()
 	static std::default_random_engine rng(rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
-	std::size_t spawnPlace = spawnerDistr(rng);
-
-	Tile* spawner = spawners.at(spawnPlace);
+	Tile* spawner = spawners.at(spawnerDistr(rng));
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
@@ -307,6 +305,12 @@ void Level::InitWave()
 	enemy->Move(moveVector);
 
 	m_Wave.spawnedEnemies++;
+
+	if (m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
+	{
+		printf("%zu\n", enemies.size());
+		m_Wave.waveProgress = WaveProgress::InProgress;
+	}
 }
 
 void Level::ManageWaves()
@@ -314,20 +318,13 @@ void Level::ManageWaves()
 	switch (m_Wave.waveProgress)
 	{
 	case WaveProgress::OnCooldown:
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
+		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_Wave.waveCooldown))
 		{
 			InitWave();
 			m_Wave.waveProgress = WaveProgress::Initializing;
 		}
 		return;
 	case WaveProgress::Initializing:
-		if (m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
-		{
-			printf("%zu\n", enemies.size());
-			m_Wave.waveProgress = WaveProgress::InProgress;
-			return;
-		}
-
 		InitWave();
 		return;
 	case WaveProgress::InProgress:
@@ -338,7 +335,12 @@ void Level::ManageWaves()
 		}
 		return;
 	case WaveProgress::Finished:
-		m_WaveCooldown = SDL_GetTicks() + waveCooldown;
+		m_Wave.waveNumber++;
+		if (m_Wave.waveNumber > m_Waves)
+		{
+			m_Wave.waveNumber = 1;
+		}
+		m_Wave.waveCooldown = SDL_GetTicks() + m_Wave.waveCooldown;
 		m_Wave.waveProgress = WaveProgress::OnCooldown;
 		return;
 	}

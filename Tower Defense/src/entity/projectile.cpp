@@ -18,7 +18,7 @@ Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 	switch (type)
 	{
 	case ProjectileType::arrow:
-		m_Damage = 5;
+		m_Damage = 15;
 		break;
 	default:
 		m_Damage = 0;

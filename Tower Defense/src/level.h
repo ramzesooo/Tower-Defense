@@ -36,6 +36,7 @@ struct Wave
 	WaveProgress waveProgress = WaveProgress::OnCooldown;
 	uint16_t waveNumber = 0;
 	uint16_t spawnedEnemies = 0;
+	uint32_t waveCooldown = NULL;
 };
 
 // Level's map should contain at least 3 layers counting from zero
@@ -107,7 +108,7 @@ public:
 	// Temporary level's config
 	uint16_t m_Waves = 3;
 	// enemiesPerWave are multiplied by current wave
-	uint16_t m_EnemiesPerWave = 50;
+	uint16_t m_EnemiesPerWave = 75;
 	Vector2D m_BasePos{ 34, 34 };
 private:
 	bool m_FailedLoading = false;
@@ -125,7 +126,4 @@ private:
 	Wave m_Wave;
 
 	std::random_device rnd;
-	
-	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
-	uint32_t m_WaveCooldown = NULL;
 };

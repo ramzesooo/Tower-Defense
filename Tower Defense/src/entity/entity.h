@@ -43,11 +43,13 @@ public:
 
 	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
 
-	virtual void Destroy() { m_IsActive = false; }
+	inline virtual void Destroy() { m_IsActive = false; }
 	bool IsActive() const { return m_IsActive; }
 
 	bool HasGroup(EntityGroup group) const { return m_GroupBitSet[(std::size_t)group]; }
 	void AddGroup(EntityGroup group);
+
+	//This should be changed, because DeleteGroup should also remove the entity from specific groupedEntities' vector
 	void DeleteGroup(EntityGroup group) { m_GroupBitSet[(std::size_t)group] = false; }
 
 	void AttachLabel(Label* label) { m_AttachedLabel = label; }

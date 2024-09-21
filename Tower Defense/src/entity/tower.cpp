@@ -20,8 +20,15 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 
 	{
 		Tile* tile = nullptr;
-		int16_t i = 0;
-		for (int16_t y = 0; y < 2; y++)
+		//int16_t i = 0;
+		for (auto i = 0; i < 4; i++)
+		{
+			tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + i % 2, (uint32_t)posY + i / 2);
+			m_OccupiedTiles[i] = tile;
+			tile->SetTowerOccupying(this);
+		}
+
+		/*for (int16_t y = 0; y < 2; y++)
 		{
 			for (int16_t x = 0; x < 2; x++)
 			{
@@ -30,7 +37,7 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 				m_OccupiedTiles[i] = tile;
 				i++;
 			}
-		}
+		}*/
 	}
 	
 	int32_t imageWidth = 144;
@@ -39,8 +46,6 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 	srcRect.w = (imageWidth / 3);
 	srcRect.h = 64;
 
-	//destRect.x = (int32_t)m_Pos.x;
-	//destRect.y = (int32_t)m_Pos.y;
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = destRect.h = scaledTileSize * 2;
@@ -52,6 +57,14 @@ void Tower::Destroy()
 	{
 		m_Attacker->Destroy();
 		m_Attacker = nullptr;
+	}
+
+	for (const auto& tile : m_OccupiedTiles)
+	{
+		if (tile->GetTowerOccupying() != this)
+			continue;
+
+		tile->SetTowerOccupying(nullptr);
 	}
 }
 

@@ -126,7 +126,7 @@ void App::EventHandler()
 	switch (App::s_Event.type)
 	{
 	case SDL_WINDOWEVENT:
-		if (App::s_Event.window.event == SDL_WINDOWEVENT_RESIZED)
+		if (App::s_Event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 		{
 			OnResolutionChange();
 		}
@@ -168,22 +168,18 @@ void App::EventHandler()
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			//OnResolutionChange();
 			break;
 		case SDLK_F2:
 			SDL_SetWindowSize(m_Window, 1024, 768);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			//OnResolutionChange();
 			break;
 		case SDLK_F3:
 			SDL_SetWindowSize(m_Window, 1280, 720);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			//OnResolutionChange();
 			break;
 		case SDLK_F4:
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			//OnResolutionChange();
 			break;
 		case SDLK_F5:
 			{
@@ -334,23 +330,44 @@ void App::ManageBuildingState()
 	if (s_UIState != UIState::building)
 		return;
 
+	for (auto i = 0; i < 4; i++)
 	{
-		bool breakLoop = false;
-		for (const auto& t : towers)
+		Tile* building = App::s_CurrentLevel->GetTileFrom(uint32_t(s_Building.m_Coordinates.x + i % 2), uint32_t(s_Building.m_Coordinates.y + i / 2.0f), 0);
+		if (building && building->GetTowerOccupying())
 		{
-			for (const auto& tile : static_cast<Tower*>(t)->GetOccupiedTiles())
-			{
-				if (tile == s_Building.m_PointedTile)
-				{
-					s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
-					s_Building.m_CanBuild = false;
-					breakLoop = true;
-					break;
-				}
-			}
-
-			if (breakLoop)
-				break;
+			s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
+			s_Building.m_CanBuild = false;
+			return;
 		}
 	}
+
+	//for (const auto& t : towers)
+	//{
+	//	for (const auto& tile : static_cast<Tower*>(t)->GetOccupiedTiles())
+	//	{
+	//		for (auto i = 0; i < 4; i++)
+	//		{
+	//			Tile* building = App::s_CurrentLevel->GetTileFrom(uint32_t(s_Building.m_Coordinates.x + i % 2), uint32_t(s_Building.m_Coordinates.y + i / 2.0f), 0);
+	//			if (building == tile)
+	//			{
+	//				s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
+	//				s_Building.m_CanBuild = false;
+	//				return;
+	//			}
+	//		}
+	//		/*for (auto y = 0; y < 2; y++)
+	//		{
+	//			for (auto x = 0; x < 2; x++)
+	//			{
+	//				Tile* building = App::s_CurrentLevel->GetTileFrom(s_Building.m_Coordinates.x + x, s_Building.m_Coordinates.y + y, 0);
+	//				if (building == tile)
+	//				{
+	//					s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
+	//					s_Building.m_CanBuild = false;
+	//					return;
+	//				}
+	//			}
+	//		}*/
+	//	}
+	//}
 }

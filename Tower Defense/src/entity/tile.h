@@ -17,6 +17,8 @@ enum class TileTypes
 	special
 };
 
+class Tower;
+
 class Tile : public Entity
 {
 public:
@@ -72,6 +74,9 @@ public:
 
 	Entity* GetOccupyingEntity() const { return m_EntityOccupying; }
 	void SetOccupyingEntity(Entity* entity) { m_EntityOccupying = entity; }
+
+	Tower* GetTowerOccupying() const { return m_TowerOnTile; }
+	void SetTowerOccupying(Tower* tower) { m_TowerOnTile = tower; }
 private:
 	SDL_Rect srcRect{ 0, 0, 24, 24 }, destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos;
@@ -80,4 +85,5 @@ private:
 	TileTypes m_Type;
 
 	Entity* m_EntityOccupying = nullptr;
+	Tower* m_TowerOnTile = nullptr;
 };
