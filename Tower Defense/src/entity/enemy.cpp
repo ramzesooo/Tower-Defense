@@ -11,7 +11,7 @@ SDL_Texture* Enemy::s_GreenTex = nullptr;
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize),
-	towers(App::s_Manager->GetGroup(EntityGroup::tower))
+	towers(App::s_Manager.GetGroup(EntityGroup::tower))
 {
 	//destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	//destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
@@ -21,8 +21,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
-	Enemy::s_Square = App::s_Textures->GetTexture("square");
-	Enemy::s_GreenTex = App::s_Textures->GetTexture("green");
+	Enemy::s_Square = App::s_Textures.GetTexture("square");
+	Enemy::s_GreenTex = App::s_Textures.GetTexture("green");
 
 	m_RectHP.squareRect.w = float(App::s_CurrentLevel->m_ScaledTileSize);
 	m_RectHP.squareRect.h = float(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
@@ -48,7 +48,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_AttachedLabel = App::s_Manager->NewEntity<Label>(0, 0, "-0", App::s_Textures->GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
+	m_AttachedLabel = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
 	m_AttachedLabel->AddGroup(EntityGroup::label);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
@@ -84,8 +84,8 @@ void Enemy::Destroy()
 		m_AttachedLabel->Destroy();
 	}
 
-	auto& attackers = App::s_Manager->GetGroup(EntityGroup::attacker);
-	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
+	auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
+	auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 
 	{
 		Attacker* attacker = nullptr;
@@ -119,12 +119,6 @@ void Enemy::Destroy()
 
 void Enemy::Update()
 {
-	if (m_HP <= 0)
-	{
-		Destroy();
-		return;
-	}
-
 	if (IsMoving())
 	{
 		UpdateMovement();
@@ -166,7 +160,7 @@ void Enemy::PlayAnim(std::string_view animID)
 	auto it = animations.find(animID);
 	if (it == animations.end())
 	{
-		App::s_Logger->AddLog("Couldn't find animation called " + std::string(animID));
+		App::s_Logger.AddLog("Couldn't find animation called " + std::string(animID));
 		return;
 	}
 
@@ -332,16 +326,17 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	int32_t enemyX = (int32_t)m_Pos.x;
 	int32_t enemyY = (int32_t)m_Pos.y;
 
+	int x, y;
 	// Tower's position is based on left-upper tile occupied by the tower
-	for (int y = 0; y < 2; y++)
+	for (auto i = 0; i < 4; i++)
 	{
-		for (int x = 0; x < 2; x++)
+		x = i % 2;
+		y = i / 2;
+
+		if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
+			&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
 		{
-			if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
-				&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 
@@ -350,7 +345,7 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 
 void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
 {
-	Projectile* projectile = App::s_Manager->NewEntity<Projectile>(type, projectileOwner, this);
+	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, this);
 	projectile->AddGroup(EntityGroup::projectile);
 }
 
@@ -367,6 +362,7 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 		else
 		{
 			m_HP = 0;
+			Destroy();
 		}
 
 		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;

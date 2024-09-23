@@ -38,7 +38,7 @@ public:
 	~App();
 
 	void EventHandler();
-	void Update(float elapsedTime) const;
+	void Update();
 	void Render();
 
 	void UpdateCamera();
@@ -46,20 +46,6 @@ public:
 	void OnResolutionChange();
 
 	bool IsRunning() const { return m_IsRunning; }
-
-	// for checking is currently the game paused
-	static inline bool IsGamePaused()
-	{
-		switch (s_UIState)
-		{
-		case UIState::none:
-			return false;
-		case UIState::building:
-			return true;
-		}
-
-		return false;
-	}
 
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
@@ -73,6 +59,12 @@ public:
 		}
 
 		return false;
+	}
+
+	// for checking is currently the game paused
+	static inline bool IsGamePaused()
+	{
+		return IsGamePaused(s_UIState);
 	}
 
 	inline void SetUIState(UIState state)
@@ -90,9 +82,9 @@ public:
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
 
-	static std::unique_ptr<TextureManager> s_Textures;
-	static std::unique_ptr<Logger> s_Logger;
-	static std::unique_ptr<Manager> s_Manager;
+	static TextureManager s_Textures;
+	static Logger s_Logger;
+	static Manager s_Manager;
 
 	static SDL_Renderer* s_Renderer;
 	static SDL_Event s_Event;
@@ -147,5 +139,5 @@ public:
 	}
 private:
 	std::vector<std::unique_ptr<Level>> levels;
-	std::vector<Entity*>& towers = App::s_Manager->GetGroup(EntityGroup::tower);
+	std::vector<Entity*>& towers = App::s_Manager.GetGroup(EntityGroup::tower);
 };

@@ -46,6 +46,8 @@ public:
 		return *this;
 	}
 
+	void Destroy() override;
+
 	void AdjustToView() override;
 	void Draw() override;
 

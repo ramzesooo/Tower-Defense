@@ -12,10 +12,10 @@ Tile::Tile(TileTypes type, int32_t tileScale) : m_Type(type)
 Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, std::string_view textureID, TileTypes type)
 	: m_Pos((float)posX, (float)posY), m_TextureID(textureID), m_Type(type)
 {
-	m_Texture = App::s_Textures->GetTexture(m_TextureID);
+	m_Texture = App::s_Textures.GetTexture(m_TextureID);
 	if (!m_Texture)
 	{
-		App::s_Logger->AddLog("Tile::Tile: Missing texture: " + std::string(textureID));
+		App::s_Logger.AddLog("Tile::Tile: Missing texture: " + std::string(textureID));
 	}
 
 	srcRect.x = srcX;
@@ -25,6 +25,24 @@ Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t t
 	destRect.x = static_cast<int32_t>(posX - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(posY - App::s_Camera.y);
 	destRect.w = destRect.h = tileSize * tileScale;
+}
+
+void Tile::Destroy()
+{
+	if (m_TowerOnTile)
+	{
+		auto& tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
+		Tile* tile;
+		for (uint16_t i = 0; i < tilesFromTower.size(); i++)
+		{
+			tile = m_TowerOnTile->GetOccupiedTile(i);
+			if (tile == this)
+			{
+				tilesFromTower[i] = nullptr;
+				break;
+			}
+		}
+	}
 }
 
 void Tile::AdjustToView()

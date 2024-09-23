@@ -27,7 +27,7 @@ void Attacker::Destroy()
 {
 	m_Target = nullptr;
 
-	auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
+	auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 
 	for (const auto& projectile : projectiles)
 	{
@@ -90,7 +90,7 @@ void Attacker::PlayAnim(std::string_view animID)
 	auto it = animations.find(animID);
 	if (it == animations.end())
 	{
-		App::s_Logger->AddLog("Couldn't find animation called " + std::string(animID));
+		App::s_Logger.AddLog("Couldn't find animation called " + std::string(animID));
 		return;
 	}
 

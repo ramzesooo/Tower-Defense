@@ -42,6 +42,9 @@ public:
 		{
 			m_AttachedTo->m_AttachedLabel = nullptr;
 		}
+
+		// Don't need to use if (m_Texture), because it'll just throw SDL error about invalid texture if it's nullptr
+		SDL_DestroyTexture(m_Texture);
 	}
 
 	void Draw() override;

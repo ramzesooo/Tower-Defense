@@ -10,7 +10,7 @@
 Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetPos().x * App::s_CurrentLevel->m_ScaledTileSize, target->GetPos().y * App::s_CurrentLevel->m_ScaledTileSize), 
-	m_Texture(App::s_Textures->GetTexture(App::TextureOf(type))), m_Pos(owner->GetPos())
+	m_Texture(App::s_Textures.GetTexture(App::TextureOf(type))), m_Pos(owner->GetPos())
 {
 	destRect.x = (int32_t)m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2;
 	destRect.y = (int32_t)m_Pos.y;

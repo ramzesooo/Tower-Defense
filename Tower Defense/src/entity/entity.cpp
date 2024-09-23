@@ -6,7 +6,7 @@
 void Entity::AddGroup(EntityGroup group)
 {
 	m_GroupBitSet[(std::size_t)group] = true;
-	App::s_Manager->AddToGroup(this, group);
+	App::s_Manager.AddToGroup(this, group);
 }
 
 // class Manager

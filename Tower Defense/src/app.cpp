@@ -7,9 +7,9 @@
 int32_t App::WINDOW_WIDTH = 800;
 int32_t App::WINDOW_HEIGHT = 600;
 
-std::unique_ptr<TextureManager> App::s_Textures = std::make_unique<TextureManager>();
-std::unique_ptr<Logger> App::s_Logger = std::make_unique<Logger>();
-std::unique_ptr<Manager> App::s_Manager = std::make_unique<Manager>();
+TextureManager App::s_Textures;
+Logger App::s_Logger;
+Manager App::s_Manager;
 
 SDL_Renderer* App::s_Renderer = nullptr;
 SDL_Event App::s_Event;
@@ -29,8 +29,8 @@ int32_t App::s_MouseY = 0;
 BuildingState App::s_Building;
 // END
 
-auto& projectiles = App::s_Manager->GetGroup(EntityGroup::projectile);
-auto& labels = App::s_Manager->GetGroup(EntityGroup::label);
+auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
+auto& labels = App::s_Manager.GetGroup(EntityGroup::label);
 
 App::App()
 {
@@ -39,7 +39,7 @@ App::App()
 	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if (!m_Window)
 	{
-		App::s_Logger->AddLog(SDL_GetError());
+		App::s_Logger.AddLog(SDL_GetError());
 		initialized = false;
 	}
 
@@ -50,27 +50,27 @@ App::App()
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
 	{
-		App::s_Logger->AddLog(SDL_GetError());
+		App::s_Logger.AddLog(SDL_GetError());
 		initialized = false;
 	}
 
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
 
-	App::s_Textures->AddTexture("mapSheet", "assets\\tileset.png");
+	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
 
-	App::s_Textures->AddTexture("canBuild", "assets\\tile_CanBuild.png");
-	App::s_Textures->AddTexture("cantBuild", "assets\\tile_CantBuild.png");
-	App::s_Textures->AddTexture("base", "assets\\base.png");
-	App::s_Textures->AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures->AddTexture("square", "assets\\square_32x32.png");
-	App::s_Textures->AddTexture("green", "assets\\green_32x32.png");
-	App::s_Textures->AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
-	App::s_Textures->AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
-	App::s_Textures->AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
+	App::s_Textures.AddTexture("canBuild", "assets\\tile_CanBuild.png");
+	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
+	App::s_Textures.AddTexture("base", "assets\\base.png");
+	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
+	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
+	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
+	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
+	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
+	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
-	App::s_Textures->AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
-	App::s_Textures->AddFont("hpBar", "assets\\Rostack.otf", 13);
+	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
+	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
 
 	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);
@@ -86,13 +86,13 @@ App::App()
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->DidLoadingFail())
 	{
 		initialized = false;
-		App::s_Logger->AddLog("Beginner level couldn't be loaded properly.");
+		App::s_Logger.AddLog("Beginner level couldn't be loaded properly.");
 	}
 	else
 	{
 		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
-		auto newLabel = App::s_Manager->NewEntity<Label>(4, 2, "pos", App::s_Textures->GetFont("default"));
+		auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
 
 		Tile* base = App::s_CurrentLevel->GetBase();
@@ -100,8 +100,8 @@ App::App()
 		base->AttachLabel(newLabel);
 	}
 
-	s_Building.m_BuildingPlace = App::s_Manager->NewEntity<Tile>(TileTypes::special, 2);
-	s_Building.m_BuildingPlace->SetTexture(App::s_Textures->GetTexture("canBuild"));
+	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
+	s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("canBuild"));
 
 	UpdateCamera();
 
@@ -130,57 +130,57 @@ void App::EventHandler()
 		{
 			OnResolutionChange();
 		}
-		break;
+		return;
 	case SDL_QUIT:
 		m_IsRunning = false;
-		break;
+		return;
 	case SDL_MOUSEMOTION:
 		s_MouseX = App::s_Event.motion.x;
 		s_MouseY = App::s_Event.motion.y;
 		ManageBuildingState();
-		break;
+		return;
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
 		App::s_CurrentLevel->HandleMouseButtonEvent();
-		break;
+		return;
 	case SDL_KEYDOWN:
 		switch (App::s_Event.key.keysym.sym)
 		{
 		// for testing, base is not supposed to move
 		case SDLK_w:
 			App::s_CurrentLevel->GetBase()->Move(0.0f, -1.0f);
-			break;
+			return;
 		case SDLK_a:
 			App::s_CurrentLevel->GetBase()->Move(-1.0f, 0.0f);
-			break;
+			return;
 		case SDLK_s:
 			App::s_CurrentLevel->GetBase()->Move(0.0f, 1.0f);
-			break;
+			return;
 		case SDLK_d:
 			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
-			break;
+			return;
 
 		case SDLK_LEFT:
 			App::s_CurrentLevel->GetEnemy()->Move(-1.0f, 0.0f);
-			break;
+			return;
 
 		// Function keys
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			break;
+			return;
 		case SDLK_F2:
 			SDL_SetWindowSize(m_Window, 1024, 768);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			break;
+			return;
 		case SDLK_F3:
 			SDL_SetWindowSize(m_Window, 1280, 720);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			break;
+			return;
 		case SDLK_F4:
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			break;
+			return;
 		case SDLK_F5:
 			{
 				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
@@ -189,13 +189,13 @@ void App::EventHandler()
 					enemy->Destroy();
 				}
 			}
-			break;
+			return;
 		case SDLK_F6:
 			SetUIState(UIState::building);
-			break;
+			return;
 		case SDLK_F7:
 			SetUIState(UIState::none);
-			break;
+			return;
 		case SDLK_F11:
 			if (m_IsFullscreen)
 			{
@@ -207,25 +207,23 @@ void App::EventHandler()
 				SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN);
 			}
 			m_IsFullscreen = !m_IsFullscreen;
-			break;
+			return;
 		// End of function keys
 
 		case SDLK_ESCAPE:
 			m_IsRunning = false;
-			break;
+			return;
 		default:
-			break;
+			return;
 		}
-		break;
+		return;
 	default:
-		break;
+		return;
 	}
 }
 
-void App::Update(float fElapsedTime) const
+void App::Update()
 {
-	App::s_ElapsedTime = fElapsedTime;
-
 	if (IsGamePaused())
 		return;
 
@@ -236,8 +234,8 @@ void App::Update(float fElapsedTime) const
 
 	App::s_CurrentLevel->ManageWaves();
 
-	App::s_Manager->Refresh();
-	App::s_Manager->Update();
+	App::s_Manager.Refresh();
+	App::s_Manager.Update();
 }
 
 void App::Render()
@@ -308,7 +306,7 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
-	App::s_Logger->AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
+	App::s_Logger.AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
 }
 
 void App::ManageBuildingState()
@@ -321,7 +319,7 @@ void App::ManageBuildingState()
 		return;
 
 	s_Building.m_BuildingPlace->SetPos(s_Building.m_PointedTile->GetPos());
-	s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("canBuild"));
+	s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("canBuild"));
 	s_Building.m_CanBuild = true;
 	
 	s_Building.m_BuildingPlace->AdjustToView();
@@ -335,39 +333,9 @@ void App::ManageBuildingState()
 		Tile* building = App::s_CurrentLevel->GetTileFrom(uint32_t(s_Building.m_Coordinates.x + i % 2), uint32_t(s_Building.m_Coordinates.y + i / 2.0f), 0);
 		if (building && building->GetTowerOccupying())
 		{
-			s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
+			s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("cantBuild"));
 			s_Building.m_CanBuild = false;
 			return;
 		}
 	}
-
-	//for (const auto& t : towers)
-	//{
-	//	for (const auto& tile : static_cast<Tower*>(t)->GetOccupiedTiles())
-	//	{
-	//		for (auto i = 0; i < 4; i++)
-	//		{
-	//			Tile* building = App::s_CurrentLevel->GetTileFrom(uint32_t(s_Building.m_Coordinates.x + i % 2), uint32_t(s_Building.m_Coordinates.y + i / 2.0f), 0);
-	//			if (building == tile)
-	//			{
-	//				s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
-	//				s_Building.m_CanBuild = false;
-	//				return;
-	//			}
-	//		}
-	//		/*for (auto y = 0; y < 2; y++)
-	//		{
-	//			for (auto x = 0; x < 2; x++)
-	//			{
-	//				Tile* building = App::s_CurrentLevel->GetTileFrom(s_Building.m_Coordinates.x + x, s_Building.m_Coordinates.y + y, 0);
-	//				if (building == tile)
-	//				{
-	//					s_Building.m_BuildingPlace->SetTexture(s_Textures->GetTexture("cantBuild"));
-	//					s_Building.m_CanBuild = false;
-	//					return;
-	//				}
-	//			}
-	//		}*/
-	//	}
-	//}
 }

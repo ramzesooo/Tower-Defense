@@ -50,7 +50,7 @@ class Level
 {
 public:
 	Level();
-	~Level();
+	//~Level();
 
 	void Setup(std::ifstream& mapFile);
 

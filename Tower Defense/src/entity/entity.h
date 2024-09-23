@@ -26,7 +26,7 @@ class Entity
 public:
 	Entity() = default;
 	Entity(const Entity& r) : m_IsActive(r.m_IsActive), m_AttachedLabel(r.m_AttachedLabel), m_GroupBitSet(r.m_GroupBitSet) {}
-	virtual ~Entity() = default;
+	virtual ~Entity() { m_IsActive = false; };
 
 	inline Entity& operator=(const Entity& r)
 	{
@@ -43,7 +43,7 @@ public:
 
 	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
 
-	inline virtual void Destroy() { m_IsActive = false; }
+	virtual void Destroy() { m_IsActive = false; }
 	bool IsActive() const { return m_IsActive; }
 
 	bool HasGroup(EntityGroup group) const { return m_GroupBitSet[(std::size_t)group]; }

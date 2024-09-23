@@ -9,12 +9,12 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 
 	if (tier > 3)
 	{
-		App::s_Logger->AddLog("Tried to add tower with tier higher than 3");
+		App::s_Logger.AddLog("Tried to add tower with tier higher than 3");
 		tier = 3;
 	}
 	else if (tier < 1)
 	{
-		App::s_Logger->AddLog("Tried to add tower with tier lower than 1");
+		App::s_Logger.AddLog("Tried to add tower with tier lower than 1");
 		tier = 1;
 	}
 
@@ -61,7 +61,7 @@ void Tower::Destroy()
 
 	for (const auto& tile : m_OccupiedTiles)
 	{
-		if (tile->GetTowerOccupying() != this)
+		if (!tile || tile->GetTowerOccupying() != this)
 			continue;
 
 		tile->SetTowerOccupying(nullptr);
