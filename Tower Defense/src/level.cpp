@@ -89,8 +89,40 @@ void Level::Setup(std::ifstream& mapFile)
 
 	Tile* tile = nullptr;
 	uint32_t srcX, srcY;
+	uint32_t x, y;
 
-	for (uint32_t y = 0; y < m_MapSizeY; y++)
+	for (uint32_t i = 0; i < m_MapSizeX * m_MapSizeY; i++)
+	{
+		x = i % m_MapSizeX;
+		y = i / m_MapSizeY;
+		tileCode = mapData.at(y).at(x);
+		srcX = tileCode % 10;
+		srcY = tileCode / 10;
+		tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID, tileType);
+
+		if (tile)
+		{
+			tile->AddGroup(EntityGroup::tile);
+
+			if (tileCode == spawnerID)
+			{
+				spawners.push_back(tile);
+			}
+		}
+		else
+		{
+			m_FailedLoading = true;
+			App::s_Logger.AddLog("Couldn't load a tile (", false);
+			App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize), false);
+			App::s_Logger.AddLog(", ", false);
+			App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize), false);
+			App::s_Logger.AddLog(")");
+		}
+
+		newLayer->tiles.emplace_back(tile);
+	}
+
+	/*for (uint32_t y = 0; y < m_MapSizeY; y++)
 	{
 		for (uint32_t x = 0; x < m_MapSizeX; x++)
 		{
@@ -120,7 +152,7 @@ void Level::Setup(std::ifstream& mapFile)
 
 			newLayer->tiles.emplace_back(tile);
 		}
-	}
+	}*/
 
 	mapFile.close();
 }
