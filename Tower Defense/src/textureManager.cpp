@@ -10,6 +10,11 @@ TextureManager::~TextureManager()
 	{
 		TTF_CloseFont(font.second);
 	}
+
+	for (const auto& texture : textures)
+	{
+		SDL_DestroyTexture(texture.second);
+	}
 }
 
 void TextureManager::AddTexture(std::string_view textureID, const char* path)
@@ -25,6 +30,7 @@ void TextureManager::AddTexture(std::string_view textureID, const char* path)
 	{
 		App::s_Logger.AddLog(SDL_GetError());
 	}
+	SDL_FreeSurface(tempSurface);
 
 	textures.emplace(std::string(textureID), texture);
 }

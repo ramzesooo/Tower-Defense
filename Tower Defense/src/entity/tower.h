@@ -11,7 +11,7 @@ class Tower : public Entity
 {
 public:
 	Tower(float posX, float posY, SDL_Texture* texture, int32_t tier = 1);
-	Tower(const Tower& r) : Entity(r), m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
+	Tower(const Tower& r) : m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
 		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker) {}
 	~Tower() = default;
 
@@ -22,7 +22,6 @@ public:
 			return *this;
 		}
 
-		Entity::operator=(r);
 		m_Texture = r.m_Texture;
 		m_Pos = r.m_Pos;
 		srcRect = r.srcRect;

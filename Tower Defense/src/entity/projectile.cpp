@@ -14,16 +14,6 @@ Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 {
 	destRect.x = (int32_t)m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2;
 	destRect.y = (int32_t)m_Pos.y;
-
-	switch (type)
-	{
-	case ProjectileType::arrow:
-		m_Damage = 15;
-		break;
-	default:
-		m_Damage = 0;
-		break;
-	}
 }
 
 void Projectile::Update()
@@ -34,11 +24,11 @@ void Projectile::Update()
 		return;
 	}
 
-	if (m_ToDestroy)
+	/*if (m_ToDestroy)
 	{
 		Destroy();
 		return;
-	}
+	}*/
 
 	if (m_Pos.x + (float)destRect.w >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x - (float)destRect.w <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
 		&& m_Pos.y + (float)destRect.h >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y - (float)destRect.h <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))

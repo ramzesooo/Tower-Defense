@@ -29,8 +29,8 @@ class Enemy : public Entity
 {
 public:
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
-	Enemy(const Enemy& r) : Entity(r), towers(r.towers), destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
-		m_Type(r.m_Type), m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent) {}
+	Enemy(const Enemy& r) : towers(r.towers), destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
+		m_Type(r.m_Type), m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
 	~Enemy() = default;
 
 	inline Enemy& operator=(const Enemy& r)
@@ -40,7 +40,6 @@ public:
 			return *this;
 		}
 
-		Entity::operator=(r);
 		m_Texture = r.m_Texture;
 		m_Type = r.m_Type;
 		m_Pos = r.m_Pos;
@@ -57,10 +56,7 @@ public:
 		m_HP = r.m_HP;
 		m_MaxHP = r.m_MaxHP;
 		m_HPPercent = r.m_HPPercent;
-		m_AnimFrames = r.m_AnimFrames;
-		m_AnimID = r.m_AnimID;
-		m_AnimIndex = r.m_AnimIndex;
-		m_AnimSpeed = r.m_AnimSpeed;
+		m_CurrentAnim = r.m_CurrentAnim;
 
 		return *this;
 	}
@@ -128,9 +124,10 @@ private:
 	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
 
-	std::string_view m_AnimID;
+	/*std::string_view m_AnimID;
 	int32_t m_AnimIndex = 0;
 	int32_t m_AnimFrames = 1;
-	int32_t m_AnimSpeed = 100;
+	int32_t m_AnimSpeed = 100;*/
+	Animation* m_CurrentAnim = nullptr;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 };

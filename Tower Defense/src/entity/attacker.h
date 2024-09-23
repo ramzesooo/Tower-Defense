@@ -22,10 +22,11 @@ class Tower;
 class Attacker : public Entity
 {
 public:
+	static std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
+
 	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
-	Attacker(const Attacker& r) : Entity(r), m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
-		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_AnimFrames(r.m_AnimFrames), m_AnimID(r.m_AnimID), m_AnimIndex(r.m_AnimIndex), m_AnimSpeed(r.m_AnimSpeed),
-		m_Target(r.m_Target), m_NextShot(r.m_NextShot), animations(r.animations) {}
+	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
+		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot) {}
 	~Attacker() = default;
 
 	inline Attacker& operator=(const Attacker& r)
@@ -35,8 +36,6 @@ public:
 			return *this;
 		}
 
-		Entity::operator=(r);
-
 		m_OccupiedTower = r.m_OccupiedTower;
 		m_Type = r.m_Type;
 		m_Texture = r.m_Texture;
@@ -44,14 +43,9 @@ public:
 		m_Pos = r.m_Pos;
 		srcRect = r.srcRect;
 		destRect = r.destRect;
-		m_AnimFrames = r.m_AnimFrames;
-		m_AnimID = r.m_AnimID;
-		m_AnimIndex = r.m_AnimIndex;
-		m_AnimSpeed = r.m_AnimSpeed;
+		m_CurrentAnim = r.m_CurrentAnim;
 		m_Target = r.m_Target;
 		m_NextShot = r.m_NextShot;
-
-		animations = r.animations;
 
 		return *this;
 	}
@@ -90,11 +84,11 @@ private:
 
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 
-	int32_t m_AnimIndex = 0;
-	int32_t m_AnimFrames = 1;
-	int32_t m_AnimSpeed = 100;
-	std::string m_AnimID;
-	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
+	Animation* m_CurrentAnim = nullptr;
+	//int32_t m_AnimIndex = 0;
+	//int32_t m_AnimFrames = 1;
+	//int32_t m_AnimSpeed = 100;
+	//std::string m_AnimID;
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;

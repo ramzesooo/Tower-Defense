@@ -25,16 +25,9 @@ class Entity
 {
 public:
 	Entity() = default;
-	Entity(const Entity& r) : m_IsActive(r.m_IsActive), m_AttachedLabel(r.m_AttachedLabel), m_GroupBitSet(r.m_GroupBitSet) {}
+	Entity(const Entity&) = delete;
+	Entity& operator=(const Entity&) = delete;
 	virtual ~Entity() { m_IsActive = false; };
-
-	inline Entity& operator=(const Entity& r)
-	{
-		m_IsActive = r.m_IsActive;
-		m_AttachedLabel = r.m_AttachedLabel;
-		m_GroupBitSet = r.m_GroupBitSet;
-		return *this;
-	}
 
 	virtual void Update() {}
 	virtual void Draw() {}

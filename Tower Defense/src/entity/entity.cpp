@@ -38,6 +38,13 @@ void Manager::Refresh()
 			continue;
 		}
 
+		for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i) {
+			if ((*it)->HasGroup((EntityGroup)i)) {
+				std::erase(groupedEntities[i], it->get());
+			}
+		}
+
+		/*
 		// If it's not active
 		for (auto i = 0u; i < (std::size_t)EntityGroup::size; i++)
 		{
@@ -60,6 +67,7 @@ void Manager::Refresh()
 				break;
 			}
 		}
+		*/
 
 		//Ready to erase the unique pointer from entities
 		it = entities.erase(it);

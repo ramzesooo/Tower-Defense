@@ -212,7 +212,6 @@ void Level::InitWave()
 
 	if (m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
 	{
-		printf("%zu\n", enemies.size());
 		m_Wave.waveProgress = WaveProgress::InProgress;
 	}
 }
@@ -244,7 +243,7 @@ void Level::ManageWaves()
 		{
 			m_Wave.waveNumber = 1;
 		}
-		m_Wave.waveCooldown = SDL_GetTicks() + m_Wave.waveCooldown;
+		m_Wave.waveCooldown = SDL_GetTicks() + waveCooldown;
 		m_Wave.waveProgress = WaveProgress::OnCooldown;
 		return;
 	}

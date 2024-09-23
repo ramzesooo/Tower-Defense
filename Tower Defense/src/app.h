@@ -137,7 +137,17 @@ public:
 		}
 		return "";
 	}
+
+	static inline uint16_t GetDamageOf(ProjectileType type)
+	{
+		switch (type)
+		{
+		case ProjectileType::arrow:
+			return 15;
+		}
+
+		return 0;
+	}
 private:
 	std::vector<std::unique_ptr<Level>> levels;
-	std::vector<Entity*>& towers = App::s_Manager.GetGroup(EntityGroup::tower);
 };

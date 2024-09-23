@@ -29,15 +29,15 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
-	Animation idle = Animation(0, 2, 500);
-	animations.emplace("Idle", idle);
+	//Animation idle = Animation(0, 2, 500);
+	animations.emplace("Idle", Animation("Idle", 0, 2, 500));
 
 	switch (type)
 	{
 	case EnemyType::elf:
 		{
-			Animation walk = Animation(1, 3, 100);
-			animations.emplace("Walk", walk);
+			//Animation walk = Animation(1, 3, 100);
+			animations.emplace("Walk", Animation("Walk", 1, 3, 100));
 
 			m_HP = m_MaxHP = 200;
 		}
@@ -109,10 +109,13 @@ void Enemy::Destroy()
 		{
 			projectile = static_cast<Projectile*>(p);
 
-			if (projectile->GetTarget() == this)
+			if (projectile->GetTarget() != this)
 			{
-				projectile->m_ToDestroy = true;
+				continue;
 			}
+
+			//projectile->m_ToDestroy = true;
+			p->Destroy();
 		}
 	}
 }
@@ -124,8 +127,8 @@ void Enemy::Update()
 		UpdateMovement();
 	}
 	
-	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_AnimSpeed) % m_AnimFrames);
-	srcRect.y = m_AnimIndex * Enemy::s_EnemyHeight;
+	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim->speed) % m_CurrentAnim->frames);
+	srcRect.y = m_CurrentAnim->index * Enemy::s_EnemyHeight;
 
 	{
 		Attacker* attacker = nullptr;
@@ -164,11 +167,16 @@ void Enemy::PlayAnim(std::string_view animID)
 		return;
 	}
 
-	m_AnimID = animID;
+	if (m_CurrentAnim != &it->second)
+	{
+		m_CurrentAnim = &it->second;
+	}
+
+	/*m_AnimID = animID;
 
 	m_AnimFrames = it->second.frames;
 	m_AnimIndex = it->second.index;
-	m_AnimSpeed = it->second.speed;
+	m_AnimSpeed = it->second.speed;*/
 }
 
 void Enemy::Move(Vector2D destination)
@@ -353,7 +361,7 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 {
 	if (IsHit)
 	{
-		uint16_t dmg = projectile->GetDamage();
+		uint16_t dmg = App::GetDamageOf(projectile->GetType());
 
 		if (m_HP > dmg)
 		{

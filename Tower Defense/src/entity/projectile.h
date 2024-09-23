@@ -17,8 +17,8 @@ class Projectile : public Entity
 {
 public:
 	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
-	Projectile(const Projectile& r) : Entity(r), m_Texture(r.m_Texture), srcRect(r.srcRect), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
-		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner), m_Damage(r.m_Damage) {}
+	Projectile(const Projectile& r) : m_Texture(r.m_Texture), srcRect(r.srcRect), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
+		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner) {}
 	~Projectile() = default;
 
 	inline Projectile& operator=(const Projectile& r)
@@ -28,7 +28,6 @@ public:
 			return *this;
 		}
 
-		Entity::operator=(r);
 		m_Texture = r.m_Texture;
 		srcRect = r.srcRect;
 		destRect = r.destRect;
@@ -39,7 +38,6 @@ public:
 		m_Type = r.m_Type;
 		m_Owner = r.m_Owner;
 		m_Target = r.m_Target;
-		m_Damage = r.m_Damage;
 
 		return *this;
 	}
@@ -54,9 +52,9 @@ public:
 	Enemy* GetTarget() const { return m_Target; }
 	Attacker* GetOwner() const { return m_Owner; }
 
-	uint16_t GetDamage() const { return m_Damage; }
+	ProjectileType GetType() const { return m_Type; }
 
-	bool m_ToDestroy = false;
+	//bool m_ToDestroy = false;
 private:
 	static constexpr float baseVelocity = 130.0f;
 	SDL_Texture* m_Texture = nullptr;
@@ -68,5 +66,4 @@ private:
 	ProjectileType m_Type = ProjectileType::arrow;
 	Attacker* m_Owner = nullptr;
 	Enemy* m_Target = nullptr;
-	uint16_t m_Damage = 0;
 };

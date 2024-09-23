@@ -3,6 +3,8 @@
 #include <fstream>
 #include <cmath>
 
+constexpr uint16_t levelsToLoad = 1;
+
 // class App STATIC VARIABLES
 int32_t App::WINDOW_WIDTH = 800;
 int32_t App::WINDOW_HEIGHT = 600;
@@ -31,6 +33,7 @@ BuildingState App::s_Building;
 
 auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 auto& labels = App::s_Manager.GetGroup(EntityGroup::label);
+auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
 
 App::App()
 {
@@ -72,7 +75,6 @@ App::App()
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
 
-	constexpr uint16_t levelsToLoad = 1;
 	levels.reserve(levelsToLoad);
 
 	for (uint16_t i = 0; i < levelsToLoad; i++)
@@ -102,6 +104,9 @@ App::App()
 
 	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
 	s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("canBuild"));
+
+	Attacker::animations.emplace("Idle", Animation("Idle", 0, 2, 600));
+	Attacker::animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
 
 	UpdateCamera();
 
@@ -195,6 +200,12 @@ void App::EventHandler()
 			return;
 		case SDLK_F7:
 			SetUIState(UIState::none);
+			return;
+		case SDLK_F8:
+			for (const auto& e : App::s_Manager.GetGroup(EntityGroup::enemy))
+			{
+				e->Destroy();
+			}
 			return;
 		case SDLK_F11:
 			if (m_IsFullscreen)
