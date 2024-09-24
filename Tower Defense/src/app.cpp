@@ -100,6 +100,7 @@ App::App()
 		Tile* base = App::s_CurrentLevel->GetBase();
 
 		base->AttachLabel(newLabel);
+		newLabel->UpdateText("(" + std::to_string(base->GetPos().x) + ", " + std::to_string(base->GetPos().y) + ")");
 	}
 
 	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
@@ -115,6 +116,9 @@ App::App()
 
 App::~App()
 {
+	s_Manager.DestroyAllEntities();
+	levels.clear();
+
 	if (App::s_Renderer)
 		SDL_DestroyRenderer(App::s_Renderer);
 
@@ -154,15 +158,19 @@ void App::EventHandler()
 		// for testing, base is not supposed to move
 		case SDLK_w:
 			App::s_CurrentLevel->GetBase()->Move(0.0f, -1.0f);
+			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 			return;
 		case SDLK_a:
 			App::s_CurrentLevel->GetBase()->Move(-1.0f, 0.0f);
+			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 			return;
 		case SDLK_s:
 			App::s_CurrentLevel->GetBase()->Move(0.0f, 1.0f);
+			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 			return;
 		case SDLK_d:
 			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
+			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 			return;
 
 		case SDLK_LEFT:
@@ -237,11 +245,6 @@ void App::Update()
 {
 	if (IsGamePaused())
 		return;
-
-	Label* label = App::s_CurrentLevel->GetBase()->GetAttachedLabel();
-	
-	if (label)
-		label->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
 
 	App::s_CurrentLevel->ManageWaves();
 
@@ -334,7 +337,6 @@ void App::ManageBuildingState()
 	s_Building.m_CanBuild = true;
 	
 	s_Building.m_BuildingPlace->AdjustToView();
-
 
 	if (s_UIState != UIState::building)
 		return;

@@ -66,10 +66,19 @@ public:
 	std::vector<Entity*>& GetGroup(EntityGroup group) { return groupedEntities[(std::size_t)group]; }
 
 	template<class T, class... Args>
-	T* NewEntity(Args&&... args)
+	inline T* NewEntity(Args&&... args)
 	{
 		entities.push_back(std::make_unique<T>(std::forward<Args>(args)...));
 		return (T*)entities.back().get();
+	}
+
+	inline void DestroyAllEntities()
+	{ 
+		for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i) {
+			groupedEntities[i].clear();
+		}
+
+		entities.clear();
 	}
 private:
 	std::vector<std::unique_ptr<Entity>> entities;

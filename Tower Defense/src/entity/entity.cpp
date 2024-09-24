@@ -38,6 +38,7 @@ void Manager::Refresh()
 			continue;
 		}
 
+		// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
 		for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i) {
 			if ((*it)->HasGroup((EntityGroup)i)) {
 				std::erase(groupedEntities[i], it->get());
