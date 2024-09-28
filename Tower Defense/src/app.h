@@ -92,9 +92,13 @@ public:
 
 		switch (state)
 		{
+		case UIState::none:
+			m_PauseLabel->m_Drawable = false;
+			return;
 		case UIState::building:
+			m_PauseLabel->m_Drawable = true;
 			ManageBuildingState();
-			break;
+			return;
 		}
 	}
 private:
@@ -150,4 +154,5 @@ public:
 	}
 private:
 	std::vector<std::unique_ptr<Level>> levels;
+	Label* m_PauseLabel = nullptr;
 };

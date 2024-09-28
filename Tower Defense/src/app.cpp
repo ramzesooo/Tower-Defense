@@ -109,6 +109,13 @@ App::App()
 
 	UpdateCamera();
 
+	m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
+	m_PauseLabel->m_Drawable = false;
+	m_PauseLabel->AddGroup(EntityGroup::label);
+
+	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
+	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
+
 	m_IsRunning = initialized;
 }
 
