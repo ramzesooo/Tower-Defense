@@ -15,6 +15,8 @@ struct RectHP
 	static constexpr SDL_Rect srcRect{ 0, 0, 32, 32 };
 	SDL_FRect squareRect{ 0.0f, 0.0f, 32.0f, 32.0f };
 	SDL_FRect barRect{ 0.0f, 0.0f, 32.0f, 32.0f };
+	// Label responsible for displaying enemy's hp
+	Label* labelHP = nullptr;
 };
 
 enum class EnemyType
@@ -99,6 +101,8 @@ public:
 
 	void SetOccupiedTile(Tile* newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
+
+	void SetAttachedLabel(Label* label) { m_RectHP.labelHP = label; }
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;

@@ -99,7 +99,7 @@ App::App()
 
 		Base* base = App::s_CurrentLevel->GetBase();
 
-		base->AttachLabel(newLabel);
+		base->m_AttachedLabel = newLabel;
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 	}
 

@@ -1,4 +1,5 @@
 #include "label.h"
+#include "enemy.h"
 #include "../app.h"
 
 Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, SDL_Color color, Entity* attachedTo)
@@ -27,6 +28,19 @@ Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, 
 	SDL_FreeSurface(surface);
 
 	SDL_QueryTexture(m_Texture, nullptr, nullptr, &destRect.w, &destRect.h);
+}
+
+void Label::Destroy()
+{
+	m_IsActive = false;
+
+	if (m_AttachedTo && m_AttachedTo->HasGroup(EntityGroup::enemy))
+	{
+		static_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
+	}
+
+	// Don't need to use if (m_Texture), because it'll just throw SDL error about invalid texture if it's nullptr
+	SDL_DestroyTexture(m_Texture);
 }
 
 void Label::Draw()

@@ -48,8 +48,10 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_AttachedLabel = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
-	m_AttachedLabel->AddGroup(EntityGroup::label);
+	m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
+	m_RectHP.labelHP->AddGroup(EntityGroup::label);
+	//m_AttachedLabel = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
+	//m_AttachedLabel->AddGroup(EntityGroup::label);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
@@ -70,8 +72,10 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
-	m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+	//m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	//m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
 
 	//UpdateHealthBar();
 }
@@ -80,10 +84,16 @@ void Enemy::Destroy()
 {
 	m_IsActive = false;
 
-	if (m_AttachedLabel)
+	if (m_RectHP.labelHP)
 	{
-		m_AttachedLabel->m_AttachedTo = nullptr;
-		m_AttachedLabel->Destroy();
+		m_RectHP.labelHP->m_AttachedTo = nullptr;
+		m_RectHP.labelHP->Destroy();
+	}
+
+	if (m_OccupiedTile)
+	{
+		m_OccupiedTile->SetOccupyingEntity(nullptr);
+		m_OccupiedTile = nullptr;
 	}
 
 	auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
@@ -259,6 +269,11 @@ void Enemy::Move(float destinationX, float destinationY)
 void Enemy::UpdateMovement()
 {
 	//m_Pos += m_Velocity * App::s_ElapsedTime;
+	Tile *nextTile = App::s_CurrentLevel->GetTileFrom(uint32_t(m_Pos.x + (m_Velocity.x * App::s_ElapsedTime)), uint32_t(m_Pos.y + (m_Velocity.y * App::s_ElapsedTime)));
+
+	if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this && nextTile != m_OccupiedTile && nextTile != App::s_CurrentLevel->GetBase()->m_Tile)
+		return;
+	
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
@@ -280,6 +295,7 @@ void Enemy::UpdateMovement()
 
 		App::s_CurrentLevel->GetBase()->TakeDamage(1);
 		Destroy();
+		return;
 	}
 
 	Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
@@ -309,7 +325,7 @@ void Enemy::UpdateHealthBar()
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
 
 void Enemy::AdjustToView()
@@ -378,7 +394,7 @@ void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
 
 		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
 
-		m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+		m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
 
 		UpdateHealthBar();
 	}

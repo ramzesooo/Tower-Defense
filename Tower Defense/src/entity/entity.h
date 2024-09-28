@@ -19,7 +19,7 @@ enum class EntityGroup
 	size
 };
 
-class Label;
+//class Label;
 
 class Entity
 {
@@ -45,14 +45,14 @@ public:
 	//This should be changed, because DeleteGroup should also remove the entity from specific groupedEntities' vector
 	void DeleteGroup(EntityGroup group) { m_GroupBitSet[(std::size_t)group] = false; }
 
-	void AttachLabel(Label* label) { m_AttachedLabel = label; }
-	Label* GetAttachedLabel() const { return m_AttachedLabel; }
+	//void AttachLabel(Label* label) { m_AttachedLabel = label; }
+	//Label* GetAttachedLabel() const { return m_AttachedLabel; }
 
 	bool m_IsActive = true;
 
 	std::bitset<(std::size_t)EntityGroup::size> m_GroupBitSet;
 
-	Label* m_AttachedLabel = nullptr;
+	//Label* m_AttachedLabel = nullptr;
 };
 
 class Manager

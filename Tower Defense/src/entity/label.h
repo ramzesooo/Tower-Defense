@@ -32,18 +32,7 @@ public:
 		return *this;
 	}
 
-	inline void Destroy() override
-	{
-		m_IsActive = false;
-
-		if (m_AttachedTo)
-		{
-			m_AttachedTo->m_AttachedLabel = nullptr;
-		}
-
-		// Don't need to use if (m_Texture), because it'll just throw SDL error about invalid texture if it's nullptr
-		SDL_DestroyTexture(m_Texture);
-	}
+	void Destroy() override;
 
 	void Draw() override;
 

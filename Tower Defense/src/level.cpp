@@ -165,6 +165,7 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.destRect = { scaledPosX, scaledPosY, m_Base.destRect.w * 2, m_Base.destRect.h * 2 };
 	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
 	m_Base.m_HP = 100;
+	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
 
 	App::s_Logger.AddLog("Created base (", false);
 	App::s_Logger.AddLog(std::to_string(scaledPosX), false);

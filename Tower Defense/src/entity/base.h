@@ -1,5 +1,6 @@
 #pragma once
 #include "label.h"
+#include "tile.h"
 #include "../Vector2D.h"
 
 #include "SDL.h"
@@ -14,10 +15,9 @@ public:
 	SDL_Texture* m_Texture = nullptr;
 	uint16_t m_HP = 0;
 	Label* m_AttachedLabel = nullptr;
+	Tile* m_Tile = nullptr;
 
 	void Draw() const;
 	void TakeDamage(uint16_t dmg);
 	void AdjustToView();
-	Label* GetAttachedLabel() const { return m_AttachedLabel; }
-	void AttachLabel(Label* label) { m_AttachedLabel = label; }
 };
