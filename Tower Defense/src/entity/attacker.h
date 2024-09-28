@@ -85,11 +85,8 @@ private:
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 
 	Animation* m_CurrentAnim = nullptr;
-	//int32_t m_AnimIndex = 0;
-	//int32_t m_AnimFrames = 1;
-	//int32_t m_AnimSpeed = 100;
-	//std::string m_AnimID;
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
+	uint32_t m_OnCreateTicks = SDL_GetTicks();
 };

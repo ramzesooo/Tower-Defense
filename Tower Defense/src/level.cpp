@@ -10,7 +10,7 @@ constexpr uint16_t waveCooldown = 3500; // miliseconds
 Level::Level() 
 	: towers(App::s_Manager.GetGroup(EntityGroup::tower)), attackers(App::s_Manager.GetGroup(EntityGroup::attacker)), enemies(App::s_Manager.GetGroup(EntityGroup::enemy)),
 	projectiles(App::s_Manager.GetGroup(EntityGroup::projectile)),
-	m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }
+	m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
 {}
 
 //Level::~Level()
@@ -91,14 +91,14 @@ void Level::Setup(std::ifstream& mapFile)
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
-	for (uint32_t i = 0; i < m_MapSizeX * m_MapSizeY; i++)
+	for (uint16_t i = 0; i < m_MapSizeX * m_MapSizeY; i++)
 	{
 		x = i % m_MapSizeX;
 		y = i / m_MapSizeY;
 		tileCode = mapData.at(y).at(x);
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
-		tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID, tileType);
+		tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
 
 		if (tile)
 		{
@@ -159,13 +159,17 @@ void Level::Setup(std::ifstream& mapFile)
 
 void Level::SetupBase(uint32_t posX, uint32_t posY)
 {
-	m_BaseTile = App::s_Manager.NewEntity<Tile>(0, 0, posX * m_ScaledTileSize, posY * m_ScaledTileSize, m_TileSize, m_MapScale, m_BaseTextureID);
-	m_BaseTile->AddGroup(EntityGroup::tile);
+	int32_t scaledPosX = posX * m_ScaledTileSize;
+	int32_t scaledPosY = posY * m_ScaledTileSize;
+	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
+	m_Base.destRect = { scaledPosX, scaledPosY, m_Base.destRect.w * 2, m_Base.destRect.h * 2 };
+	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
+	m_Base.m_HP = 100;
 
 	App::s_Logger.AddLog("Created base (", false);
-	App::s_Logger.AddLog(std::to_string(posX * m_ScaledTileSize), false);
+	App::s_Logger.AddLog(std::to_string(scaledPosX), false);
 	App::s_Logger.AddLog(", ", false);
-	App::s_Logger.AddLog(std::to_string(posY * m_ScaledTileSize), false);
+	App::s_Logger.AddLog(std::to_string(scaledPosY), false);
 	App::s_Logger.AddLog(")");
 }
 
@@ -240,9 +244,7 @@ void Level::InitWave()
 
 	enemy->Move(moveVector);
 
-	m_Wave.spawnedEnemies++;
-
-	if (m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
+	if (++m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
 	{
 		m_Wave.waveProgress = WaveProgress::InProgress;
 	}
@@ -297,7 +299,7 @@ void Level::Render()
 		}
 	}
 
-	m_BaseTile->Draw();
+	m_Base.Draw();
 
 	for (const auto& enemy : enemies)
 	{
@@ -357,7 +359,7 @@ void Level::OnUpdateCamera()
 		}
 	}
 
-	m_BaseTile->AdjustToView();
+	m_Base.AdjustToView();
 
 	for (const auto& e : enemies)
 	{

@@ -102,13 +102,14 @@ public:
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
-	static constexpr float s_MovementSpeed = 3.0f;
+	static constexpr float s_MovementSpeed = 1.5f;
 	static SDL_Texture* s_Square;
 	static SDL_Texture* s_GreenTex;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
 
 	// m_Pos for Enemy is based on tiles' count and it's scaled with tiles' size only while rendering in destRect.x and destRect.y
+	// To get already scaled enemy's position use m_ScaledPos
 	Vector2D m_Pos;
 	Vector2D m_ScaledPos;
 	Vector2D m_Velocity{ 0.0f, 0.0f };
@@ -124,10 +125,6 @@ private:
 	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
 
-	/*std::string_view m_AnimID;
-	int32_t m_AnimIndex = 0;
-	int32_t m_AnimFrames = 1;
-	int32_t m_AnimSpeed = 100;*/
-	Animation* m_CurrentAnim = nullptr;
+	Animation m_CurrentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 };

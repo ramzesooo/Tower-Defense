@@ -54,7 +54,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
 
-	if (m_RectHP.squareRect.x < 0.5f)
+	/*if (m_RectHP.squareRect.x < 0.5f)
 	{
 		m_RectHP.squareRect.x = 0.5f;
 	}
@@ -62,7 +62,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	if (m_RectHP.squareRect.y < 0.5f)
 	{
 		m_RectHP.squareRect.y = 0.5f;
-	}
+	}*/
 
 	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
 
@@ -72,6 +72,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
 	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 	m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+
+	//UpdateHealthBar();
 }
 
 void Enemy::Destroy()
@@ -114,7 +116,6 @@ void Enemy::Destroy()
 				continue;
 			}
 
-			//projectile->m_ToDestroy = true;
 			p->Destroy();
 		}
 	}
@@ -123,12 +124,10 @@ void Enemy::Destroy()
 void Enemy::Update()
 {
 	if (IsMoving())
-	{
 		UpdateMovement();
-	}
 	
-	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim->speed) % m_CurrentAnim->frames);
-	srcRect.y = m_CurrentAnim->index * Enemy::s_EnemyHeight;
+	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
+	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 
 	{
 		Attacker* attacker = nullptr;
@@ -136,7 +135,28 @@ void Enemy::Update()
 		{
 			attacker = static_cast<Tower*>(tower)->GetAttacker();
 			
-			if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+			if (attacker->GetTarget() && attacker->GetTarget() != this)
+			{
+				continue;
+			}
+
+			if (attacker->GetTarget() == this)
+			{
+				if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+				{
+					attacker->StopAttacking();
+				}
+
+				continue;
+			}
+
+			// if attacker doesn't have any target right now
+			if (IsTowerInRange((Tower*)tower, App::s_TowerRange))
+			{
+				attacker->InitAttack(this);
+			}
+
+			/*if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
 			{
 				if (attacker->GetTarget() == this)
 				{
@@ -146,7 +166,7 @@ void Enemy::Update()
 				continue;
 			}
 
-			attacker->InitAttack(this);
+			attacker->InitAttack(this);*/
 		}
 	}
 }
@@ -167,29 +187,21 @@ void Enemy::PlayAnim(std::string_view animID)
 		return;
 	}
 
-	if (m_CurrentAnim != &it->second)
+	if (m_CurrentAnim.id != it->second.id)
 	{
-		m_CurrentAnim = &it->second;
+		m_CurrentAnim = it->second;
 	}
-
-	/*m_AnimID = animID;
-
-	m_AnimFrames = it->second.frames;
-	m_AnimIndex = it->second.index;
-	m_AnimSpeed = it->second.speed;*/
 }
 
 void Enemy::Move(Vector2D destination)
 {
 	if (IsMoving())
-	{
 		return;
-	}
 
 	// destination should be rounded in case it will get some digits after a comma
 	// to avoid improper rendering like between of 2 tiles
 	destination.Roundf();
-
+	
 	m_Destination.x = m_Pos.x + destination.x;
 	m_Destination.y = m_Pos.y + destination.y;
 
@@ -262,9 +274,12 @@ void Enemy::UpdateMovement()
 
 	if (!IsMoving())
 	{
-		PlayAnim("Idle");
+		/*PlayAnim("Idle");
 		m_Pos.Roundf();
-		m_Destination.Roundf();
+		m_Destination.Roundf();*/
+
+		App::s_CurrentLevel->GetBase()->TakeDamage(1);
+		Destroy();
 	}
 
 	Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
@@ -277,24 +292,12 @@ void Enemy::UpdateMovement()
 		newOccupiedTile->SetOccupyingEntity(this);
 	}
 
-	m_ScaledPos = m_Pos;
-	m_ScaledPos * App::s_CurrentLevel->m_ScaledTileSize;
+	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
 	UpdateHealthBar();
-
-	/*m_RectHP.squareRect.x = scaledPos.x - App::s_Camera.x;
-	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
-
-	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
-
-	m_RectHP.barRect = m_RectHP.squareRect;
-	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
-
-	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));*/
 }
 
 void Enemy::UpdateHealthBar()

@@ -3,6 +3,7 @@
 #include "entity/tower.h"
 #include "entity/attacker.h"
 #include "entity/enemy.h"
+#include "entity/base.h"
 
 #include <vector>
 #include <memory>
@@ -85,7 +86,7 @@ public:
 
 	bool DidLoadingFail() const { return m_FailedLoading; }
 
-	Tile* GetBase() const { return m_BaseTile; }
+	Base* GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
 	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
@@ -112,9 +113,9 @@ public:
 	Vector2D m_BasePos{ 34, 34 };
 private:
 	bool m_FailedLoading = false;
-	std::string_view m_TextureID = "mapSheet";
+	SDL_Texture* m_Texture = nullptr; // map tiles
 	std::string_view m_BaseTextureID = "base";
-	Tile* m_BaseTile = nullptr;
+	Base m_Base;
 	uint16_t m_LevelID = 0;
 	std::vector<Layer> layers;
 	std::vector<Entity*>& towers;

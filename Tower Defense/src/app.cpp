@@ -19,7 +19,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 
 Level* App::s_CurrentLevel = nullptr;
 
-uint16_t App::s_TowerRange = 2;
+uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 
@@ -97,10 +97,10 @@ App::App()
 		auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
 
-		Tile* base = App::s_CurrentLevel->GetBase();
+		Base* base = App::s_CurrentLevel->GetBase();
 
 		base->AttachLabel(newLabel);
-		newLabel->UpdateText("(" + std::to_string(base->GetPos().x) + ", " + std::to_string(base->GetPos().y) + ")");
+		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 	}
 
 	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
@@ -155,28 +155,6 @@ void App::EventHandler()
 	case SDL_KEYDOWN:
 		switch (App::s_Event.key.keysym.sym)
 		{
-		// for testing, base is not supposed to move
-		case SDLK_w:
-			App::s_CurrentLevel->GetBase()->Move(0.0f, -1.0f);
-			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
-			return;
-		case SDLK_a:
-			App::s_CurrentLevel->GetBase()->Move(-1.0f, 0.0f);
-			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
-			return;
-		case SDLK_s:
-			App::s_CurrentLevel->GetBase()->Move(0.0f, 1.0f);
-			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
-			return;
-		case SDLK_d:
-			App::s_CurrentLevel->GetBase()->Move(1.0f, 0.0f);
-			App::s_CurrentLevel->GetBase()->GetAttachedLabel()->UpdateText("(" + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().x) + ", " + std::to_string(App::s_CurrentLevel->GetBase()->GetPos().y) + ")");
-			return;
-
-		case SDLK_LEFT:
-			App::s_CurrentLevel->GetEnemy()->Move(-1.0f, 0.0f);
-			return;
-
 		// Function keys
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
@@ -268,7 +246,7 @@ void App::Render()
 
 void App::UpdateCamera()
 {
-	Vector2D basePos = App::s_CurrentLevel->GetBase()->GetPos();
+	Vector2D basePos = App::s_CurrentLevel->GetBase()->m_Pos;
 	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapSizeX * App::s_CurrentLevel->m_ScaledTileSize);
 	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapSizeY * App::s_CurrentLevel->m_ScaledTileSize);
 

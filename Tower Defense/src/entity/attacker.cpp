@@ -3,7 +3,7 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr int32_t shotCooldown = 300 * 4 + 150; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
+constexpr int32_t shotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 
 std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> Attacker::animations;
 
@@ -15,12 +15,6 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
 	destRect.h = Attacker::s_AttackerHeight * m_Scale;
-
-	/*Animation idle = Animation("Idle", 0, 2, 600);
-	Animation shoot = Animation("Shoot", 1, 4, 300);
-
-	animations.emplace(idle.id, idle);
-	animations.emplace(shoot.id, shoot);*/
 
 	PlayAnim("Idle");
 }
@@ -72,7 +66,7 @@ void Attacker::Update()
 		}
 	}
 
-	srcRect.x = srcRect.w * ((ticks / m_CurrentAnim->speed) % m_CurrentAnim->frames);
+	srcRect.x = srcRect.w * (((ticks - m_OnCreateTicks) / m_CurrentAnim->speed) % m_CurrentAnim->frames);
 	srcRect.y = m_CurrentAnim->index * Attacker::s_AttackerHeight;
 }
 
@@ -100,12 +94,6 @@ void Attacker::PlayAnim(std::string_view animID)
 	{
 		m_CurrentAnim = &it->second;
 	}
-
-	/*m_AnimID = animID;
-
-	m_AnimFrames = it->second.frames;
-	m_AnimIndex = it->second.index;
-	m_AnimSpeed = it->second.speed;*/
 }
 
 void Attacker::InitAttack(Enemy* target)

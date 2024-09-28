@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="src\app.cpp" />
     <ClCompile Include="src\entity\attacker.cpp" />
+    <ClCompile Include="src\entity\base.cpp" />
     <ClCompile Include="src\entity\enemy.cpp" />
     <ClCompile Include="src\entity\entity.cpp" />
     <ClCompile Include="src\entity\label.cpp" />
@@ -183,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="src\app.h" />
     <ClInclude Include="src\entity\anim.h" />
+    <ClInclude Include="src\entity\base.h" />
     <ClInclude Include="src\entity\projectile.h" />
     <ClInclude Include="src\entity\attacker.h" />
     <ClInclude Include="src\entity\enemy.h" />
