@@ -39,7 +39,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 			//Animation walk = Animation(1, 3, 100);
 			animations.emplace("Walk", Animation("Walk", 1, 3, 100));
 
-			m_HP = m_MaxHP = 200;
+			m_HP = m_MaxHP = 50;
 		}
 		break;
 	default:
@@ -50,21 +50,9 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
 	m_RectHP.labelHP->AddGroup(EntityGroup::label);
-	//m_AttachedLabel = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
-	//m_AttachedLabel->AddGroup(EntityGroup::label);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
-
-	/*if (m_RectHP.squareRect.x < 0.5f)
-	{
-		m_RectHP.squareRect.x = 0.5f;
-	}
-
-	if (m_RectHP.squareRect.y < 0.5f)
-	{
-		m_RectHP.squareRect.y = 0.5f;
-	}*/
 
 	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
 
@@ -74,10 +62,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
 	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
-	//m_AttachedLabel->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
-	//m_AttachedLabel->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
-
-	//UpdateHealthBar();
 }
 
 void Enemy::Destroy()

@@ -66,7 +66,7 @@ public:
 	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	void AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
-	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 1);
+	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
 
 	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
@@ -107,9 +107,9 @@ public:
 	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
 
 	// Temporary level's config
-	uint16_t m_Waves = 3;
+	uint16_t m_Waves = 4;
 	// enemiesPerWave are multiplied by current wave
-	uint16_t m_EnemiesPerWave = 75;
+	uint16_t m_EnemiesPerWave = 25;
 	Vector2D m_BasePos{ 34, 34 };
 private:
 	bool m_FailedLoading = false;

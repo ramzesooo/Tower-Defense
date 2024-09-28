@@ -4,7 +4,7 @@
 #include "projectile.h"
 #include "../Vector2D.h"
 #include "anim.h"
-#include "../textureManager.h"
+#include "../textureManager.h" // textureManager contains proxy_hash struct
 
 #include "SDL.h"
 
@@ -13,6 +13,7 @@
 enum class AttackerType
 {
 	archer = 0,
+	hunter,
 	size
 };
 
@@ -22,8 +23,6 @@ class Tower;
 class Attacker : public Entity
 {
 public:
-	static std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
-
 	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
 	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
 		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot) {}
@@ -84,7 +83,8 @@ private:
 
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 
-	Animation* m_CurrentAnim = nullptr;
+	Animation m_CurrentAnim;
+	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;

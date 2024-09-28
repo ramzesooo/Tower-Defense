@@ -106,7 +106,7 @@ public:
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
-	static constexpr float s_MovementSpeed = 1.5f;
+	static constexpr float s_MovementSpeed = 1.3f;
 	static SDL_Texture* s_Square;
 	static SDL_Texture* s_GreenTex;
 	SDL_Texture* m_Texture = nullptr;

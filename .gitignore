@@ -364,3 +364,10 @@ FodyWeavers.xsd
 /Tower Defense/SDL2.dll
 /Tower Defense/SDL2_image.dll
 /Tower Defense/SDL2_ttf.dll
+/Tower Defense/assets/tileset.pyxel
+/Tower Defense/assets/entities/friendly/archer.pyxel
+/Tower Defense/assets/entities/enemy/elf.pyxel
+/Tower Defense/assets/entities/enemy/elf.png
+/Tower Defense/assets/entities/friendly/archer.png
+/Tower Defense/assets/entities/friendly/hunter.pyxel
+/Tower Defense/assets/entities/friendly/hunter.png

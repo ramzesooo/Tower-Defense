@@ -19,7 +19,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 
 Level* App::s_CurrentLevel = nullptr;
 
-uint16_t App::s_TowerRange = 3;
+uint16_t App::s_TowerRange = 4;
 
 float App::s_ElapsedTime = NULL;
 
@@ -70,6 +70,7 @@ App::App()
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
+	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
@@ -105,9 +106,6 @@ App::App()
 
 	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
 	s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("canBuild"));
-
-	Attacker::animations.emplace("Idle", Animation("Idle", 0, 2, 600));
-	Attacker::animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
 
 	UpdateCamera();
 

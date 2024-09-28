@@ -185,7 +185,8 @@ void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t 
 	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
 	tower->AddGroup(EntityGroup::tower);
 
-	AddAttacker(tower, AttackerType::archer, 2);
+	//AddAttacker(tower, AttackerType::archer);
+	AddAttacker(tower, (AttackerType)(tier - 1));
 }
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
@@ -217,7 +218,7 @@ void Level::HandleMouseButtonEvent()
 			if (!App::s_Building.m_CanBuild)
 				return;
 
-			AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures.GetTexture("tower"), 1);
+			AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures.GetTexture("tower"), 2);
 			App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("cantBuild"));
 		}
 	}

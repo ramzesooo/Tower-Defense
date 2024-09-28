@@ -20,24 +20,12 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 
 	{
 		Tile* tile = nullptr;
-		//int16_t i = 0;
 		for (auto i = 0; i < 4; i++)
 		{
 			tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + i % 2, (uint32_t)posY + i / 2);
 			m_OccupiedTiles[i] = tile;
 			tile->SetTowerOccupying(this);
 		}
-
-		/*for (int16_t y = 0; y < 2; y++)
-		{
-			for (int16_t x = 0; x < 2; x++)
-			{
-				tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + x, (uint32_t)posY + y);
-
-				m_OccupiedTiles[i] = tile;
-				i++;
-			}
-		}*/
 	}
 	
 	int32_t imageWidth = 144;

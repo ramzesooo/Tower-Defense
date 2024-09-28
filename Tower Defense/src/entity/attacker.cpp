@@ -5,8 +5,6 @@
 
 constexpr int32_t shotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 
-std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> Attacker::animations;
-
 Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
 	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos())
 {
@@ -16,6 +14,18 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
 	destRect.h = Attacker::s_AttackerHeight * m_Scale;
 
+	animations.emplace("Idle", Animation("Idle", 0, 2, 600));
+
+	switch (m_Type)
+	{
+	case AttackerType::archer:
+		animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
+		break;
+	case AttackerType::hunter:
+		animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
+		break;
+	}
+	
 	PlayAnim("Idle");
 }
 
@@ -66,8 +76,8 @@ void Attacker::Update()
 		}
 	}
 
-	srcRect.x = srcRect.w * (((ticks - m_OnCreateTicks) / m_CurrentAnim->speed) % m_CurrentAnim->frames);
-	srcRect.y = m_CurrentAnim->index * Attacker::s_AttackerHeight;
+	srcRect.x = srcRect.w * (((ticks - m_OnCreateTicks) / m_CurrentAnim.speed) % m_CurrentAnim.frames);
+	srcRect.y = m_CurrentAnim.index * Attacker::s_AttackerHeight;
 }
 
 void Attacker::Draw()
@@ -90,9 +100,9 @@ void Attacker::PlayAnim(std::string_view animID)
 		return;
 	}
 
-	if (m_CurrentAnim != &it->second)
+	if (m_CurrentAnim.id != it->second.id)
 	{
-		m_CurrentAnim = &it->second;
+		m_CurrentAnim = it->second;
 	}
 }
 
