@@ -209,6 +209,17 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	return enemy;
 }
 
+void Level::AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target)
+{
+	if (!target->IsActive())
+		return;
+
+	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
+	projectile->AddGroup(EntityGroup::projectile);
+	//target->m_TargetingProjectiles.push_back(projectile);
+	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
+}
+
 void Level::HandleMouseButtonEvent()
 {
 	if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)

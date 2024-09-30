@@ -23,6 +23,8 @@ class Tower;
 class Attacker : public Entity
 {
 public:
+	std::vector<Projectile*> m_OwnedProjectiles;
+
 	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
 	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
 		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot) {}
@@ -64,7 +66,8 @@ public:
 	// All this method does is playing animation and setting up cooldown at m_NextShoot
 	// And the true code for attacking happens in Update()
 	void InitAttack(Enemy* target);
-	void StopAttacking();
+	void StopAttacking(bool toErase = true);
+	bool IsAttacking() const { return m_Target != nullptr; }
 
 	Enemy* GetTarget() const { return m_Target; }
 	void SetTarget(Enemy* target) { m_Target = target; }

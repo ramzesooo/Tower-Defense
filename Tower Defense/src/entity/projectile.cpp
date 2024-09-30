@@ -18,16 +18,16 @@ Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
 
 void Projectile::Update()
 {
-	if (!m_Owner || !m_Owner->IsActive())
+	if (!m_Owner || !m_Target)
 	{
-		m_Target->DelProjectile(this);
+		Destroy();
 		return;
 	}
 
 	if (m_Pos.x + (float)destRect.w >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) && m_Pos.x - (float)destRect.w <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
 		&& m_Pos.y + (float)destRect.h >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) && m_Pos.y - (float)destRect.h <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))
 	{
-		m_Target->DelProjectile(this, true);
+		m_Target->OnHit(this, App::GetDamageOf(m_Type));
 		return;
 	}
 
@@ -55,7 +55,7 @@ void Projectile::Update()
 	
 	if (m_Velocity.y == 0.0f && m_Velocity.x == 0.0f)
 	{
-		m_Target->DelProjectile(this, true);
+		m_Target->OnHit(this, App::GetDamageOf(m_Type));
 		return;
 	}
 
@@ -93,4 +93,21 @@ void Projectile::AdjustToView()
 void Projectile::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect, m_Angle, SDL_FLIP_NONE);
+}
+
+void Projectile::Destroy()
+{
+	m_IsActive = false;
+
+	if (!m_Owner)
+		return;
+
+	for (auto it = m_Owner->m_OwnedProjectiles.begin(); it != m_Owner->m_OwnedProjectiles.end(); it++)
+	{
+		if ((*it) == this)
+		{
+			m_Owner->m_OwnedProjectiles.erase(it);
+			return;
+		}
+	}
 }

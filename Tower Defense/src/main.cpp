@@ -7,6 +7,11 @@
 
 int main(int argc, char** arg)
 {
+	for (int i = 0; i < argc; i++)
+	{
+		printf("Arg %d: %s\n", i, arg[i]);
+	}
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 	{
 		App::s_Logger.AddLog(SDL_GetError());

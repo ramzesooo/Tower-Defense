@@ -22,6 +22,8 @@ void Base::TakeDamage(uint16_t dmg)
 	{
 		m_HP -= dmg;
 	}
+
+	printf("Base HP: %d\n", m_HP);
 }
 
 void Base::AdjustToView()

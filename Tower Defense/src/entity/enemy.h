@@ -1,6 +1,5 @@
 #pragma once
 #include "entity.h"
-#include "attacker.h"
 #include "tile.h"
 #include "projectile.h"
 #include "label.h"
@@ -30,6 +29,9 @@ class Tower;
 class Enemy : public Entity
 {
 public:
+	// vector of attackers targeting this specific enemy
+	std::vector<Attacker*> m_Attackers;
+
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
 	Enemy(const Enemy& r) : towers(r.towers), destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
 		m_Type(r.m_Type), m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
@@ -86,18 +88,20 @@ public:
 	void UpdateHealthBar();
 	void AdjustToView() override;
 
+	void OnHit(Projectile* projectile, uint16_t dmg);
+
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
 	// And searches towers from x: -range, y: -range to: x: range, y: range
 	bool IsTowerInRange(Tower* tower, uint16_t range = 2) const;
 
-	void AddProjectile(ProjectileType type, Attacker* projectileOwner);
+	//void AddProjectile(ProjectileType type, Attacker* projectileOwner);
 
 	// DelProjectile should be always triggered to destroy it
 	// Only one exception is in case when Enemy object has been destroyed before
 	// Or projectile somehow has no assigned Enemy object
 	// IsHit is responsible for executing appropriate code for hitting target
-	void DelProjectile(Projectile* projectile, bool IsHit = false);
+	//void DelProjectile(Projectile* projectile, bool IsHit = false);
 
 	void SetOccupiedTile(Tile* newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
@@ -106,7 +110,7 @@ public:
 private:
 	static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;
-	static constexpr float s_MovementSpeed = 1.3f;
+	static constexpr float s_MovementSpeed = 1.4f;
 	static SDL_Texture* s_Square;
 	static SDL_Texture* s_GreenTex;
 	SDL_Texture* m_Texture = nullptr;

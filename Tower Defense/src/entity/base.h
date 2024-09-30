@@ -17,6 +17,8 @@ public:
 	Label* m_AttachedLabel = nullptr;
 	Tile* m_Tile = nullptr;
 
+	const SDL_Rect& GetRect() const { return destRect; }
+
 	void Draw() const;
 	void TakeDamage(uint16_t dmg);
 	void AdjustToView();

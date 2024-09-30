@@ -44,11 +44,11 @@ public:
 
 	void Update() override;
 	void Draw() override;
-
 	void AdjustToView() override;
+	void Destroy() override;
 
+	void SetTarget(Enemy* target) { m_Target = target; }
 	void SetOwner(Attacker* owner) { m_Owner = owner; }
-
 	Enemy* GetTarget() const { return m_Target; }
 	Attacker* GetOwner() const { return m_Owner; }
 

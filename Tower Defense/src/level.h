@@ -68,6 +68,7 @@ public:
 	void AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
+	void AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target);
 
 	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
 	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }

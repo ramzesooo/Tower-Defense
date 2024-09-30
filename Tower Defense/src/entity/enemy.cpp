@@ -80,38 +80,15 @@ void Enemy::Destroy()
 		m_OccupiedTile = nullptr;
 	}
 
-	auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
-	auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
-
+	for (const auto& a : m_Attackers)
 	{
-		Attacker* attacker = nullptr;
-
-		for (const auto& a : attackers)
-		{
-			attacker = static_cast<Attacker*>(a);
-
-			if (attacker->GetTarget() != this)
-			{
-				continue;
-			}
-
-			attacker->StopAttacking();
-		}
+		a->StopAttacking(false);
 	}
 
+	for (const auto& p : App::s_Manager.GetGroup(EntityGroup::projectile))
 	{
-		Projectile* projectile = nullptr;
-		for (const auto& p : projectiles)
-		{
-			projectile = static_cast<Projectile*>(p);
-
-			if (projectile->GetTarget() != this)
-			{
-				continue;
-			}
-
-			p->Destroy();
-		}
+		if (static_cast<Projectile*>(p)->GetTarget() == this)
+			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 }
 
@@ -119,48 +96,24 @@ void Enemy::Update()
 {
 	if (IsMoving())
 		UpdateMovement();
-	
+
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 
+	Attacker* attacker = nullptr;
+	for (const auto& tower : towers)
 	{
-		Attacker* attacker = nullptr;
-		for (const auto& tower : towers)
+		attacker = static_cast<Tower*>(tower)->GetAttacker();
+
+		if (attacker->GetTarget() == this)
 		{
-			attacker = static_cast<Tower*>(tower)->GetAttacker();
-			
-			if (attacker->GetTarget() && attacker->GetTarget() != this)
-			{
-				continue;
-			}
-
-			if (attacker->GetTarget() == this)
-			{
-				if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
-				{
-					attacker->StopAttacking();
-				}
-
-				continue;
-			}
-
-			// if attacker doesn't have any target right now
+			if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+				attacker->StopAttacking();
+		}
+		else if (!attacker->IsAttacking() && m_IsActive)
+		{
 			if (IsTowerInRange((Tower*)tower, App::s_TowerRange))
-			{
 				attacker->InitAttack(this);
-			}
-
-			/*if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
-			{
-				if (attacker->GetTarget() == this)
-				{
-					attacker->StopAttacking();
-				}
-
-				continue;
-			}
-
-			attacker->InitAttack(this);*/
 		}
 	}
 }
@@ -253,9 +206,24 @@ void Enemy::Move(float destinationX, float destinationY)
 void Enemy::UpdateMovement()
 {
 	//m_Pos += m_Velocity * App::s_ElapsedTime;
+	const SDL_Rect& rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
+	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x + rectOfBase.w
+		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y + rectOfBase.h)
+	{
+		App::s_CurrentLevel->GetBase()->TakeDamage(1);
+		Destroy();
+		return;
+	}
+
 	Tile *nextTile = App::s_CurrentLevel->GetTileFrom(uint32_t(m_Pos.x + (m_Velocity.x * App::s_ElapsedTime)), uint32_t(m_Pos.y + (m_Velocity.y * App::s_ElapsedTime)));
 
-	if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this && nextTile != m_OccupiedTile && nextTile != App::s_CurrentLevel->GetBase()->m_Tile)
+	if (!nextTile)
+	{
+		App::s_Logger.AddLog("Enemy tried to walk into a not exising tile, movement for it has been blocked!\n");
+		return;
+	}
+
+	if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this)
 		return;
 	
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
@@ -271,18 +239,25 @@ void Enemy::UpdateMovement()
 		m_Velocity.y = 0.0f;
 	}
 
-	if (!IsMoving())
-	{
-		/*PlayAnim("Idle");
-		m_Pos.Roundf();
-		m_Destination.Roundf();*/
+	//if (!IsMoving())
+	//{
+	//	/*PlayAnim("Idle");
+	//	m_Pos.Roundf();
+	//	m_Destination.Roundf();*/
 
-		App::s_CurrentLevel->GetBase()->TakeDamage(1);
-		Destroy();
-		return;
+	//	App::s_CurrentLevel->GetBase()->TakeDamage(1);
+	//	Destroy();
+	//	return;
+	//}
+
+	if (nextTile != m_OccupiedTile)
+	{
+		m_OccupiedTile->SetOccupyingEntity(nullptr);
+		m_OccupiedTile = nextTile;
+		m_OccupiedTile->SetOccupyingEntity(this);
 	}
 
-	Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
+	/*Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
 	if (newOccupiedTile && newOccupiedTile != m_OccupiedTile)
 	{
@@ -290,7 +265,7 @@ void Enemy::UpdateMovement()
 
 		m_OccupiedTile = newOccupiedTile;
 		newOccupiedTile->SetOccupyingEntity(this);
-	}
+	}*/
 
 	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
 
@@ -314,10 +289,34 @@ void Enemy::UpdateHealthBar()
 
 void Enemy::AdjustToView()
 {
+	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
+
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
 	UpdateHealthBar();
+}
+
+void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
+{
+	if (m_HP > dmg)
+	{
+		m_HP -= dmg;
+	}
+	else
+	{
+		m_HP = 0;
+		Destroy();
+		return;
+	}
+
+	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+
+	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+
+	UpdateHealthBar();
+
+	projectile->Destroy();
 }
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
@@ -354,34 +353,34 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	return false;
 }
 
-void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
-{
-	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, this);
-	projectile->AddGroup(EntityGroup::projectile);
-}
-
-void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
-{
-	if (IsHit)
-	{
-		uint16_t dmg = App::GetDamageOf(projectile->GetType());
-
-		if (m_HP > dmg)
-		{
-			m_HP -= dmg;
-		}
-		else
-		{
-			m_HP = 0;
-			Destroy();
-		}
-
-		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
-
-		m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
-
-		UpdateHealthBar();
-	}
-
-	projectile->Destroy();
-}
+//void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
+//{
+//	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, this);
+//	projectile->AddGroup(EntityGroup::projectile);
+//}
+//
+//void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
+//{
+//	if (IsHit)
+//	{
+//		uint16_t dmg = App::GetDamageOf(projectile->GetType());
+//
+//		if (m_HP > dmg)
+//		{
+//			m_HP -= dmg;
+//		}
+//		else
+//		{
+//			m_HP = 0;
+//			Destroy();
+//		}
+//
+//		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+//
+//		m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+//
+//		UpdateHealthBar();
+//	}
+//
+//	projectile->Destroy();
+//}

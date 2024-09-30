@@ -57,7 +57,7 @@ public:
 	Vector2D GetPos() const override { return { (float)destRect.x, (float)destRect.y }; }
 	SDL_Rect GetRect() const { return destRect; }
 private:
-	std::string m_Text = "";
+	std::string_view m_Text = "";
 	TTF_Font* m_Font = nullptr;
 	SDL_Texture* m_Texture = nullptr;
 	SDL_Rect destRect { 0, 0, 0, 0 };
