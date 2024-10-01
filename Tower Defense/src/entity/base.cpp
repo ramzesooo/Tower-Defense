@@ -2,10 +2,14 @@
 #include "../app.h"
 #include "../textureManager.h"
 
+extern std::vector<Entity*> &enemies;
+
 void Base::Draw() const
 {
-	if (m_IsActive)
-		TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+	if (!m_IsActive)
+		return;
+
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }
 
 void Base::TakeDamage(uint16_t dmg)

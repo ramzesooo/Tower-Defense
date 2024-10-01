@@ -2,7 +2,7 @@
 #include "enemy.h"
 #include "../app.h"
 
-Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, SDL_Color color, Entity* attachedTo)
+Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
 	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)
 {
 	destRect.x = posX;
@@ -16,6 +16,7 @@ Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font* font, 
 		App::s_Logger.AddLog("Last TTF Error: " + std::string(TTF_GetError()));
 		return;
 	}
+
 	m_Texture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!m_Texture)
 	{

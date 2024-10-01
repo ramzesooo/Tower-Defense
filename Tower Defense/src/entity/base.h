@@ -8,14 +8,14 @@
 class Base
 {
 public:
-	bool m_IsActive = true;
 	static constexpr SDL_Rect srcRect{ 0, 0, 24, 24 };
+	bool m_IsActive = true;
 	SDL_Rect destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos{ 0, 0 };
-	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture *m_Texture = nullptr;
 	uint16_t m_HP = 0;
-	Label* m_AttachedLabel = nullptr;
-	Tile* m_Tile = nullptr;
+	Label *m_AttachedLabel = nullptr;
+	Tile *m_Tile = nullptr;
 
 	const SDL_Rect& GetRect() const { return destRect; }
 

@@ -7,11 +7,20 @@
 constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
 
-Level::Level() 
+extern std::vector<Entity*>& towers;
+extern std::vector<Entity*>& projectiles;
+extern std::vector<Entity*>& enemies;
+extern std::vector<Entity*>& attackers;
+
+Level::Level()
+	: m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
+{}
+
+/*Level::Level() 
 	: towers(App::s_Manager.GetGroup(EntityGroup::tower)), attackers(App::s_Manager.GetGroup(EntityGroup::attacker)), enemies(App::s_Manager.GetGroup(EntityGroup::enemy)),
 	projectiles(App::s_Manager.GetGroup(EntityGroup::projectile)),
 	m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
-{}
+{}*/
 
 //Level::~Level()
 //{
@@ -30,7 +39,7 @@ Level::Level()
 //	m_BaseTile->Destroy();
 //}
 
-void Level::Setup(std::ifstream& mapFile)
+void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
 	if (mapFile.fail())
 	{
@@ -43,7 +52,7 @@ void Level::Setup(std::ifstream& mapFile)
 		App::s_Logger.AddLog("Loading level ", false);
 		App::s_Logger.AddLog(std::to_string(m_LevelID + 1), false);
 		App::s_Logger.AddLog(" (Layer: ", false);
-		App::s_Logger.AddLog(std::to_string(layers.size()), false);
+		App::s_Logger.AddLog(std::to_string(layerID), false);
 		App::s_Logger.AddLog(")");
 	}
 
@@ -81,10 +90,10 @@ void Level::Setup(std::ifstream& mapFile)
 		break;
 	}
 
-	layers.reserve(1);
+	//layers.reserve(1);
 
-	layers.emplace_back(Layer());
-	Layer* newLayer = &layers.back();
+	//layers.emplace_back(Layer());
+	Layer* newLayer = &layers.at(layerID);
 	newLayer->tiles.reserve(std::size_t(m_MapSizeX * m_MapSizeY));
 
 	Tile* tile = nullptr;
@@ -241,7 +250,13 @@ void Level::HandleMouseButtonEvent()
 
 void Level::InitWave()
 {
-	static std::default_random_engine rng(rnd());
+	if (spawners.empty())
+	{
+		App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to of missing spawners\n");
+		return;
+	}
+
+	static std::default_random_engine rng(App::s_Rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
 	Tile* spawner = spawners.at(spawnerDistr(rng));

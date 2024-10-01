@@ -17,9 +17,9 @@ SDL_Renderer* App::s_Renderer = nullptr;
 SDL_Event App::s_Event;
 SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WINDOW_HEIGHT };
 
-Level* App::s_CurrentLevel = nullptr;
+Level *App::s_CurrentLevel = nullptr;
 
-uint16_t App::s_TowerRange = 4;
+uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 
@@ -29,11 +29,15 @@ int32_t App::s_MouseX = 0;
 int32_t App::s_MouseY = 0;
 
 BuildingState App::s_Building;
+
+std::random_device App::s_Rnd;
 // END
 
 auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 auto& labels = App::s_Manager.GetGroup(EntityGroup::label);
 auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
+auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
+auto& enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 App::App()
 {
@@ -177,14 +181,7 @@ void App::EventHandler()
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F5:
-			{
-				Enemy* enemy = App::s_CurrentLevel->GetEnemy();
-				if (enemy)
-				{
-					enemy->Destroy();
-				}
-			}
+		case SDLK_F5: // TODO!!! This will make UIState::upgrading
 			return;
 		case SDLK_F6:
 			SetUIState(UIState::building);
@@ -289,7 +286,17 @@ void App::OnResolutionChange()
 
 void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 {
-	uint16_t i = 0;
+	std::string path;
+	std::ifstream mapFile;
+	for (uint16_t i = 0; i < 3; i++)
+	{
+		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
+		mapFile = std::ifstream(path);
+
+		App::s_CurrentLevel->Setup(mapFile, i);
+	}
+
+	/*uint16_t i = 0;
 	std::string path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer0.map";
 	std::ifstream mapFile(path);
 
@@ -299,7 +306,7 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 		i++;
 		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(path);
-	} while (!mapFile.fail());
+	} while (!mapFile.fail());*/
 
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
@@ -334,4 +341,20 @@ void App::ManageBuildingState()
 			return;
 		}
 	}
+}
+
+uint16_t App::GetDamageOf(ProjectileType type)
+{
+	static std::default_random_engine rng(App::s_Rnd());
+	
+	switch (type)
+	{
+		case ProjectileType::arrow:
+		{
+			static std::uniform_int_distribution<uint16_t> dmg(9, 20);
+			return dmg(rng);
+		}
+	}
+
+	return 0;
 }

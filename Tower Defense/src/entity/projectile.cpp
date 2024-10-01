@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-Projectile::Projectile(ProjectileType type, Attacker* owner, Enemy* target)
+Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetPos().x * App::s_CurrentLevel->m_ScaledTileSize, target->GetPos().y * App::s_CurrentLevel->m_ScaledTileSize), 
 	m_Texture(App::s_Textures.GetTexture(App::TextureOf(type))), m_Pos(owner->GetPos())

@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+constexpr uint32_t logsCooldown = 500;
+
 int main(int argc, char** arg)
 {
 	for (int i = 0; i < argc; i++)
@@ -25,7 +27,6 @@ int main(int argc, char** arg)
 	App::s_Logger.PrintQueuedLogs();
 	App::s_Logger.ClearLogs();
 
-	constexpr uint32_t logsCooldown = 500;
 	uint32_t logsTime = SDL_GetTicks() + logsCooldown;
 
 	auto tp1 = std::chrono::system_clock::now();
@@ -33,10 +34,16 @@ int main(int argc, char** arg)
 
 	App app;
 
+	uint64_t start = SDL_GetPerformanceCounter(), end = SDL_GetPerformanceCounter();
+	float elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;;
+
 	while (app.IsRunning())
 	{
+		start = SDL_GetPerformanceCounter();
+
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
+			App::s_Logger.AddLog("FPS: " + std::to_string(std::llroundf(1.0f / elapsed)));
 			App::s_Logger.PrintQueuedLogs();
 			App::s_Logger.ClearLogs();
 			logsTime = SDL_GetTicks() + logsCooldown;
@@ -51,6 +58,9 @@ int main(int argc, char** arg)
 		app.EventHandler();
 		app.Update();
 		app.Render();
+
+		end = SDL_GetPerformanceCounter();
+		elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;
 	}
 
 	return 0;

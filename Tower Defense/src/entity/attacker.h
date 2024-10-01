@@ -23,6 +23,9 @@ class Tower;
 class Attacker : public Entity
 {
 public:
+	static constexpr int32_t s_AttackerWidth = 32;
+	static constexpr int32_t s_AttackerHeight = 32;
+
 	std::vector<Projectile*> m_OwnedProjectiles;
 
 	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
@@ -72,8 +75,6 @@ public:
 	Enemy* GetTarget() const { return m_Target; }
 	void SetTarget(Enemy* target) { m_Target = target; }
 private:
-	static constexpr int32_t s_AttackerWidth = 32;
-	static constexpr int32_t s_AttackerHeight = 32;
 	Tower* m_OccupiedTower;
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;

@@ -18,8 +18,8 @@
 //It helps to avoid duplicating code
 struct BuildingState
 {
-	Tile* m_BuildingPlace = nullptr; // tile shown in building state
-	Tile* m_PointedTile = nullptr; // tile pointed by a mouse
+	Tile *m_BuildingPlace = nullptr; // tile shown in building state
+	Tile *m_PointedTile = nullptr; // tile pointed by a mouse
 	Vector2D m_Coordinates{ 0.0f, 0.0f };
 	bool m_CanBuild = false;
 };
@@ -52,6 +52,8 @@ public:
 	static int32_t s_MouseX;
 	static int32_t s_MouseY;
 	static BuildingState s_Building;
+
+	static std::random_device s_Rnd;
 
 	App();
 	~App();
@@ -104,7 +106,7 @@ public:
 private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
-	SDL_Window* m_Window = nullptr;
+	SDL_Window *m_Window = nullptr;
 // MAIN SECTION END
 
 public:
@@ -142,7 +144,8 @@ public:
 		return "";
 	}
 
-	static inline uint16_t GetDamageOf(ProjectileType type)
+	static uint16_t GetDamageOf(ProjectileType type);
+	/*static inline uint16_t GetDamageOf(ProjectileType type)
 	{
 		switch (type)
 		{
@@ -151,8 +154,8 @@ public:
 		}
 
 		return 0;
-	}
+	}*/
 private:
 	std::vector<std::unique_ptr<Level>> levels;
-	Label* m_PauseLabel = nullptr;
+	Label *m_PauseLabel = nullptr;
 };

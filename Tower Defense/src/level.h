@@ -40,20 +40,19 @@ struct Wave
 	uint32_t waveCooldown = NULL;
 };
 
+// Level's map should contain 3 layers counting from zero
+// Layer 0 is general layer and contains all tiles displayed at first place
+// Layer 1 is layer of additional of tiles displayed right at the layer 0 without collisions
+// Layer 2 contains tiles with collisions and any stuff like that, including spawners
 // Level's map should contain at least 3 layers counting from zero
-// Layer 0 should be general layer
-// Layer 1 should be layer of overriden tiles: stuff like grass or whatever without collisions
-// Layer 2 should contain colliders and also things with collision like trees (including spawn tiles)
-// Anymore layers can be added if needed, but that's not necessary I guess
-// More layers are just supposed to work like layer 1
-// Spawn tile ID: 305
+// Spawners' ID is 305
 class Level
 {
 public:
 	Level();
 	//~Level();
 
-	void Setup(std::ifstream& mapFile);
+	void Setup(std::ifstream& mapFile, uint16_t layerID);
 
 	// Base is signed as regular tile
 	void SetupBase(uint32_t posX, uint32_t posY);
@@ -69,9 +68,6 @@ public:
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
 	void AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target);
-
-	// TEMPORARILY! At least for sure it shouldn't return just first enemy from EntityGroup::enemy
-	Enemy* GetEnemy() const { return (Enemy*)enemies.at(0); }
 
 	void HandleMouseButtonEvent();
 
@@ -118,14 +114,13 @@ private:
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0;
-	std::vector<Layer> layers;
-	std::vector<Entity*>& towers;
+	//std::vector<Layer> layers;
+	std::array<Layer, 3> layers;
+	/*std::vector<Entity*>& towers;
 	std::vector<Entity*>& attackers;
 	std::vector<Entity*>& enemies;
-	std::vector<Entity*>& projectiles;
+	std::vector<Entity*>& projectiles;*/
 	std::vector<Tile*> spawners;
 
 	Wave m_Wave;
-
-	std::random_device rnd;
 };

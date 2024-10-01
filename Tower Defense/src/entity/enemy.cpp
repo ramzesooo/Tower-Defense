@@ -94,6 +94,12 @@ void Enemy::Destroy()
 
 void Enemy::Update()
 {
+	if (!App::s_CurrentLevel->GetBase()->m_IsActive)
+	{
+		Destroy();
+		return;
+	}
+
 	if (IsMoving())
 		UpdateMovement();
 
@@ -207,8 +213,8 @@ void Enemy::UpdateMovement()
 {
 	//m_Pos += m_Velocity * App::s_ElapsedTime;
 	const SDL_Rect& rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
-	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x + rectOfBase.w
-		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y + rectOfBase.h)
+	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
+		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
 	{
 		App::s_CurrentLevel->GetBase()->TakeDamage(1);
 		Destroy();
