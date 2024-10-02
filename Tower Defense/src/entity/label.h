@@ -11,7 +11,7 @@ class Label : public Entity
 {
 public:
 	Entity* m_AttachedTo = nullptr;
-	bool m_Drawable = true;
+	//bool m_Drawable = true;
 
 	Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
 	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect), m_Color(r.m_Color) {}
@@ -40,7 +40,7 @@ public:
 	void Draw() override;
 
 	void UpdateText(std::string_view text);
-	void UpdateColor(SDL_Color &color) { m_Color = color; }
+	void UpdateColor(SDL_Color newColor);
 
 	inline void UpdatePos(Vector2D pos)
 	{

@@ -37,9 +37,12 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	case EnemyType::elf:
 		{
 			//Animation walk = Animation(1, 3, 100);
-			animations.emplace("Walk", Animation("Walk", 1, 3, 100));
+			animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
+			animations.emplace("WalkRight", Animation("WalkRight", 2, 3, 100));
+			animations.emplace("WalkUp", Animation("WalkUp", 3, 3, 100));
+			animations.emplace("WalkLeft", Animation("WalkLeft", 4, 3, 100));
 
-			m_HP = m_MaxHP = 50;
+			m_HP = m_MaxHP = 100;
 		}
 		break;
 	default:
@@ -110,6 +113,9 @@ void Enemy::Update()
 	for (const auto& tower : towers)
 	{
 		attacker = static_cast<Tower*>(tower)->GetAttacker();
+
+		if (!attacker)
+			continue;
 
 		if (attacker->GetTarget() == this)
 		{
@@ -243,6 +249,24 @@ void Enemy::UpdateMovement()
 	if (std::fabs(m_Pos.y - m_Destination.y) < s_MovementSpeed * App::s_ElapsedTime)
 	{
 		m_Velocity.y = 0.0f;
+	}
+
+	// The direction of walk animation doesn't really matter in the game, so it can be in the easiest possible way
+	if (m_Velocity.x > 0)
+	{
+		PlayAnim("WalkRight");
+	}
+	else if (m_Velocity.x < 0)
+	{
+		PlayAnim("WalkLeft");
+	}
+	else if (m_Velocity.y > 0)
+	{
+		PlayAnim("Walk");
+	}
+	else if (m_Velocity.y < 0)
+	{
+		PlayAnim("WalkUp");
 	}
 
 	//if (!IsMoving())

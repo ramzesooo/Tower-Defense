@@ -69,6 +69,8 @@ public:
 	// All this method does is playing animation and setting up cooldown at m_NextShoot
 	// And the true code for attacking happens in Update()
 	void InitAttack(Enemy* target);
+
+	// arg bool toErase is true by default
 	void StopAttacking(bool toErase = true);
 	bool IsAttacking() const { return m_Target != nullptr; }
 

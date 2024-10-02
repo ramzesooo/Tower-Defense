@@ -50,7 +50,7 @@ class Level
 {
 public:
 	Level();
-	//~Level();
+	~Level() = default;
 
 	void Setup(std::ifstream& mapFile, uint16_t layerID);
 
@@ -114,12 +114,7 @@ private:
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0;
-	//std::vector<Layer> layers;
 	std::array<Layer, 3> layers;
-	/*std::vector<Entity*>& towers;
-	std::vector<Entity*>& attackers;
-	std::vector<Entity*>& enemies;
-	std::vector<Entity*>& projectiles;*/
 	std::vector<Tile*> spawners;
 
 	Wave m_Wave;

@@ -23,6 +23,8 @@ Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t t
 
 void Tile::Destroy()
 {
+	m_IsActive = false;
+
 	if (m_TowerOnTile)
 	{
 		auto& tilesFromTower = m_TowerOnTile->GetOccupiedTiles();

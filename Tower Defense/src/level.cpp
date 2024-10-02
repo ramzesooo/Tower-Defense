@@ -90,9 +90,6 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 		break;
 	}
 
-	//layers.reserve(1);
-
-	//layers.emplace_back(Layer());
 	Layer* newLayer = &layers.at(layerID);
 	newLayer->tiles.reserve(std::size_t(m_MapSizeX * m_MapSizeY));
 
@@ -122,46 +119,12 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 		{
 			m_FailedLoading = true;
 			App::s_Logger.AddLog("Couldn't load a tile (", false);
-			App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize), false);
-			App::s_Logger.AddLog(", ", false);
-			App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize), false);
-			App::s_Logger.AddLog(")");
+			App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
+			App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
 		}
 
 		newLayer->tiles.emplace_back(tile);
 	}
-
-	/*for (uint32_t y = 0; y < m_MapSizeY; y++)
-	{
-		for (uint32_t x = 0; x < m_MapSizeX; x++)
-		{
-			tileCode = mapData.at(y).at(x);
-			srcX = tileCode % 10;
-			srcY = tileCode / 10;
-			tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_TextureID, tileType);
-			
-			if (tile)
-			{
-				tile->AddGroup(EntityGroup::tile);
-
-				if (tileCode == spawnerID)
-				{
-					spawners.push_back(tile);
-				}
-			}
-			else
-			{
-				m_FailedLoading = true;
-				App::s_Logger.AddLog("Couldn't load a tile (", false);
-				App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize), false);
-				App::s_Logger.AddLog(", ", false);
-				App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize), false);
-				App::s_Logger.AddLog(")");
-			}
-
-			newLayer->tiles.emplace_back(tile);
-		}
-	}*/
 
 	mapFile.close();
 }
@@ -194,7 +157,6 @@ void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t 
 	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
 	tower->AddGroup(EntityGroup::tower);
 
-	//AddAttacker(tower, AttackerType::archer);
 	AddAttacker(tower, (AttackerType)(tier - 1));
 }
 
@@ -225,7 +187,6 @@ void Level::AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy*
 
 	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
 	projectile->AddGroup(EntityGroup::projectile);
-	//target->m_TargetingProjectiles.push_back(projectile);
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }
 
@@ -252,7 +213,7 @@ void Level::InitWave()
 {
 	if (spawners.empty())
 	{
-		App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to of missing spawners\n");
+		App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to missing spawners\n");
 		return;
 	}
 
@@ -313,10 +274,9 @@ void Level::ManageWaves()
 
 void Level::Render()
 {
-	// Get all layers
-	for (const auto& layer : layers)
+	for (uint16_t i = 0; i < 3; ++i)
 	{
-		for (const auto& tile : layer.tiles)
+		for (const auto &tile : layers.at(i).tiles)
 		{
 			if (!tile)
 			{
@@ -374,9 +334,9 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 
 void Level::OnUpdateCamera()
 {
-	for (const auto& layer : layers)
+	for (uint16_t i = 0; i < 3; ++i)
 	{
-		for (const auto& tile : layer.tiles)
+		for (const auto &tile : layers.at(i).tiles)
 		{
 			if (!tile)
 			{
@@ -389,18 +349,18 @@ void Level::OnUpdateCamera()
 
 	m_Base.AdjustToView();
 
-	for (const auto& e : enemies)
+	for (const auto &e : enemies)
 	{
 		e->AdjustToView();
 	}
 
-	for (const auto& t : towers)
+	for (const auto &t : towers)
 	{
 		// Towers trigger method AdjustToView() for attackers by themselves
 		t->AdjustToView();
 	}
 
-	for (const auto& p : projectiles)
+	for (const auto &p : projectiles)
 	{
 		p->AdjustToView();
 	}

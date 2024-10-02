@@ -114,11 +114,12 @@ App::App()
 	UpdateCamera();
 
 	m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
-	m_PauseLabel->m_Drawable = false;
+	//m_PauseLabel->m_Drawable = false;
 	m_PauseLabel->AddGroup(EntityGroup::label);
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
+	m_PauseLabel->UpdateText(" ");
 
 	m_IsRunning = initialized;
 }
@@ -195,6 +196,11 @@ void App::EventHandler()
 				e->Destroy();
 			}
 			return;
+		case SDLK_F10:
+			if (towers.empty())
+				return;
+			m_DestroyTower = true;
+			return;
 		case SDLK_F11:
 			if (m_IsFullscreen)
 			{
@@ -226,6 +232,12 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
+	if (m_DestroyTower)
+	{
+		static_cast<Tower*>(towers.back())->Destroy();
+		m_DestroyTower = false;
+	}
+
 	App::s_CurrentLevel->ManageWaves();
 
 	App::s_Manager.Refresh();
@@ -238,7 +250,7 @@ void App::Render()
 
 	App::s_CurrentLevel->Render();
 
-	for (const auto& label : labels)
+	for (const auto &label : labels)
 	{
 		label->Draw();
 	}
@@ -279,8 +291,12 @@ void App::UpdateCamera()
 void App::OnResolutionChange()
 {
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
+
+	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - App::s_Camera.w), 10 });
+
 	App::s_Camera.w = (float)App::WINDOW_WIDTH;
 	App::s_Camera.h = (float)App::WINDOW_HEIGHT;
+
 	UpdateCamera();
 }
 
@@ -295,18 +311,6 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 
 		App::s_CurrentLevel->Setup(mapFile, i);
 	}
-
-	/*uint16_t i = 0;
-	std::string path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer0.map";
-	std::ifstream mapFile(path);
-
-	do
-	{
-		App::s_CurrentLevel->Setup(mapFile);
-		i++;
-		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
-		mapFile = std::ifstream(path);
-	} while (!mapFile.fail());*/
 
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
@@ -346,15 +350,17 @@ void App::ManageBuildingState()
 uint16_t App::GetDamageOf(ProjectileType type)
 {
 	static std::default_random_engine rng(App::s_Rnd());
-	
+	uint16_t minDmg = 0, maxDmg = 0;
+
 	switch (type)
 	{
 		case ProjectileType::arrow:
 		{
-			static std::uniform_int_distribution<uint16_t> dmg(9, 20);
-			return dmg(rng);
+			minDmg = 12;
+			maxDmg = 20;
 		}
 	}
 
-	return 0;
+	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);
+	return dmg(rng);
 }

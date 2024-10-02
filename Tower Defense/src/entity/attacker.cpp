@@ -31,6 +31,8 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 
 void Attacker::Destroy()
 {
+	m_IsActive = false;
+
 	m_Target = nullptr;
 
 	for (const auto& p : m_OwnedProjectiles)
@@ -39,29 +41,6 @@ void Attacker::Destroy()
 		p->SetTarget(nullptr);
 		p->Destroy();
 	}
-
-	/*auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
-
-	for (const auto& projectile : projectiles)
-	{
-		if (!projectile->IsActive())
-			continue;
-
-		Projectile* p = static_cast<Projectile*>(projectile);
-		if (!p->GetOwner())
-		{
-			p->Destroy();
-			continue;
-		}
-
-		if (p->GetOwner() != this)
-		{
-			continue;
-		}
-
-		p->SetOwner(nullptr);
-		p->Destroy();
-	}*/
 }
 
 void Attacker::Update()

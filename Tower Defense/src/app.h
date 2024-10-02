@@ -90,15 +90,20 @@ public:
 
 	inline void SetUIState(UIState state)
 	{
+		if (s_UIState == state)
+			return;
+
 		s_UIState = state;
 
 		switch (state)
 		{
 		case UIState::none:
-			m_PauseLabel->m_Drawable = false;
+			//m_PauseLabel->m_Drawable = false;
+			m_PauseLabel->UpdateText(" ");
 			return;
 		case UIState::building:
-			m_PauseLabel->m_Drawable = true;
+			//m_PauseLabel->m_Drawable = true;
+			m_PauseLabel->UpdateText("PAUSED");
 			ManageBuildingState();
 			return;
 		}
@@ -158,4 +163,5 @@ public:
 private:
 	std::vector<std::unique_ptr<Level>> levels;
 	Label *m_PauseLabel = nullptr;
+	bool m_DestroyTower = false;
 };
