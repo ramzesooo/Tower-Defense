@@ -49,6 +49,18 @@ struct Wave
 class Level
 {
 public:
+	const uint16_t m_MapSizeX = mapWidth;
+	const uint16_t m_MapSizeY = mapHeight;
+	const uint16_t m_MapScale = 2;
+	const uint16_t m_TileSize = 24;
+	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
+
+	// Temporary level's config
+	uint16_t m_Waves = 4;
+	// enemiesPerWave are multiplied by current wave
+	uint16_t m_EnemiesPerWave = 25;
+	Vector2D m_BasePos{ 34, 34 };
+
 	Level();
 	~Level() = default;
 
@@ -64,7 +76,7 @@ public:
 	// 
 	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
-	void AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier);
+	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
 	void AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target);
@@ -96,18 +108,6 @@ public:
 	// Chunk can contain nullptr as a tile which means it's out of a map
 	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
 	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
-
-	const uint16_t m_MapSizeX = mapWidth;
-	const uint16_t m_MapSizeY = mapHeight;
-	const uint16_t m_MapScale = 2;
-	const uint16_t m_TileSize = 24;
-	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
-
-	// Temporary level's config
-	uint16_t m_Waves = 4;
-	// enemiesPerWave are multiplied by current wave
-	uint16_t m_EnemiesPerWave = 25;
-	Vector2D m_BasePos{ 34, 34 };
 private:
 	bool m_FailedLoading = false;
 	SDL_Texture* m_Texture = nullptr; // map tiles

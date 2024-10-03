@@ -54,7 +54,7 @@ public:
 
 	ProjectileType GetType() const { return m_Type; }
 private:
-	static constexpr float baseVelocity = 160.0f;
+	static constexpr float baseVelocity = 200.0f;
 	SDL_Texture* m_Texture = nullptr;
 	SDL_Rect srcRect{ 0, 0, 16, 16 }, destRect{ 0, 0, 18, 18 };
 	double m_Angle = 360;

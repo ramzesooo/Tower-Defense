@@ -16,29 +16,6 @@ Level::Level()
 	: m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
 {}
 
-/*Level::Level() 
-	: towers(App::s_Manager.GetGroup(EntityGroup::tower)), attackers(App::s_Manager.GetGroup(EntityGroup::attacker)), enemies(App::s_Manager.GetGroup(EntityGroup::enemy)),
-	projectiles(App::s_Manager.GetGroup(EntityGroup::projectile)),
-	m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
-{}*/
-
-//Level::~Level()
-//{
-//	for (const auto& enemy : enemies)
-//	{
-//		static_cast<Enemy*>(enemy)->GetOccupiedTile()->SetOccupyingEntity(nullptr);
-//		static_cast<Enemy*>(enemy)->SetOccupiedTile(nullptr);
-//		enemy->Destroy();
-//	}
-//
-//	for (const auto& tower : towers)
-//	{
-//		tower->Destroy();
-//	}
-//
-//	m_BaseTile->Destroy();
-//}
-
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
 	if (mapFile.fail())
@@ -146,18 +123,19 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	App::s_Logger.AddLog(")");
 }
 
-void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
+Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
 {
 	if (!towerTexture)
 	{
 		App::s_Logger.AddLog("Level::AddTower: Tower's texture doesn't exist!");
-		return;
+		return nullptr;
 	}
 
 	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
 	tower->AddGroup(EntityGroup::tower);
 
 	AddAttacker(tower, (AttackerType)(tier - 1));
+	return tower;
 }
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
@@ -173,10 +151,13 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	switch (type)
 	{
 	case AttackerType::archer:
-		shotCooldown = 300;
+		shotCooldown = 325;
 		break;
 	case AttackerType::hunter:
-		shotCooldown = 250;
+		shotCooldown = 275;
+		break;
+	case AttackerType::musketeer:
+		shotCooldown = 225;
 		break;
 	default:
 		shotCooldown = 300;
@@ -211,17 +192,19 @@ void Level::HandleMouseButtonEvent()
 	{
 		if (App::s_UIState == UIState::building)
 		{
-			if (App::s_Building.m_CanBuild)
+			if (App::s_Building.canBuild)
 			{
-				AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures.GetTexture("tower"), 1);
-				App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("upgradeTower"));
-				//App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("cantBuild"));
+				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
+				App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
+				App::s_Building.buildingPlace->SetTexture(App::s_Building.originalTexture);
+				App::s_Building.towerToUpgrade = tower;
+				App::s_Building.canBuild = false;
 				return;
 			}
 
-			if (App::s_Building.m_TowerToUpgrade)
+			if (App::s_Building.towerToUpgrade)
 			{
-				App::s_Building.m_TowerToUpgrade->Upgrade();
+				App::s_Building.towerToUpgrade->Upgrade();
 				return;
 			}
 		}
@@ -319,8 +302,7 @@ void Level::Render()
 	for (const auto& attacker : attackers)
 		attacker->Draw();
 
-	if (App::s_UIState == UIState::building)
-		App::s_Building.m_BuildingPlace->Draw();
+	App::s_Building.buildingPlace->Draw();
 
 	for (const auto& projectile : projectiles)
 		projectile->Draw();

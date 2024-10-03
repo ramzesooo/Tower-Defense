@@ -14,6 +14,7 @@ enum class AttackerType
 {
 	archer = 0,
 	hunter,
+	musketeer,
 	size
 };
 
@@ -95,5 +96,6 @@ private:
 
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
-	uint32_t m_OnCreateTicks = SDL_GetTicks();
+	// m_AdjustedTicks is nothing else than just ticks, but it's updated in InitAttack() to display animation in correct way
+	uint32_t m_AdjustedTicks = SDL_GetTicks();
 };

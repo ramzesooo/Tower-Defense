@@ -73,9 +73,11 @@ App::App()
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
+	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
+	App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
@@ -109,8 +111,9 @@ App::App()
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 	}
 
-	s_Building.m_BuildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
-	s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("canBuild"));
+	s_Building.buildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
+	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
+	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
 	UpdateCamera();
 
@@ -184,16 +187,16 @@ void App::EventHandler()
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
 		case SDLK_F6:
+			s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
 			SetUIState(UIState::building);
 			return;
 		case SDLK_F7:
+			s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 			SetUIState(UIState::none);
 			return;
 		case SDLK_F8:
 			for (const auto& e : App::s_Manager.GetGroup(EntityGroup::enemy))
-			{
 				e->Destroy();
-			}
 			return;
 		case SDLK_F10:
 			if (towers.empty())
@@ -321,31 +324,33 @@ void App::ManageBuildingState()
 	if (s_UIState != UIState::building)
 		return;
 
-	s_Building.m_Coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize);
-	s_Building.m_Coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize);
+	s_Building.coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize);
+	s_Building.coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize);
 
-	s_Building.m_PointedTile = App::s_CurrentLevel->GetTileFrom(s_Building.m_Coordinates.x, s_Building.m_Coordinates.y, 0);
-	if (!s_Building.m_PointedTile)
+	s_Building.pointedTile = App::s_CurrentLevel->GetTileFrom(s_Building.coordinates.x, s_Building.coordinates.y, 0);
+	if (!s_Building.pointedTile)
 		return;
 
-	s_Building.m_BuildingPlace->SetPos(s_Building.m_PointedTile->GetPos());
-	s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("canBuild"));
-	s_Building.m_CanBuild = true;
-	s_Building.m_TowerToUpgrade = nullptr;
+	s_Building.buildingPlace->SetPos(s_Building.pointedTile->GetPos());
+	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
+	s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+	s_Building.canBuild = true;
+	s_Building.towerToUpgrade = nullptr;
 	
-	s_Building.m_BuildingPlace->AdjustToView();
+	s_Building.buildingPlace->AdjustToView();
 
 	// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
-	Tile *pointedTile = s_Building.m_PointedTile;
+	Tile *pointedTile = s_Building.pointedTile;
 
 	// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
 	{
 		Tower *tower = pointedTile->GetTowerOccupying();
 		if (tower && tower->GetTier() < 3 && pointedTile == tower->GetOccupiedTile(0))
 		{
-			s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("upgradeTower"));
-			s_Building.m_CanBuild = false;
-			s_Building.m_TowerToUpgrade = tower;
+			s_Building.originalTexture = s_Textures.GetTexture("upgradeTower");
+			s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+			s_Building.canBuild = false;
+			s_Building.towerToUpgrade = tower;
 			return;
 		}
 	}
@@ -361,12 +366,13 @@ void App::ManageBuildingState()
 
 	for (auto i = 0u; i < 3; i++)
 	{
-		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.m_Coordinates.x + i % 2, (uint32_t)s_Building.m_Coordinates.y + i / 2, 0);
+		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
 		if (!pointedTile || !pointedTile->GetTowerOccupying())
 			continue;
 
-		s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("cantBuild"));
-		s_Building.m_CanBuild = false;
+		s_Building.originalTexture = s_Textures.GetTexture("cantBuild");
+		s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+		s_Building.canBuild = false;
 		return;
 	}
 }

@@ -33,7 +33,7 @@ public:
 	std::vector<Attacker*> m_Attackers;
 
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
-	Enemy(const Enemy& r) : towers(r.towers), destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
+	Enemy(const Enemy& r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile), animations(r.animations),
 		m_Type(r.m_Type), m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
 	~Enemy() = default;
 
@@ -126,7 +126,6 @@ private:
 	uint16_t m_Scale = 1;
 
 	Tile* m_OccupiedTile = nullptr;
-	std::vector<Entity*>& towers;
 
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;

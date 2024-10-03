@@ -4,7 +4,7 @@
 #include "../app.h"
 
 Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale)
-	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown * 4)
+	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown * 5)
 {
 	switch (m_Type)
 	{
@@ -13,6 +13,9 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 			break;
 		case AttackerType::hunter:
 			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 4.0f;
+			break;
+		case AttackerType::musketeer:
+			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
 			break;
 	}
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
@@ -50,7 +53,7 @@ void Attacker::Update()
 		App::s_CurrentLevel->AddProjectile(ProjectileType::arrow, this, m_Target);
 	}
 
-	srcRect.x = srcRect.w * (((ticks - m_OnCreateTicks) / m_CurrentAnim.speed) % m_CurrentAnim.frames);
+	srcRect.x = srcRect.w * (((ticks - m_AdjustedTicks) / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Attacker::s_AttackerHeight;
 }
 
@@ -108,6 +111,7 @@ void Attacker::StopAttacking(bool toErase)
 		}
 	}
 
+	m_AdjustedTicks = SDL_GetTicks();
 	m_Target = nullptr;
 	m_NextShot = NULL;
 	PlayAnim("Idle");

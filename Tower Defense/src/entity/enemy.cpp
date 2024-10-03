@@ -5,13 +5,14 @@
 
 #include <cmath>
 
+extern std::vector<Entity*> &towers;
+
 SDL_Texture* Enemy::s_Square = nullptr;
 SDL_Texture* Enemy::s_GreenTex = nullptr;
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
-	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize),
-	towers(App::s_Manager.GetGroup(EntityGroup::tower))
+	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
 {
 	//destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	//destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;

@@ -18,11 +18,12 @@
 //It helps to avoid duplicating code
 struct BuildingState
 {
-	Tile *m_BuildingPlace = nullptr; // tile shown in building state
-	Tile *m_PointedTile = nullptr; // tile pointed by a mouse
-	Vector2D m_Coordinates{ 0.0f, 0.0f };
-	bool m_CanBuild = false;
-	Tower *m_TowerToUpgrade = nullptr;
+	Tile *buildingPlace = nullptr; // tile shown in building state
+	Tile *pointedTile = nullptr; // tile pointed by a mouse
+	Vector2D coordinates{ 0.0f, 0.0f };
+	bool canBuild = false;
+	Tower *towerToUpgrade = nullptr;
+	SDL_Texture *originalTexture = nullptr;
 };
 
 enum class UIState
@@ -126,6 +127,10 @@ public:
 		{
 		case AttackerType::archer:
 			return "attackerArcher";
+		case AttackerType::hunter:
+			return "attackerHunter";
+		case AttackerType::musketeer:
+			return "attackerMusketeer";
 		}
 		return "";
 	}
@@ -151,16 +156,6 @@ public:
 	}
 
 	static uint16_t GetDamageOf(ProjectileType type);
-	/*static inline uint16_t GetDamageOf(ProjectileType type)
-	{
-		switch (type)
-		{
-		case ProjectileType::arrow:
-			return 15;
-		}
-
-		return 0;
-	}*/
 private:
 	std::vector<std::unique_ptr<Level>> levels;
 	Label *m_PauseLabel = nullptr;
