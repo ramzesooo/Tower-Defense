@@ -3,28 +3,25 @@
 #include "../level.h"
 #include "../app.h"
 
-constexpr int32_t shotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
-
-Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale)
-	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos())
+Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale)
+	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown * 4)
 {
-	m_Pos.x += (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
+	switch (m_Type)
+	{
+		case AttackerType::archer:
+			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
+			break;
+		case AttackerType::hunter:
+			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 4.0f;
+			break;
+	}
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
 	destRect.h = Attacker::s_AttackerHeight * m_Scale;
-	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x) + destRect.w / 11;
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x) + destRect.w / 2;
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 
 	animations.emplace("Idle", Animation("Idle", 0, 2, 600));
-
-	switch (m_Type)
-	{
-	case AttackerType::archer:
-		animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
-		break;
-	case AttackerType::hunter:
-		animations.emplace("Shoot", Animation("Shoot", 1, 4, 300));
-		break;
-	}
+	animations.emplace("Shoot", Animation("Shoot", 1, 4, shotCooldown));
 	
 	PlayAnim("Idle");
 }
@@ -49,7 +46,7 @@ void Attacker::Update()
 
 	if (IsAttacking() && SDL_TICKS_PASSED(ticks, m_NextShot))
 	{
-		m_NextShot = SDL_GetTicks() + shotCooldown;
+		m_NextShot = SDL_GetTicks() + m_ShotCooldown;
 		App::s_CurrentLevel->AddProjectile(ProjectileType::arrow, this, m_Target);
 	}
 
@@ -64,7 +61,7 @@ void Attacker::Draw()
 
 void Attacker::AdjustToView()
 {
-	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x) + destRect.w / 11;
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x) + destRect.w / 2;
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 }
 

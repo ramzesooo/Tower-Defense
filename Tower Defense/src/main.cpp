@@ -34,16 +34,16 @@ int main(int argc, char** arg)
 
 	App app;
 
-	uint64_t start = SDL_GetPerformanceCounter(), end = SDL_GetPerformanceCounter();
-	float elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;;
+	//uint64_t start = SDL_GetPerformanceCounter(), end = SDL_GetPerformanceCounter();
+	//float elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;;
 
 	while (app.IsRunning())
 	{
-		start = SDL_GetPerformanceCounter();
+		//start = SDL_GetPerformanceCounter();
 
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
-			App::s_Logger.AddLog("FPS: " + std::to_string(std::llroundf(1.0f / elapsed)));
+			//App::s_Logger.AddLog("FPS: " + std::to_string(std::llroundf(1.0f / elapsed)));
 			App::s_Logger.PrintQueuedLogs();
 			App::s_Logger.ClearLogs();
 			logsTime = SDL_GetTicks() + logsCooldown;
@@ -59,8 +59,8 @@ int main(int argc, char** arg)
 		app.Update();
 		app.Render();
 
-		end = SDL_GetPerformanceCounter();
-		elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;
+		//end = SDL_GetPerformanceCounter();
+		//elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;
 	}
 
 	return 0;

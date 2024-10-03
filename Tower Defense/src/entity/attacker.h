@@ -28,7 +28,7 @@ public:
 
 	std::vector<Projectile*> m_OwnedProjectiles;
 
-	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint16_t scale = 1);
+	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale = 1);
 	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
 		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot) {}
 	~Attacker() = default;
@@ -77,6 +77,7 @@ public:
 	Enemy* GetTarget() const { return m_Target; }
 	void SetTarget(Enemy* target) { m_Target = target; }
 private:
+	const uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 	Tower* m_OccupiedTower;
 	AttackerType m_Type;
 	SDL_Texture* m_Texture = nullptr;

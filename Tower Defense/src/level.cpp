@@ -168,7 +168,22 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 		return;
 	}
 
-	auto attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), scale);
+	uint32_t shotCooldown;
+
+	switch (type)
+	{
+	case AttackerType::archer:
+		shotCooldown = 300;
+		break;
+	case AttackerType::hunter:
+		shotCooldown = 250;
+		break;
+	default:
+		shotCooldown = 300;
+		break;
+	}
+
+	auto attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 	attacker->AddGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
 }

@@ -319,6 +319,9 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 
 void App::ManageBuildingState()
 {
+	if (s_UIState != UIState::building)
+		return;
+
 	s_Building.m_Coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize);
 	s_Building.m_Coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize);
 
@@ -331,9 +334,6 @@ void App::ManageBuildingState()
 	s_Building.m_CanBuild = true;
 	
 	s_Building.m_BuildingPlace->AdjustToView();
-
-	if (s_UIState != UIState::building)
-		return;
 
 	for (auto i = 0; i < 4; i++)
 	{
