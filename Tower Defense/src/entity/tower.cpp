@@ -2,7 +2,9 @@
 #include "../textureManager.h"
 #include "../app.h"
 
-Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
+constexpr int32_t imageWidth = 144;
+
+Tower::Tower(float posX, float posY, SDL_Texture* texture, uint16_t tier)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize), m_Texture(texture)
 {
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
@@ -18,9 +20,11 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 		tier = 1;
 	}
 
+	m_Tier = tier;
+
 	{
 		Tile* tile = nullptr;
-		for (auto i = 0; i < 4; i++)
+		for (auto i = 0u; i < 4; i++)
 		{
 			tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + i % 2, (uint32_t)posY + i / 2);
 			m_OccupiedTiles[i] = tile;
@@ -28,7 +32,6 @@ Tower::Tower(float posX, float posY, SDL_Texture* texture, int32_t tier)
 		}
 	}
 	
-	int32_t imageWidth = 144;
 	srcRect.x = (tier - 1) * (imageWidth / 3);
 	srcRect.y = 0;
 	srcRect.w = (imageWidth / 3);
@@ -77,4 +80,22 @@ void Tower::AdjustToView()
 void Tower::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}
+
+void Tower::Upgrade()
+{
+	if (m_Tier >= 3)
+		return;
+
+	++m_Tier;
+	srcRect.x = (m_Tier - 1) * (imageWidth / 3);
+
+	if (m_Attacker->IsAttacking())
+		m_Attacker->StopAttacking();
+
+	m_Attacker->Destroy();
+	m_Attacker = nullptr;
+
+	App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
+	App::s_Manager.Refresh();
 }

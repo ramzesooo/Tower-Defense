@@ -146,7 +146,7 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	App::s_Logger.AddLog(")");
 }
 
-void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, int32_t tier)
+void Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
 {
 	if (!towerTexture)
 	{
@@ -211,11 +211,19 @@ void Level::HandleMouseButtonEvent()
 	{
 		if (App::s_UIState == UIState::building)
 		{
-			if (!App::s_Building.m_CanBuild)
+			if (App::s_Building.m_CanBuild)
+			{
+				AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures.GetTexture("tower"), 1);
+				App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("upgradeTower"));
+				//App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("cantBuild"));
 				return;
+			}
 
-			AddTower(App::s_Building.m_Coordinates.x, App::s_Building.m_Coordinates.y, App::s_Textures.GetTexture("tower"), 2);
-			App::s_Building.m_BuildingPlace->SetTexture(App::s_Textures.GetTexture("cantBuild"));
+			if (App::s_Building.m_TowerToUpgrade)
+			{
+				App::s_Building.m_TowerToUpgrade->Upgrade();
+				return;
+			}
 		}
 	}
 	else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
@@ -294,9 +302,7 @@ void Level::Render()
 		for (const auto &tile : layers.at(i).tiles)
 		{
 			if (!tile)
-			{
 				continue;
-			}
 
 			tile->Draw();
 		}
@@ -305,29 +311,19 @@ void Level::Render()
 	m_Base.Draw();
 
 	for (const auto& enemy : enemies)
-	{
 		enemy->Draw();
-	}
-
-	if (App::s_UIState == UIState::building)
-	{
-		App::s_Building.m_BuildingPlace->Draw();
-	}
 
 	for (const auto& tower : towers)
-	{
 		tower->Draw();
-	}
 
 	for (const auto& attacker : attackers)
-	{
 		attacker->Draw();
-	}
+
+	if (App::s_UIState == UIState::building)
+		App::s_Building.m_BuildingPlace->Draw();
 
 	for (const auto& projectile : projectiles)
-	{
 		projectile->Draw();
-	}
 }
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
@@ -340,9 +336,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	}
 
 	if (posX < 0 || posX >= m_MapSizeX || posY < 0 || posY >= m_MapSizeY)
-	{
 		return nullptr;
-	}
 
 	return layers.at(layer).GetTileFrom(posX, posY);
 }

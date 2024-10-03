@@ -10,9 +10,9 @@
 class Tower : public Entity
 {
 public:
-	Tower(float posX, float posY, SDL_Texture* texture, int32_t tier = 1);
+	Tower(float posX, float posY, SDL_Texture* texture, uint16_t tier = 1);
 	Tower(const Tower& r) : m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
-		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker) {}
+		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker), m_Tier(r.m_Tier) {}
 	~Tower() = default;
 
 	inline Tower& operator=(const Tower& r)
@@ -28,6 +28,7 @@ public:
 		destRect = r.destRect;
 		m_OccupiedTiles = r.m_OccupiedTiles;
 		m_Attacker = r.m_Attacker;
+		m_Tier = r.m_Tier;
 
 		return *this;
 	}
@@ -41,6 +42,10 @@ public:
 
 	void AssignAttacker(Attacker* attacker) { m_Attacker = attacker; }
 	Attacker* GetAttacker() const { return m_Attacker; }
+
+	// Upgrades by one tier up
+	void Upgrade();
+	uint16_t GetTier() const { return m_Tier; }
 
 	// Returns specific occupied tile from array m_OccupiedTiles
 	// Or returns nullptr if ID is less than 0 or greater than array size
@@ -63,4 +68,5 @@ private:
 	SDL_Rect srcRect{ 0, 0, 144, 64 }, destRect{ 0, 0, 48, 21 };
 	std::array<Tile*, 4> m_OccupiedTiles;
 	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown in the top of tower
+	uint16_t m_Tier = 1;
 };

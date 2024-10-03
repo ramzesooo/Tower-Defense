@@ -22,6 +22,7 @@ struct BuildingState
 	Tile *m_PointedTile = nullptr; // tile pointed by a mouse
 	Vector2D m_Coordinates{ 0.0f, 0.0f };
 	bool m_CanBuild = false;
+	Tower *m_TowerToUpgrade = nullptr;
 };
 
 enum class UIState

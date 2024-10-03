@@ -64,6 +64,7 @@ public:
 	Entity* GetOccupyingEntity() const { return m_EntityOccupying; }
 	void SetOccupyingEntity(Entity* entity) { m_EntityOccupying = entity; }
 
+	// if it's nullptr then it's not occupied by any tower
 	Tower* GetTowerOccupying() const { return m_TowerOnTile; }
 	void SetTowerOccupying(Tower* tower) { m_TowerOnTile = tower; }
 private:

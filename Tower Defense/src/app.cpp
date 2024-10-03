@@ -68,6 +68,7 @@ App::App()
 
 	App::s_Textures.AddTexture("canBuild", "assets\\tile_CanBuild.png");
 	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
+	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
@@ -181,8 +182,6 @@ void App::EventHandler()
 		case SDLK_F4:
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			return;
-		case SDLK_F5: // TODO!!! This will make UIState::upgrading
 			return;
 		case SDLK_F6:
 			SetUIState(UIState::building);
@@ -332,18 +331,43 @@ void App::ManageBuildingState()
 	s_Building.m_BuildingPlace->SetPos(s_Building.m_PointedTile->GetPos());
 	s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("canBuild"));
 	s_Building.m_CanBuild = true;
+	s_Building.m_TowerToUpgrade = nullptr;
 	
 	s_Building.m_BuildingPlace->AdjustToView();
 
-	for (auto i = 0; i < 4; i++)
+	// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
+	Tile *pointedTile = s_Building.m_PointedTile;
+
+	// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
 	{
-		Tile* building = App::s_CurrentLevel->GetTileFrom(uint32_t(s_Building.m_Coordinates.x + i % 2), uint32_t(s_Building.m_Coordinates.y + i / 2.0f), 0);
-		if (building && building->GetTowerOccupying())
+		Tower *tower = pointedTile->GetTowerOccupying();
+		if (tower && tower->GetTier() < 3 && pointedTile == tower->GetOccupiedTile(0))
 		{
-			s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("cantBuild"));
+			s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("upgradeTower"));
 			s_Building.m_CanBuild = false;
+			s_Building.m_TowerToUpgrade = tower;
 			return;
 		}
+	}
+
+	// 0: 0, 0
+	// x: 0 % 2 y: 0 / 2
+	// 1: 1, 0,5
+	// x: 1 % 2 y: 1 / 2
+	// 2: 0, 1
+	// x: 2 % 2 y: 2 / 2
+	// 3: 1, 1,5
+	// x: 3 % 2 y: 3 / 2
+
+	for (auto i = 0u; i < 3; i++)
+	{
+		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.m_Coordinates.x + i % 2, (uint32_t)s_Building.m_Coordinates.y + i / 2, 0);
+		if (!pointedTile || !pointedTile->GetTowerOccupying())
+			continue;
+
+		s_Building.m_BuildingPlace->SetTexture(s_Textures.GetTexture("cantBuild"));
+		s_Building.m_CanBuild = false;
+		return;
 	}
 }
 
