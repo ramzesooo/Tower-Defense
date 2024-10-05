@@ -12,9 +12,33 @@ extern std::vector<Entity*>& projectiles;
 extern std::vector<Entity*>& enemies;
 extern std::vector<Entity*>& attackers;
 
-Level::Level()
-	: m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
-{}
+extern std::default_random_engine rng;
+
+Level::Level(uint16_t levelID)
+	: m_LevelID(levelID), m_SpecificEnemiesAmount(m_Wave.spawnedSpecificEnemies), m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
+{
+	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\.config");
+
+	if (configFile.fail())
+	{
+		App::s_Logger.AddLog("Config file for level " + std::to_string(m_LevelID + 1) + " doesn't exist!");
+		return;
+	}
+
+	std::string line;
+	std::getline(configFile, line);
+
+	std::istringstream ss(line);
+	std::string value;
+
+	for (auto i = 0u; i < m_SpecificEnemiesAmount.size(); ++i)
+	{
+		if (!std::getline(ss, value, ','))
+			break;
+
+		m_SpecificEnemiesAmount[i] = std::stoi(value);
+	}
+}
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
@@ -145,10 +169,11 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 		App::s_Logger.AddLog("Tried to add attacker to not existing tower or an attacker for the specific tower already exists.");
 		return;
 	}
+	
+	// Probably will have to use the switch in the future anyway, so let's consider it as a temporary
+	uint32_t shotCooldown = 325 - (50 * ((uint32_t)type + 1));
 
-	uint32_t shotCooldown;
-
-	switch (type)
+	/*switch (type)
 	{
 	case AttackerType::archer:
 		shotCooldown = 325;
@@ -162,7 +187,7 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	default:
 		shotCooldown = 300;
 		break;
-	}
+	}*/
 
 	auto attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 	attacker->AddGroup(EntityGroup::attacker);
@@ -205,6 +230,14 @@ void Level::HandleMouseButtonEvent()
 			if (App::s_Building.towerToUpgrade)
 			{
 				App::s_Building.towerToUpgrade->Upgrade();
+
+				// Moved to Tower::Upgrade()
+				/*if (App::s_Building.towerToUpgrade->GetTier() >= 3)
+				{
+					App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
+					App::s_Building.buildingPlace->SetTexture(App::s_Building.originalTexture);
+				}*/
+
 				return;
 			}
 		}
@@ -223,23 +256,33 @@ void Level::InitWave()
 		return;
 	}
 
-	static std::default_random_engine rng(App::s_Rnd());
+	//static std::default_random_engine rng(App::s_Rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
 	Tile* spawner = spawners.at(spawnerDistr(rng));
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
-	Vector2D moveVector(0.0f, 0.0f);
+	Vector2D moveVector;
 
-	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, EnemyType::elf, App::s_Textures.GetTexture(App::TextureOf(EnemyType::elf)), 2);
+	EnemyType type = EnemyType::elf;
+	for (auto i = 0u; i < m_Wave.spawnedSpecificEnemies.size(); ++i)
+	{
+		if (m_Wave.spawnedSpecificEnemies[i] == m_SpecificEnemiesAmount[i])
+			continue;
+
+		type = (EnemyType)i;
+	}
+
+	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
+	m_Wave.spawnedSpecificEnemies[(std::size_t)type]++;
 
 	moveVector.x = dest.x - spawnPos.x;
 	moveVector.y = dest.y - spawnPos.y;
 
 	enemy->Move(moveVector);
 
-	if (++m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveNumber)
+	if (++m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveID)
 	{
 		m_Wave.waveProgress = WaveProgress::InProgress;
 	}
@@ -267,10 +310,10 @@ void Level::ManageWaves()
 		}
 		return;
 	case WaveProgress::Finished:
-		m_Wave.waveNumber++;
-		if (m_Wave.waveNumber > m_Waves)
+		m_Wave.waveID++;
+		if (m_Wave.waveID > m_Waves)
 		{
-			m_Wave.waveNumber = 1;
+			m_Wave.waveID = 1;
 		}
 		m_Wave.waveCooldown = SDL_GetTicks() + waveCooldown;
 		m_Wave.waveProgress = WaveProgress::OnCooldown;

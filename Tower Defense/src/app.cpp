@@ -33,6 +33,8 @@ BuildingState App::s_Building;
 std::random_device App::s_Rnd;
 // END
 
+std::default_random_engine rng(App::s_Rnd());
+
 auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 auto& labels = App::s_Manager.GetGroup(EntityGroup::label);
 auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
@@ -79,6 +81,7 @@ App::App()
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
+	App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
@@ -87,8 +90,7 @@ App::App()
 
 	for (uint16_t i = 0; i < levelsToLoad; i++)
 	{
-		levels.emplace_back(std::move(std::make_unique<Level>()));
-		levels.at(i)->SetID(i);
+		levels.emplace_back(std::move(std::make_unique<Level>(i)));
 	}
 
 	App::s_CurrentLevel = levels.at(0).get();
@@ -139,6 +141,7 @@ App::~App()
 	if (m_Window)
 		SDL_DestroyWindow(m_Window);
 
+	// TTF_Quit() is called in ~TextureManager()
 	SDL_Quit();
 }
 
@@ -195,7 +198,7 @@ void App::EventHandler()
 			SetUIState(UIState::none);
 			return;
 		case SDLK_F8:
-			for (const auto& e : App::s_Manager.GetGroup(EntityGroup::enemy))
+			for (const auto& e : enemies)
 				e->Destroy();
 			return;
 		case SDLK_F10:
@@ -234,6 +237,7 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
+	// NOTE: The only case where m_DestroyTower can be modified is EventHandler case SDLK_F10
 	if (m_DestroyTower)
 	{
 		static_cast<Tower*>(towers.back())->Destroy();
@@ -379,15 +383,15 @@ void App::ManageBuildingState()
 
 uint16_t App::GetDamageOf(ProjectileType type)
 {
-	static std::default_random_engine rng(App::s_Rnd());
+	//static std::default_random_engine rng(App::s_Rnd());
 	uint16_t minDmg = 0, maxDmg = 0;
 
 	switch (type)
 	{
 		case ProjectileType::arrow:
 		{
-			minDmg = 12;
-			maxDmg = 20;
+			minDmg = 17;
+			maxDmg = 30;
 		}
 	}
 

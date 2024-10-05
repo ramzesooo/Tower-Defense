@@ -9,13 +9,11 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 	switch (m_Type)
 	{
 		case AttackerType::archer:
+		case AttackerType::musketeer:
 			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
 			break;
 		case AttackerType::hunter:
 			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 4.0f;
-			break;
-		case AttackerType::musketeer:
-			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
 			break;
 	}
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;

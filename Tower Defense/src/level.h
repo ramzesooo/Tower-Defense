@@ -35,9 +35,10 @@ enum class WaveProgress
 struct Wave
 {
 	WaveProgress waveProgress = WaveProgress::OnCooldown;
-	uint16_t waveNumber = 0;
+	uint16_t waveID = 0;
 	uint16_t spawnedEnemies = 0;
 	uint32_t waveCooldown = NULL;
+	std::array<int32_t, (std::size_t)EnemyType::size> spawnedSpecificEnemies{ 0, 0 };
 };
 
 // Level's map should contain 3 layers counting from zero
@@ -61,7 +62,7 @@ public:
 	uint16_t m_EnemiesPerWave = 25;
 	Vector2D m_BasePos{ 34, 34 };
 
-	Level();
+	Level(uint16_t levelID);
 	~Level() = default;
 
 	void Setup(std::ifstream& mapFile, uint16_t layerID);
@@ -89,7 +90,6 @@ public:
 	void Render();
 
 	uint16_t GetID() const { return m_LevelID; }
-	void SetID(uint16_t levelID) { m_LevelID = levelID; }
 
 	uint16_t GetLayersAmount() const { return (uint16_t)layers.size(); }
 
@@ -116,6 +116,9 @@ private:
 	uint16_t m_LevelID = 0;
 	std::array<Layer, 3> layers;
 	std::vector<Tile*> spawners;
+
+	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is supposed to spawn
+	std::array<int32_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount;
 
 	Wave m_Wave;
 };

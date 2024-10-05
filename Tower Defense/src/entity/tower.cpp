@@ -85,7 +85,12 @@ void Tower::Draw()
 void Tower::Upgrade()
 {
 	if (m_Tier >= 3)
+	{
+		App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
+		App::s_Building.buildingPlace->SetTexture(App::s_Building.originalTexture);
+		App::s_Building.towerToUpgrade = nullptr;
 		return;
+	}
 
 	++m_Tier;
 	srcRect.x = (m_Tier - 1) * (imageWidth / 3);
@@ -96,6 +101,6 @@ void Tower::Upgrade()
 	m_Attacker->Destroy();
 	m_Attacker = nullptr;
 
-	App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
 	App::s_Manager.Refresh();
+	App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
 }

@@ -15,6 +15,8 @@ TextureManager::~TextureManager()
 	{
 		SDL_DestroyTexture(texture.second);
 	}
+
+	TTF_Quit();
 }
 
 void TextureManager::AddTexture(std::string_view textureID, const char* path)

@@ -141,6 +141,8 @@ public:
 		{
 		case EnemyType::elf:
 			return "enemyElf";
+		case EnemyType::goblinWarrior:
+			return "enemyGoblinWarrior";
 		}
 		return "";
 	}

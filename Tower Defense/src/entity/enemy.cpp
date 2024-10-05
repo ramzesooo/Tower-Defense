@@ -5,6 +5,9 @@
 
 #include <cmath>
 
+constexpr int32_t enemyWidth = 32;
+constexpr int32_t enemyHeight = 32;
+
 extern std::vector<Entity*> &towers;
 
 SDL_Texture* Enemy::s_Square = nullptr;
@@ -16,8 +19,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 {
 	//destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
 	//destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
-	destRect.w = Enemy::s_EnemyWidth * m_Scale;
-	destRect.h = Enemy::s_EnemyHeight * m_Scale;
+	destRect.w = enemyWidth * m_Scale;
+	destRect.h = enemyHeight * m_Scale;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
@@ -30,24 +33,26 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
 
-	//Animation idle = Animation(0, 2, 500);
 	animations.emplace("Idle", Animation("Idle", 0, 2, 500));
+	animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
+	animations.emplace("WalkRight", Animation("WalkRight", 2, 3, 100));
+	animations.emplace("WalkUp", Animation("WalkUp", 3, 3, 100));
+	animations.emplace("WalkLeft", Animation("WalkLeft", 4, 3, 100));
 
 	switch (type)
 	{
 	case EnemyType::elf:
-		{
-			//Animation walk = Animation(1, 3, 100);
-			animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
-			animations.emplace("WalkRight", Animation("WalkRight", 2, 3, 100));
-			animations.emplace("WalkUp", Animation("WalkUp", 3, 3, 100));
-			animations.emplace("WalkLeft", Animation("WalkLeft", 4, 3, 100));
+		//animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
+		//animations.emplace("WalkRight", Animation("WalkRight", 2, 3, 100));
+		//animations.emplace("WalkUp", Animation("WalkUp", 3, 3, 100));
+		//animations.emplace("WalkLeft", Animation("WalkLeft", 4, 3, 100));
 
-			m_HP = m_MaxHP = 100;
-		}
+		m_HP = m_MaxHP = 75;
+		m_MovementSpeed = 1.4f;
 		break;
-	default:
-		break;
+	case EnemyType::goblinWarrior:
+		m_HP = m_MaxHP = 100;
+		m_MovementSpeed = 1.5f;
 	}
 
 	PlayAnim("Idle");
@@ -108,7 +113,7 @@ void Enemy::Update()
 		UpdateMovement();
 
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
-	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
+	srcRect.y = m_CurrentAnim.index * enemyHeight;
 
 	Attacker* attacker = nullptr;
 	for (const auto& tower : towers)
@@ -179,11 +184,11 @@ void Enemy::Move(Vector2D destination)
 
 	if (destination.x < 0.0f)
 	{
-		m_Velocity.x = -s_MovementSpeed;
+		m_Velocity.x = -m_MovementSpeed;
 	}
 	else if (destination.x > 0.0f)
 	{
-		m_Velocity.x = s_MovementSpeed;
+		m_Velocity.x = m_MovementSpeed;
 	}
 	else
 	{
@@ -192,11 +197,11 @@ void Enemy::Move(Vector2D destination)
 
 	if (destination.y < 0.0f)
 	{
-		m_Velocity.y = -s_MovementSpeed;
+		m_Velocity.y = -m_MovementSpeed;
 	}
 	else if (destination.y > 0.0f)
 	{
-		m_Velocity.y = s_MovementSpeed;
+		m_Velocity.y = m_MovementSpeed;
 	}
 	else
 	{
@@ -242,12 +247,12 @@ void Enemy::UpdateMovement()
 	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
 
-	if (std::fabs(m_Pos.x - m_Destination.x) < s_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 	{
 		m_Velocity.x = 0.0f;
 	}
 
-	if (std::fabs(m_Pos.y - m_Destination.y) < s_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
 	{
 		m_Velocity.y = 0.0f;
 	}
