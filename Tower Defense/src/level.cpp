@@ -7,6 +7,13 @@
 constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
 
+// Temporary level's config
+//constexpr uint16_t m_Waves = 4;
+// enemiesPerWave are multiplied by current wave
+//constexpr uint16_t m_EnemiesPerWave = 25;
+
+constexpr char configName[] = ".config";
+
 extern std::vector<Entity*>& towers;
 extern std::vector<Entity*>& projectiles;
 extern std::vector<Entity*>& enemies;
@@ -14,10 +21,12 @@ extern std::vector<Entity*>& attackers;
 
 extern std::default_random_engine rng;
 
+//Level::Level(uint16_t levelID)
+//	: m_LevelID(levelID), m_SpecificEnemiesAmount(m_Wave.spawnedSpecificEnemies), m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
 Level::Level(uint16_t levelID)
-	: m_LevelID(levelID), m_SpecificEnemiesAmount(m_Wave.spawnedSpecificEnemies), m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
+	: m_LevelID(levelID), m_Texture(App::s_Textures.GetTexture("mapSheet"))
 {
-	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\.config");
+	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\" + configName);
 
 	if (configFile.fail())
 	{
@@ -26,9 +35,35 @@ Level::Level(uint16_t levelID)
 	}
 
 	std::string line;
-	std::getline(configFile, line);
+	while (std::getline(configFile, line))
+	{
+		std::istringstream ss(line);
+		std::string value;
 
-	std::istringstream ss(line);
+		m_Waves.reserve(1);
+		m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{ 0, 0 }); // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
+		auto &wave = m_Waves.back();
+		for (auto i = 0u; i < (std::size_t)EnemyType::size; ++i)
+		{
+			if (!std::getline(ss, value, ','))
+				break;
+
+			wave[i] = (uint16_t)std::stoi(value);
+		}
+	}
+
+	/*printf("Waves: %lld\n", m_Waves.size());
+
+	for (const auto &wave : m_Waves)
+	{
+		for (const auto &i : wave)
+			printf("%I32d, ", i);
+
+		printf("\n");
+	}*/
+	//std::getline(configFile, line);
+
+	/*std::istringstream ss(line);
 	std::string value;
 
 	for (auto i = 0u; i < m_SpecificEnemiesAmount.size(); ++i)
@@ -37,7 +72,7 @@ Level::Level(uint16_t levelID)
 			break;
 
 		m_SpecificEnemiesAmount[i] = std::stoi(value);
-	}
+	}*/
 }
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
@@ -198,6 +233,8 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 {
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
+
+	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(enemies.size()));
 	return enemy;
 }
 
@@ -266,37 +303,48 @@ void Level::InitWave()
 	Vector2D moveVector;
 
 	EnemyType type = EnemyType::elf;
-	for (auto i = 0u; i < m_Wave.spawnedSpecificEnemies.size(); ++i)
+	//for (auto i = 0u; i < m_Wave.spawnedSpecificEnemies.size(); ++i)
+	/*for (std::size_t i = 0u; i < (std::size_t)EnemyType::size; ++i)
 	{
 		if (m_Wave.spawnedSpecificEnemies[i] == m_SpecificEnemiesAmount[i])
+			continue;
+
+		type = (EnemyType)i;
+	}*/
+	for (std::size_t i = 0u; i < (std::size_t)EnemyType::size; ++i)
+	{
+		if (m_SpecificEnemiesAmount[i] == m_Waves.at(m_CurrentWave)[i])
 			continue;
 
 		type = (EnemyType)i;
 	}
 
 	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
-	m_Wave.spawnedSpecificEnemies[(std::size_t)type]++;
+	++m_SpecificEnemiesAmount[(std::size_t)type];
+	//++m_Wave.spawnedSpecificEnemies[(std::size_t)type];
 
 	moveVector.x = dest.x - spawnPos.x;
 	moveVector.y = dest.y - spawnPos.y;
 
 	enemy->Move(moveVector);
 
-	if (++m_Wave.spawnedEnemies >= m_EnemiesPerWave * m_Wave.waveID)
-	{
-		m_Wave.waveProgress = WaveProgress::InProgress;
-	}
+	if (enemies.size() == m_ExpectedEnemiesAmount)
+		m_WaveProgress = WaveProgress::InProgress;
 }
 
 void Level::ManageWaves()
 {
-	switch (m_Wave.waveProgress)
+	switch (m_WaveProgress)
 	{
 	case WaveProgress::OnCooldown:
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_Wave.waveCooldown))
+		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
 		{
+			m_ExpectedEnemiesAmount = 0;
+			for (const auto &i : m_Waves.at(m_CurrentWave))
+				m_ExpectedEnemiesAmount += i;
+
 			InitWave();
-			m_Wave.waveProgress = WaveProgress::Initializing;
+			m_WaveProgress = WaveProgress::Initializing;
 		}
 		return;
 	case WaveProgress::Initializing:
@@ -305,18 +353,17 @@ void Level::ManageWaves()
 	case WaveProgress::InProgress:
 		if (enemies.size() == 0)
 		{
-			m_Wave.spawnedEnemies = 0;
-			m_Wave.waveProgress = WaveProgress::Finished;
+			m_WaveProgress = WaveProgress::Finished;
+			m_SpecificEnemiesAmount = { 0, 0 }; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
 		}
 		return;
 	case WaveProgress::Finished:
-		m_Wave.waveID++;
-		if (m_Wave.waveID > m_Waves)
+		if (++m_CurrentWave >= m_Waves.size())
 		{
-			m_Wave.waveID = 1;
+			m_CurrentWave = 0;
 		}
-		m_Wave.waveCooldown = SDL_GetTicks() + waveCooldown;
-		m_Wave.waveProgress = WaveProgress::OnCooldown;
+		m_WaveCooldown = SDL_GetTicks() + waveCooldown;
+		m_WaveProgress = WaveProgress::OnCooldown;
 		return;
 	}
 }

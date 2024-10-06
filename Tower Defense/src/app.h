@@ -117,6 +117,8 @@ private:
 // MAIN SECTION END
 
 public:
+	static Label *s_EnemiesAmountLabel;
+
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
 	void ManageBuildingState();

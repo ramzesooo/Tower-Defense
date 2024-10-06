@@ -32,14 +32,14 @@ enum class WaveProgress
 	Finished
 };
 
-struct Wave
-{
-	WaveProgress waveProgress = WaveProgress::OnCooldown;
-	uint16_t waveID = 0;
-	uint16_t spawnedEnemies = 0;
-	uint32_t waveCooldown = NULL;
-	std::array<int32_t, (std::size_t)EnemyType::size> spawnedSpecificEnemies{ 0, 0 };
-};
+//struct Wave
+//{
+//	WaveProgress waveProgress = WaveProgress::OnCooldown;
+//	uint16_t waveID = 0;
+//	uint16_t spawnedEnemies = 0;
+//	uint32_t waveCooldown = NULL;
+//	std::array<int32_t, (std::size_t)EnemyType::size> spawnedSpecificEnemies{ 0, 0 };
+//};
 
 // Level's map should contain 3 layers counting from zero
 // Layer 0 is general layer and contains all tiles displayed at first place
@@ -56,10 +56,13 @@ public:
 	const uint16_t m_TileSize = 24;
 	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
 
+	/*
 	// Temporary level's config
 	uint16_t m_Waves = 4;
 	// enemiesPerWave are multiplied by current wave
 	uint16_t m_EnemiesPerWave = 25;
+	*/
+
 	Vector2D m_BasePos{ 34, 34 };
 
 	Level(uint16_t levelID);
@@ -69,6 +72,8 @@ public:
 
 	// Base is signed as regular tile
 	void SetupBase(uint32_t posX, uint32_t posY);
+
+	// All methods adding entities (such as tower, attacker and enemy) call AddGroup inside of them
 
 	// Position passed in parameters referes to left-upper square
 	// Towers take 4 tiles in this scheme:
@@ -117,8 +122,14 @@ private:
 	std::array<Layer, 3> layers;
 	std::vector<Tile*> spawners;
 
-	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is supposed to spawn
-	std::array<int32_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount;
+	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
+	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{ 0, 0 }; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
 
-	Wave m_Wave;
+	//Wave m_Wave;
+	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
+	std::vector<std::array<uint16_t, (std::size_t)EnemyType::size>> m_Waves;
+	std::size_t m_ExpectedEnemiesAmount = 0;
+	std::size_t m_CurrentWave = 0;
+	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
+	uint32_t m_WaveCooldown = 0;
 };

@@ -31,6 +31,8 @@ int32_t App::s_MouseY = 0;
 BuildingState App::s_Building;
 
 std::random_device App::s_Rnd;
+
+Label *App::s_EnemiesAmountLabel = nullptr;
 // END
 
 std::default_random_engine rng(App::s_Rnd());
@@ -126,6 +128,9 @@ App::App()
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 	m_PauseLabel->UpdateText(" ");
+
+	s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
+	s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
 
 	m_IsRunning = initialized;
 }
