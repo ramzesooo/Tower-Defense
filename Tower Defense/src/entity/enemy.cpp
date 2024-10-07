@@ -9,6 +9,7 @@ constexpr int32_t enemyWidth = 32;
 constexpr int32_t enemyHeight = 32;
 
 extern std::vector<Entity*> &towers;
+extern std::vector<Entity*> &enemies;
 
 SDL_Texture* Enemy::s_Square = nullptr;
 SDL_Texture* Enemy::s_GreenTex = nullptr;
@@ -42,17 +43,25 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	switch (type)
 	{
 	case EnemyType::elf:
-		//animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
-		//animations.emplace("WalkRight", Animation("WalkRight", 2, 3, 100));
-		//animations.emplace("WalkUp", Animation("WalkUp", 3, 3, 100));
-		//animations.emplace("WalkLeft", Animation("WalkLeft", 4, 3, 100));
-
-		m_HP = m_MaxHP = 75;
-		m_MovementSpeed = 1.4f;
+		m_HP = m_MaxHP = 50;
+		m_MovementSpeed = 1.5f;
+		m_Damage = 1;
 		break;
 	case EnemyType::goblinWarrior:
-		m_HP = m_MaxHP = 100;
-		m_MovementSpeed = 1.5f;
+		m_HP = m_MaxHP = 85;
+		m_MovementSpeed = 1.35f;
+		m_Damage = 1;
+		break;
+	case EnemyType::dwarfSoldier:
+		m_HP = m_MaxHP = 120;
+		m_MovementSpeed = 1.3f;
+		m_Damage = 1;
+		break;
+	case EnemyType::dwarfKing:
+		m_HP = m_MaxHP = 130;
+		m_MovementSpeed = 1.4f;
+		m_Damage = 2;
+		break;
 	}
 
 	PlayAnim("Idle");
@@ -99,6 +108,8 @@ void Enemy::Destroy()
 		if (static_cast<Projectile*>(p)->GetTarget() == this)
 			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
+
+	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(enemies.size() - 1));
 }
 
 void Enemy::Update()
@@ -228,7 +239,7 @@ void Enemy::UpdateMovement()
 	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
 		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
 	{
-		App::s_CurrentLevel->GetBase()->TakeDamage(1);
+		App::s_CurrentLevel->GetBase()->TakeDamage(m_Damage);
 		Destroy();
 		return;
 	}
@@ -275,33 +286,12 @@ void Enemy::UpdateMovement()
 		PlayAnim("WalkUp");
 	}
 
-	//if (!IsMoving())
-	//{
-	//	/*PlayAnim("Idle");
-	//	m_Pos.Roundf();
-	//	m_Destination.Roundf();*/
-
-	//	App::s_CurrentLevel->GetBase()->TakeDamage(1);
-	//	Destroy();
-	//	return;
-	//}
-
 	if (nextTile != m_OccupiedTile)
 	{
 		m_OccupiedTile->SetOccupyingEntity(nullptr);
 		m_OccupiedTile = nextTile;
 		m_OccupiedTile->SetOccupyingEntity(this);
 	}
-
-	/*Tile* newOccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
-
-	if (newOccupiedTile && newOccupiedTile != m_OccupiedTile)
-	{
-		m_OccupiedTile->SetOccupyingEntity(nullptr);
-
-		m_OccupiedTile = newOccupiedTile;
-		newOccupiedTile->SetOccupyingEntity(this);
-	}*/
 
 	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
 

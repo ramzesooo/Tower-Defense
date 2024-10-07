@@ -84,6 +84,8 @@ App::App()
 	App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
+	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
+	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
@@ -243,6 +245,7 @@ void App::Update()
 		return;
 
 	// NOTE: The only case where m_DestroyTower can be modified is EventHandler case SDLK_F10
+	// This code should be removed after removing SDLK_F10 from EventHandler
 	if (m_DestroyTower)
 	{
 		static_cast<Tower*>(towers.back())->Destroy();

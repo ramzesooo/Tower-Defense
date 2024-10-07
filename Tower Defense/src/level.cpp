@@ -267,14 +267,6 @@ void Level::HandleMouseButtonEvent()
 			if (App::s_Building.towerToUpgrade)
 			{
 				App::s_Building.towerToUpgrade->Upgrade();
-
-				// Moved to Tower::Upgrade()
-				/*if (App::s_Building.towerToUpgrade->GetTier() >= 3)
-				{
-					App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
-					App::s_Building.buildingPlace->SetTexture(App::s_Building.originalTexture);
-				}*/
-
 				return;
 			}
 		}

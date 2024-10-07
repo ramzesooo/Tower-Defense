@@ -145,6 +145,10 @@ public:
 			return "enemyElf";
 		case EnemyType::goblinWarrior:
 			return "enemyGoblinWarrior";
+		case EnemyType::dwarfSoldier:
+			return "enemyDwarfSoldier";
+		case EnemyType::dwarfKing:
+			return "enemyDwarfKing";
 		}
 		return "";
 	}
