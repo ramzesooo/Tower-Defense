@@ -178,8 +178,9 @@ void Enemy::Move(Vector2D destination)
 	// to avoid improper rendering like between of 2 tiles
 	destination.Roundf();
 	
-	m_Destination.x = m_Pos.x + destination.x;
-	m_Destination.y = m_Pos.y + destination.y;
+	m_Destination = Vector2D(m_Pos).Add(destination);
+	/*m_Destination.x = m_Pos.x + destination.x;
+	m_Destination.y = m_Pos.y + destination.y;*/
 
 	// block moving outside of map
 	if (m_Destination.x < 0.0f)
@@ -254,9 +255,10 @@ void Enemy::UpdateMovement()
 
 	if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this)
 		return;
-	
-	m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
-	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;
+
+	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
+	/*m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
+	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;*/
 
 	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 	{
@@ -378,35 +380,3 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 
 	return false;
 }
-
-//void Enemy::AddProjectile(ProjectileType type, Attacker* projectileOwner)
-//{
-//	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, this);
-//	projectile->AddGroup(EntityGroup::projectile);
-//}
-//
-//void Enemy::DelProjectile(Projectile* projectile, bool IsHit)
-//{
-//	if (IsHit)
-//	{
-//		uint16_t dmg = App::GetDamageOf(projectile->GetType());
-//
-//		if (m_HP > dmg)
-//		{
-//			m_HP -= dmg;
-//		}
-//		else
-//		{
-//			m_HP = 0;
-//			Destroy();
-//		}
-//
-//		m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
-//
-//		m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
-//
-//		UpdateHealthBar();
-//	}
-//
-//	projectile->Destroy();
-//}

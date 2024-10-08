@@ -101,14 +101,6 @@ public:
 	// And searches towers from x: -range, y: -range to: x: range, y: range
 	bool IsTowerInRange(Tower* tower, uint16_t range = 2) const;
 
-	//void AddProjectile(ProjectileType type, Attacker* projectileOwner);
-
-	// DelProjectile should be always triggered to destroy it
-	// Only one exception is in case when Enemy object has been destroyed before
-	// Or projectile somehow has no assigned Enemy object
-	// IsHit is responsible for executing appropriate code for hitting target
-	//void DelProjectile(Projectile* projectile, bool IsHit = false);
-
 	void SetOccupiedTile(Tile* newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
 

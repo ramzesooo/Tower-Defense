@@ -5,7 +5,8 @@
 
 #include <chrono>
 
-constexpr uint32_t logsCooldown = 500;
+constexpr uint32_t logsCooldown = 1000;
+uint16_t frames = 1;
 
 int main(int argc, char** arg)
 {
@@ -31,22 +32,21 @@ int main(int argc, char** arg)
 
 	auto tp1 = std::chrono::system_clock::now();
 	auto tp2 = std::chrono::system_clock::now();
+	//std::chrono::system_clock::time_point
 
 	App app;
 
-	//uint64_t start = SDL_GetPerformanceCounter(), end = SDL_GetPerformanceCounter();
-	//float elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;;
-
 	while (app.IsRunning())
 	{
-		//start = SDL_GetPerformanceCounter();
-
+		++frames;
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
-			//App::s_Logger.AddLog("FPS: " + std::to_string(std::llroundf(1.0f / elapsed)));
+			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
+			/*App::s_Logger.AddLog("FPS: " + std::to_string(frames));*/
 			App::s_Logger.PrintQueuedLogs();
 			App::s_Logger.ClearLogs();
 			logsTime = SDL_GetTicks() + logsCooldown;
+			frames = 0;
 		}
 
 		tp2 = std::chrono::system_clock::now();
@@ -58,9 +58,6 @@ int main(int argc, char** arg)
 		app.EventHandler();
 		app.Update();
 		app.Render();
-
-		//end = SDL_GetPerformanceCounter();
-		//elapsed = (end - start) / (float)SDL_GetPerformanceCounter() * 1000;
 	}
 
 	return 0;
