@@ -29,7 +29,7 @@ void Tile::Destroy()
 	{
 		auto& tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
 		Tile* tile;
-		for (uint16_t i = 0; i < tilesFromTower.size(); i++)
+		for (uint16_t i = 0; i < tilesFromTower.size(); ++i)
 		{
 			tile = m_TowerOnTile->GetOccupiedTile(i);
 			if (tile == this)

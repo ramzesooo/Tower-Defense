@@ -21,7 +21,9 @@
 //It helps to avoid duplicating code
 struct BuildingState
 {
-	Tile *buildingPlace = nullptr; // tile shown in building state
+	//Tile *buildingPlace = nullptr; // tile shown in building state
+	//Tile buildingPlace; // tile shown in building state
+	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileTypes::special, 2);
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
 	Vector2D coordinates{ 0.0f, 0.0f };
 	bool canBuild = false;

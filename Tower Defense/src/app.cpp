@@ -141,7 +141,8 @@ App::App()
 	}
 
 	//s_Building.buildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
-	s_Building.buildingPlace = App::s_Manager.NewTile(TileTypes::special, 2);
+	//s_Building.buildingPlace = App::s_Manager.NewTile(TileTypes::special, 2);
+	//s_Building.buildingPlace = Tile(TileTypes::special, 2);
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
