@@ -6,10 +6,6 @@
 #include "entity/base.h"
 
 #include <vector>
-#include <memory>
-//#include <string>
-//#include <random>
-//#include <future>
 
 constexpr uint16_t mapWidth = 70;
 constexpr uint16_t mapHeight = 70;
@@ -51,6 +47,7 @@ enum class WaveProgress
 class Level
 {
 public:
+	constexpr static uint16_t layersAmount = 3;
 	const uint16_t m_MapSizeX = mapWidth;
 	const uint16_t m_MapSizeY = mapHeight;
 	const uint16_t m_MapScale = 2;
@@ -97,8 +94,6 @@ public:
 
 	uint16_t GetID() const { return m_LevelID; }
 
-	uint16_t GetLayersAmount() const { return (uint16_t)layers.size(); }
-
 	bool DidLoadingFail() const { return m_FailedLoading; }
 
 	Base* GetBase() { return &m_Base; }
@@ -120,7 +115,7 @@ private:
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0;
-	std::array<Layer, 3> layers;
+	std::array<Layer, layersAmount> layers;
 	std::vector<Tile*> spawners;
 
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned

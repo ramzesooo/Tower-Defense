@@ -15,7 +15,6 @@
 
 #include <memory>
 #include <random>
-#include <future>
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
 //It helps to avoid duplicating code
@@ -119,7 +118,6 @@ private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window *m_Window = nullptr;
-	std::vector<std::future<void>> m_Futures;
 // MAIN SECTION END
 
 public:

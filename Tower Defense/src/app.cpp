@@ -43,24 +43,6 @@ auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
 auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
 auto& enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
-static void PrepareRestOfTextures()
-{
-	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
-	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
-	App::s_Textures.AddTexture("base", "assets\\base.png");
-	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
-	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
-	App::s_Textures.AddTexture(App::TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
-	App::s_Textures.AddTexture(App::TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
-	App::s_Textures.AddTexture(App::TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
-	App::s_Textures.AddTexture(App::TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
-	App::s_Textures.AddTexture(App::TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
-	App::s_Textures.AddTexture(App::TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
-	App::s_Textures.AddTexture(App::TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
-	App::s_Textures.AddTexture(App::TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
-}
-
 App::App()
 {
 	bool initialized = true;
@@ -76,7 +58,8 @@ App::App()
 	SDL_SetWindowIcon(m_Window, iconSurface);
 	SDL_FreeSurface(iconSurface);
 
-	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
+	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
 	{
 		App::s_Logger.AddLog(SDL_GetError());
@@ -90,16 +73,12 @@ App::App()
 	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
 	App::s_Textures.AddTexture("canBuild", "assets\\tile_CanBuild.png");
 
-	/*
 	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
 	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
-	*/
-	m_Futures.push_back(std::async(std::launch::async, PrepareRestOfTextures));
-	/*
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
@@ -108,7 +87,6 @@ App::App()
 	App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
-	*/
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
@@ -343,7 +321,7 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 {
 	std::string path;
 	std::ifstream mapFile;
-	for (uint16_t i = 0; i < 3; i++)
+	for (uint16_t i = 0; i < Level::layersAmount; i++)
 	{
 		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(path);

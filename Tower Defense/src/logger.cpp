@@ -1,5 +1,7 @@
 #include "logger.h"
 
+#include <iostream>
+
 void Logger::AddLog(std::string_view newLog, bool endLine)
 {
 	if (endLine)

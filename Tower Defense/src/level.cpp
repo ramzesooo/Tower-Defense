@@ -77,21 +77,25 @@ Level::Level(uint16_t levelID)
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
+	if (layerID < 0 || layerID >= layers.size())
+	{
+		App::s_Logger.AddLog("Failed to load level " + std::to_string(m_LevelID + 1));
+		App::s_Logger.AddLog("Layer " + std::to_string(layerID) + " is less than 0 or higher than expected amount of layers");
+		return;
+	}
+
 	if (mapFile.fail())
 	{
-		App::s_Logger.AddLog("Failed to load level ", false);
-		App::s_Logger.AddLog(std::to_string(m_LevelID + 1));
+		App::s_Logger.AddLog("Failed to load level " + std::to_string(m_LevelID + 1));
 		return;
 	}
 	else
 	{
-		App::s_Logger.AddLog("Loading level ", false);
-		App::s_Logger.AddLog(std::to_string(m_LevelID + 1), false);
-		App::s_Logger.AddLog(" (Layer: ", false);
-		App::s_Logger.AddLog(std::to_string(layerID), false);
-		App::s_Logger.AddLog(")");
+		App::s_Logger.AddLog("Loading level " + std::to_string(m_LevelID + 1), false);
+		App::s_Logger.AddLog(" (Layer: " + std::to_string(layerID) + ")");
 	}
 
+	// This code can be improved
 	std::string line;
 	std::vector<std::vector<int>> mapData;
 
@@ -108,7 +112,8 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	}
 
 	int32_t tileCode;
-	TileTypes tileType;
+	TileTypes tileType = (TileTypes)layerID;
+	/*TileTypes tileType;
 
 	switch (layers.size())
 	{
@@ -124,7 +129,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	default:
 		tileType = TileTypes::regular;
 		break;
-	}
+	}*/
 
 	Layer* newLayer = &layers.at(layerID);
 	newLayer->tiles.reserve(std::size_t(m_MapSizeX * m_MapSizeY));
