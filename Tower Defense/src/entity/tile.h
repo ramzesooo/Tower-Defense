@@ -19,6 +19,10 @@ enum class TileTypes
 
 class Tower;
 
+// It's not needed anymore to inheritance from Entity
+// TODO: Adjust it to be totally not dependent from Entity class,
+// Manager has another method for tiles NewTile() instead of NewEntity() with another vector
+// It has been done to avoid iterating through a lot of tiles in Refresh() and Update() because it's stealing a lot of performance
 class Tile : public Entity
 {
 public:

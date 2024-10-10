@@ -12,7 +12,10 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
+
 #include <memory>
+#include <random>
+#include <future>
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
 //It helps to avoid duplicating code
@@ -100,12 +103,12 @@ public:
 		switch (state)
 		{
 		case UIState::none:
-			//m_PauseLabel->m_Drawable = false;
-			m_PauseLabel->UpdateText(" ");
+			m_PauseLabel->m_Drawable = false;
+			//m_PauseLabel->UpdateText(" ");
 			return;
 		case UIState::building:
-			//m_PauseLabel->m_Drawable = true;
-			m_PauseLabel->UpdateText("PAUSED");
+			m_PauseLabel->m_Drawable = true;
+			//m_PauseLabel->UpdateText("PAUSED");
 			ManageBuildingState();
 			return;
 		}
@@ -114,6 +117,7 @@ private:
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window *m_Window = nullptr;
+	std::vector<std::future<void>> m_Futures;
 // MAIN SECTION END
 
 public:

@@ -43,6 +43,24 @@ auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
 auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
 auto& enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
+static void PrepareRestOfTextures()
+{
+	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
+	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
+	App::s_Textures.AddTexture("base", "assets\\base.png");
+	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
+	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
+	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
+	App::s_Textures.AddTexture(App::TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
+	App::s_Textures.AddTexture(App::TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
+	App::s_Textures.AddTexture(App::TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
+	App::s_Textures.AddTexture(App::TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
+	App::s_Textures.AddTexture(App::TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
+	App::s_Textures.AddTexture(App::TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
+	App::s_Textures.AddTexture(App::TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
+	App::s_Textures.AddTexture(App::TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
+}
+
 App::App()
 {
 	bool initialized = true;
@@ -69,15 +87,19 @@ App::App()
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
 
 	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
-
+	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
 	App::s_Textures.AddTexture("canBuild", "assets\\tile_CanBuild.png");
+
+	/*
 	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
 	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
-	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
+	*/
+	m_Futures.push_back(std::async(std::launch::async, PrepareRestOfTextures));
+	/*
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
@@ -86,6 +108,7 @@ App::App()
 	App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
 	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
+	*/
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
@@ -117,19 +140,20 @@ App::App()
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 	}
 
-	s_Building.buildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
+	//s_Building.buildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
+	s_Building.buildingPlace = App::s_Manager.NewTile(TileTypes::special, 2);
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
 	UpdateCamera();
 
 	m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
-	//m_PauseLabel->m_Drawable = false;
+	m_PauseLabel->m_Drawable = false;
 	m_PauseLabel->AddGroup(EntityGroup::label);
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
-	m_PauseLabel->UpdateText(" ");
+	//m_PauseLabel->UpdateText(" ");
 
 	s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
 	s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
@@ -376,7 +400,7 @@ void App::ManageBuildingState()
 	// 3: 1, 1,5
 	// x: 3 % 2 y: 3 / 2
 
-	for (auto i = 0u; i < 3; i++)
+	for (auto i = 0u; i < 4; i++)
 	{
 		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
 		if (!pointedTile || !pointedTile->GetTowerOccupying())

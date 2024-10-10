@@ -36,13 +36,16 @@ int main(int argc, char** arg)
 
 	App app;
 
+	tp2 = std::chrono::system_clock::now();
+	std::chrono::duration<float> elapsedTime = tp2 - tp1;
+	tp1 = tp2;
+
 	while (app.IsRunning())
 	{
 		++frames;
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
 			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
-			/*App::s_Logger.AddLog("FPS: " + std::to_string(frames));*/
 			App::s_Logger.PrintQueuedLogs();
 			App::s_Logger.ClearLogs();
 			logsTime = SDL_GetTicks() + logsCooldown;
@@ -50,7 +53,7 @@ int main(int argc, char** arg)
 		}
 
 		tp2 = std::chrono::system_clock::now();
-		std::chrono::duration<float> elapsedTime = tp2 - tp1;
+		elapsedTime = tp2 - tp1;
 		tp1 = tp2;
 
 		App::s_ElapsedTime = elapsedTime.count();

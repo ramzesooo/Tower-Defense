@@ -42,8 +42,9 @@ void TextureManager::DrawTexture(std::string_view textureID)
 	auto it = textures.find(textureID);
 	if (it == textures.end())
 	{
-		App::s_Logger.AddLog(SDL_GetError());
-		SDL_ClearError();
+		App::s_Logger.AddLog("Missing " + std::string(textureID));
+		/*App::s_Logger.AddLog(SDL_GetError());
+		SDL_ClearError();*/
 		return;
 	}
 

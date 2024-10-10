@@ -7,8 +7,9 @@
 
 #include <vector>
 #include <memory>
-#include <string>
-#include <random>
+//#include <string>
+//#include <random>
+//#include <future>
 
 constexpr uint16_t mapWidth = 70;
 constexpr uint16_t mapHeight = 70;
@@ -19,7 +20,7 @@ class App;
 struct Layer
 {
 	// returns a tile from specific coordinates
-	Tile* GetTileFrom(std::size_t posX, std::size_t posY) const { return tiles.at(posY * mapWidth + posX); }
+	Tile *GetTileFrom(std::size_t posX, std::size_t posY) const { return tiles.at(posY * mapWidth + posX); }
 
 	std::vector<Tile*> tiles;
 };
@@ -132,4 +133,6 @@ private:
 	std::size_t m_CurrentWave = 0;
 	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
 	uint32_t m_WaveCooldown = 0;
+
+	//std::vector<std::future<void>> m_Futures;
 };

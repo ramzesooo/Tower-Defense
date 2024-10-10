@@ -219,13 +219,6 @@ void Enemy::Move(Vector2D destination)
 	{
 		m_Velocity.y = 0.0f;
 	}
-
-	// TODO:
-	// Make more needed animations for walking and code it right for every direction
-	if (IsMoving())
-	{
-		PlayAnim("Walk");
-	}
 }
 
 void Enemy::Move(float destinationX, float destinationY)
@@ -270,7 +263,7 @@ void Enemy::UpdateMovement()
 		m_Velocity.y = 0.0f;
 	}
 
-	// The direction of walk animation doesn't really matter in the game, so it can be in the easiest possible way
+	// The direction of walk animation doesn't really matter in the game, so it can be done in the easiest possible way
 	if (m_Velocity.x > 0)
 	{
 		PlayAnim("WalkRight");

@@ -140,11 +140,12 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 		tileCode = mapData.at(y).at(x);
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
-		tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
+		//tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
+		tile = App::s_Manager.NewTile(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
 
 		if (tile)
 		{
-			tile->AddGroup(EntityGroup::tile);
+			//tile->AddGroup(EntityGroup::tile);
 
 			if (tileCode == spawnerID)
 			{
@@ -312,7 +313,7 @@ void Level::InitWave()
 	}
 
 	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
-	++m_SpecificEnemiesAmount[(std::size_t)type];
+	m_SpecificEnemiesAmount[(std::size_t)type]++;
 	//++m_Wave.spawnedSpecificEnemies[(std::size_t)type];
 
 	moveVector.x = dest.x - spawnPos.x;
@@ -360,16 +361,39 @@ void Level::ManageWaves()
 	}
 }
 
+//static std::mutex s_TilesMutex;
+//
+//static void DrawTiles(std::vector<Tile*>* tiles)
+//{
+//	std::lock_guard<std::mutex> lock(s_TilesMutex);
+//	for (const auto &tile : *tiles)
+//	{
+//		if (!tile)
+//			continue;
+//
+//		tile->Draw();
+//	}
+//}
+
 void Level::Render()
 {
-	for (uint16_t i = 0; i < 3; ++i)
+	for (uint16_t i = 0; i < layers.size(); ++i)
 	{
+		//m_Futures.push_back(std::async(std::launch::async, DrawTiles, &layers.at(i).tiles));
 		for (const auto &tile : layers.at(i).tiles)
 		{
 			if (!tile)
 				continue;
 
+			// It's more expensive than rendering all tiles
+			/*Vector2D tilePos = tile->GetPos();
+			if ((tilePos.x + tile->GetWidth() < App::s_Camera.x && tilePos.y + tile->GetHeight() < App::s_Camera.y)
+				|| (tilePos.x > App::s_Camera.x + App::s_Camera.w && tilePos.y > App::s_Camera.y + App::s_Camera.h))
+				continue;*/
+
 			tile->Draw();
+
+		//	m_Futures.push_back(std::async(std::launch::async, DrawTiles, tile));
 		}
 	}
 
@@ -404,7 +428,6 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 
 	return layers.at(layer).GetTileFrom(posX, posY);
 }
-
 void Level::OnUpdateCamera()
 {
 	for (uint16_t i = 0; i < 3; ++i)

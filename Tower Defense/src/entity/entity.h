@@ -8,14 +8,16 @@
 #include <memory>
 #include <bitset>
 
+class Tile;
+
 enum class EntityGroup
 {
-	tile = 0,
-	enemy,
+	enemy = 0,
 	tower,
 	attacker,
-	label,
 	projectile,
+	label,
+	//tile,
 	size
 };
 
@@ -59,10 +61,17 @@ public:
 	std::vector<Entity*>& GetGroup(EntityGroup group) { return groupedEntities[(std::size_t)group]; }
 
 	template<class T, class... Args>
-	inline T* NewEntity(Args&&... args)
+	inline T *NewEntity(Args&&... args)
 	{
-		entities.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+		entities.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
 		return (T*)entities.back().get();
+	}
+
+	template<class... Args>
+	inline Tile *NewTile(Args&&... args)
+	{
+		tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
+		return tiles.back().get();
 	}
 
 	inline void DestroyAllEntities()
@@ -74,6 +83,7 @@ public:
 		entities.clear();
 	}
 private:
+	std::vector<std::unique_ptr<Tile>> tiles;
 	std::vector<std::unique_ptr<Entity>> entities;
 	std::array<std::vector<Entity*>, (std::size_t)EntityGroup::size> groupedEntities;
 };

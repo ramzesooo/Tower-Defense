@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "tile.h"
 #include "../app.h"
 
 // class Entity
@@ -39,7 +40,8 @@ void Manager::Refresh()
 		}
 
 		// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
-		for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i) {
+		for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i)
+		{
 			if ((*it)->HasGroup((EntityGroup)i)) {
 				std::erase(groupedEntities[i], it->get());
 			}
@@ -74,11 +76,20 @@ void Manager::Refresh()
 		it = entities.erase(it);
 	}
 }
-
 void Manager::Update()
 {
-	for (const auto& e : entities)
-	{
+	for (const auto &e : GetGroup(EntityGroup::enemy))
 		e->Update();
-	}
+
+	for (const auto &t : GetGroup(EntityGroup::tower))
+		t->Update();
+
+	for (const auto &a : GetGroup(EntityGroup::attacker))
+		a->Update();
+
+	for (const auto &p : GetGroup(EntityGroup::projectile))
+		p->Update();
+
+	/*for (const auto &e : entities)
+		e->Update();*/
 }
