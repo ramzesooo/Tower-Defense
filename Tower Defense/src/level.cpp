@@ -35,13 +35,33 @@ Level::Level(uint16_t levelID)
 	}
 
 	std::string line;
+	uint32_t lineNumber = 0;
 	while (std::getline(configFile, line))
 	{
 		std::istringstream ss(line);
 		std::string value;
 
+		if (++lineNumber == 1)
+		{
+			// first line of config must contain map width, height and scale
+			// for example: 70,70,2
+			for (auto i = 0u; i < 3; ++i)
+			{
+				if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+				{
+					App::s_Logger.AddLog("Couldn't reach out map data no. " + std::to_string(i) + " from level " + std::to_string(m_LevelID + 1));
+					m_MapData[i] = 2;
+					break;
+				}
+
+				m_MapData[i] = (uint16_t)std::stoi(value);
+			}
+
+			continue;
+		}
+
 		m_Waves.reserve(1);
-		m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{ 0, 0 }); // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
+		m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{});
 		auto &wave = m_Waves.back();
 		for (auto i = 0u; i < (std::size_t)EnemyType::size; ++i)
 		{
@@ -52,27 +72,7 @@ Level::Level(uint16_t levelID)
 		}
 	}
 
-	/*printf("Waves: %lld\n", m_Waves.size());
-
-	for (const auto &wave : m_Waves)
-	{
-		for (const auto &i : wave)
-			printf("%I32d, ", i);
-
-		printf("\n");
-	}*/
-	//std::getline(configFile, line);
-
-	/*std::istringstream ss(line);
-	std::string value;
-
-	for (auto i = 0u; i < m_SpecificEnemiesAmount.size(); ++i)
-	{
-		if (!std::getline(ss, value, ','))
-			break;
-
-		m_SpecificEnemiesAmount[i] = std::stoi(value);
-	}*/
+	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
 }
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
@@ -132,21 +132,21 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	}*/
 
 	Layer* newLayer = &layers.at(layerID);
-	newLayer->tiles.reserve(std::size_t(m_MapSizeX * m_MapSizeY));
+	newLayer->tiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
 
 	Tile* tile = nullptr;
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
-	for (uint16_t i = 0; i < m_MapSizeX * m_MapSizeY; i++)
+	for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
 	{
-		x = i % m_MapSizeX;
-		y = i / m_MapSizeY;
+		x = i % m_MapData.at(0);
+		y = i / m_MapData.at(1);
 		tileCode = mapData.at(y).at(x);
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
 		//tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
-		tile = App::s_Manager.NewTile(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
+		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData[2], m_Texture, tileType);
 
 		if (tile)
 		{
@@ -366,39 +366,23 @@ void Level::ManageWaves()
 	}
 }
 
-//static std::mutex s_TilesMutex;
-//
-//static void DrawTiles(std::vector<Tile*>* tiles)
-//{
-//	std::lock_guard<std::mutex> lock(s_TilesMutex);
-//	for (const auto &tile : *tiles)
-//	{
-//		if (!tile)
-//			continue;
-//
-//		tile->Draw();
-//	}
-//}
-
 void Level::Render()
 {
 	for (uint16_t i = 0; i < layers.size(); ++i)
 	{
-		//m_Futures.push_back(std::async(std::launch::async, DrawTiles, &layers.at(i).tiles));
 		for (const auto &tile : layers.at(i).tiles)
 		{
 			if (!tile)
 				continue;
 
 			// It's more expensive than rendering all tiles
-			/*Vector2D tilePos = tile->GetPos();
-			if ((tilePos.x + tile->GetWidth() < App::s_Camera.x && tilePos.y + tile->GetHeight() < App::s_Camera.y)
-				|| (tilePos.x > App::s_Camera.x + App::s_Camera.w && tilePos.y > App::s_Camera.y + App::s_Camera.h))
-				continue;*/
+			
+			//Vector2D tilePos = tile->GetPos();
+			//if ((tilePos.x + tile->GetWidth() < App::s_Camera.x && tilePos.y + tile->GetHeight() < App::s_Camera.y)
+			//	|| (tilePos.x > App::s_Camera.x + App::s_Camera.w && tilePos.y > App::s_Camera.y + App::s_Camera.h))
+			//	continue;
 
 			tile->Draw();
-
-		//	m_Futures.push_back(std::async(std::launch::async, DrawTiles, tile));
 		}
 	}
 
@@ -428,7 +412,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 		return nullptr;
 	}
 
-	if (posX < 0 || posX >= m_MapSizeX || posY < 0 || posY >= m_MapSizeY)
+	if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
 		return nullptr;
 
 	return layers.at(layer).GetTileFrom(posX, posY);

@@ -347,9 +347,9 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 		range = 0;
 	}
 
-	if (range >= App::s_CurrentLevel->m_MapSizeX)
+	if (range >= App::s_CurrentLevel->m_MapData.at(0))
 	{
-		range = App::s_CurrentLevel->m_MapSizeX - 1;
+		range = App::s_CurrentLevel->m_MapData.at(0) - 1;
 	}
 
 	int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);

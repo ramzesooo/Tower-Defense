@@ -47,11 +47,11 @@ public:
 	static Logger s_Logger;
 	static Manager s_Manager;
 
-	static SDL_Renderer* s_Renderer;
+	static SDL_Renderer *s_Renderer;
 	static SDL_Event s_Event;
 	static SDL_FRect s_Camera;
 
-	static class Level* s_CurrentLevel;
+	static class Level *s_CurrentLevel;
 	static uint16_t s_TowerRange;
 	static float s_ElapsedTime;
 	static UIState s_UIState;

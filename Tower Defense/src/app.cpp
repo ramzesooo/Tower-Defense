@@ -13,7 +13,7 @@ TextureManager App::s_Textures;
 Logger App::s_Logger;
 Manager App::s_Manager;
 
-SDL_Renderer* App::s_Renderer = nullptr;
+SDL_Renderer *App::s_Renderer = nullptr;
 SDL_Event App::s_Event;
 SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WINDOW_HEIGHT };
 
@@ -278,8 +278,8 @@ void App::Render()
 void App::UpdateCamera()
 {
 	Vector2D basePos = App::s_CurrentLevel->GetBase()->m_Pos;
-	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapSizeX * App::s_CurrentLevel->m_ScaledTileSize);
-	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapSizeY * App::s_CurrentLevel->m_ScaledTileSize);
+	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapData.at(0) * App::s_CurrentLevel->m_ScaledTileSize);
+	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapData.at(1) * App::s_CurrentLevel->m_ScaledTileSize);
 
 	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
 	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
@@ -321,7 +321,7 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 {
 	std::string path;
 	std::ifstream mapFile;
-	for (uint16_t i = 0; i < Level::layersAmount; i++)
+	for (uint16_t i = 0; i < Level::s_LayersAmount; i++)
 	{
 		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(path);

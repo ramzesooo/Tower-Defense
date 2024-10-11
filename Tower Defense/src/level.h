@@ -29,15 +29,6 @@ enum class WaveProgress
 	Finished
 };
 
-//struct Wave
-//{
-//	WaveProgress waveProgress = WaveProgress::OnCooldown;
-//	uint16_t waveID = 0;
-//	uint16_t spawnedEnemies = 0;
-//	uint32_t waveCooldown = NULL;
-//	std::array<int32_t, (std::size_t)EnemyType::size> spawnedSpecificEnemies{ 0, 0 };
-//};
-
 // Level's map should contain 3 layers counting from zero
 // Layer 0 is general layer and contains all tiles displayed at first place
 // Layer 1 is layer of additional of tiles displayed right at the layer 0 without collisions
@@ -47,19 +38,10 @@ enum class WaveProgress
 class Level
 {
 public:
-	constexpr static uint16_t layersAmount = 3;
-	const uint16_t m_MapSizeX = mapWidth;
-	const uint16_t m_MapSizeY = mapHeight;
-	const uint16_t m_MapScale = 2;
-	const uint16_t m_TileSize = 24;
-	const uint16_t m_ScaledTileSize = m_MapScale * m_TileSize;
-
-	/*
-	// Temporary level's config
-	uint16_t m_Waves = 4;
-	// enemiesPerWave are multiplied by current wave
-	uint16_t m_EnemiesPerWave = 25;
-	*/
+	constexpr static uint16_t s_LayersAmount = 3;
+	constexpr static uint16_t s_TileSize = 24;
+	std::array<uint16_t, 3> m_MapData{}; // 0 = width, 1 = height, 2 = scale
+	uint16_t m_ScaledTileSize = 0;
 
 	Vector2D m_BasePos{ 34, 34 };
 
@@ -115,11 +97,11 @@ private:
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0;
-	std::array<Layer, layersAmount> layers;
+	std::array<Layer, s_LayersAmount> layers;
 	std::vector<Tile*> spawners;
 
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
-	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{ 0, 0 }; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
+	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{}; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
 
 	//Wave m_Wave;
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
@@ -128,6 +110,4 @@ private:
 	std::size_t m_CurrentWave = 0;
 	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
 	uint32_t m_WaveCooldown = 0;
-
-	//std::vector<std::future<void>> m_Futures;
 };
