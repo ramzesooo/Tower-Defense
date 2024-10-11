@@ -77,47 +77,47 @@ public:
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
 	{
+		if (s_IsWindowMinimized)
+			return true;
+
 		switch (state)
 		{
-		case UIState::none:
-			return false;
 		case UIState::building:
 			return true;
+		case UIState::none:
+		default:
+			return false;
 		}
-
-		return false;
 	}
 
 	// for checking is currently the game paused
-	static inline bool IsGamePaused()
-	{
-		return IsGamePaused(s_UIState);
-	}
+	static inline bool IsGamePaused() { return IsGamePaused(s_UIState); }
 
 	inline void SetUIState(UIState state)
 	{
 		if (s_UIState == state)
 			return;
 
+		m_PreviousUIState = s_UIState;
 		s_UIState = state;
 
 		switch (state)
 		{
 		case UIState::none:
 			m_PauseLabel->m_Drawable = false;
-			//m_PauseLabel->UpdateText(" ");
 			return;
 		case UIState::building:
 			m_PauseLabel->m_Drawable = true;
-			//m_PauseLabel->UpdateText("PAUSED");
 			ManageBuildingState();
 			return;
 		}
 	}
 private:
+	static bool s_IsWindowMinimized;
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window *m_Window = nullptr;
+	UIState m_PreviousUIState = UIState::none;
 // MAIN SECTION END
 
 public:
@@ -125,6 +125,8 @@ public:
 
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
+
+	void SwitchBuildingState();
 	void ManageBuildingState();
 
 	static inline std::string_view TextureOf(AttackerType type)

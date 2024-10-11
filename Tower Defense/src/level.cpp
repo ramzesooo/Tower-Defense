@@ -7,11 +7,6 @@
 constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
 
-// Temporary level's config
-//constexpr uint16_t m_Waves = 4;
-// enemiesPerWave are multiplied by current wave
-//constexpr uint16_t m_EnemiesPerWave = 25;
-
 constexpr char configName[] = ".config";
 
 extern std::vector<Entity*>& towers;
@@ -21,8 +16,6 @@ extern std::vector<Entity*>& attackers;
 
 extern std::default_random_engine rng;
 
-//Level::Level(uint16_t levelID)
-//	: m_LevelID(levelID), m_SpecificEnemiesAmount(m_Wave.spawnedSpecificEnemies), m_Wave{ WaveProgress::OnCooldown, 1, 0, NULL }, m_Texture(App::s_Textures.GetTexture("mapSheet"))
 Level::Level(uint16_t levelID)
 	: m_LevelID(levelID), m_Texture(App::s_Textures.GetTexture("mapSheet"))
 {
@@ -38,10 +31,12 @@ Level::Level(uint16_t levelID)
 	uint32_t lineNumber = 0;
 	while (std::getline(configFile, line))
 	{
+		lineNumber++;
+
 		std::istringstream ss(line);
 		std::string value;
 
-		if (++lineNumber == 1)
+		if (lineNumber == 1)
 		{
 			// first line of config must contain map width, height and scale
 			// for example: 70,70,2
@@ -415,7 +410,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
 		return nullptr;
 
-	return layers.at(layer).GetTileFrom(posX, posY);
+	return layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
 }
 void Level::OnUpdateCamera()
 {

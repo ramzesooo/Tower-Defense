@@ -32,6 +32,8 @@ BuildingState App::s_Building;
 
 std::random_device App::s_Rnd;
 
+bool App::s_IsWindowMinimized = false;
+
 Label *App::s_EnemiesAmountLabel = nullptr;
 // END
 
@@ -118,9 +120,6 @@ App::App()
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 	}
 
-	//s_Building.buildingPlace = App::s_Manager.NewEntity<Tile>(TileTypes::special, 2);
-	//s_Building.buildingPlace = App::s_Manager.NewTile(TileTypes::special, 2);
-	//s_Building.buildingPlace = Tile(TileTypes::special, 2);
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
@@ -132,7 +131,6 @@ App::App()
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
-	//m_PauseLabel->UpdateText(" ");
 
 	s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
 	s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
@@ -161,15 +159,24 @@ void App::EventHandler()
 
 	switch (App::s_Event.type)
 	{
+	// WINDOW EVENTS
 	case SDL_WINDOWEVENT:
-		if (App::s_Event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+		switch (App::s_Event.window.event)
 		{
-			OnResolutionChange();
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				OnResolutionChange();
+				return;
+			case SDL_WINDOWEVENT_MINIMIZED:
+				s_IsWindowMinimized = true;
+				return;
+			case SDL_WINDOWEVENT_RESTORED:
+				s_IsWindowMinimized = false;
+				return;
 		}
 		return;
-	case SDL_QUIT:
-		m_IsRunning = false;
-		return;
+	// END OF WINDOW EVENTS
+	
+	// MOUSE EVENTS
 	case SDL_MOUSEMOTION:
 		s_MouseX = App::s_Event.motion.x;
 		s_MouseY = App::s_Event.motion.y;
@@ -179,9 +186,15 @@ void App::EventHandler()
 	case SDL_MOUSEBUTTONDOWN:
 		App::s_CurrentLevel->HandleMouseButtonEvent();
 		return;
+	// END OF MOUSE EVENTS
+
+	// KEYBOARD EVENTS
 	case SDL_KEYDOWN:
 		switch (App::s_Event.key.keysym.sym)
 		{
+		case SDLK_b:
+			SwitchBuildingState();
+			return;
 		// Function keys
 		case SDLK_F1:
 			SDL_SetWindowSize(m_Window, 800, 600);
@@ -198,14 +211,6 @@ void App::EventHandler()
 		case SDLK_F4:
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			return;
-		case SDLK_F6:
-			s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
-			SetUIState(UIState::building);
-			return;
-		case SDLK_F7:
-			s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
-			SetUIState(UIState::none);
 			return;
 		case SDLK_F8:
 			for (const auto& e : enemies)
@@ -229,13 +234,14 @@ void App::EventHandler()
 			m_IsFullscreen = !m_IsFullscreen;
 			return;
 		// End of function keys
-
 		case SDLK_ESCAPE:
 			m_IsRunning = false;
 			return;
-		default:
-			return;
 		}
+		return;
+	// END OF KEYBOARD EVENTS
+	case SDL_QUIT:
+		m_IsRunning = false;
 		return;
 	default:
 		return;
@@ -332,6 +338,24 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 	App::s_CurrentLevel->SetupBase(baseX, baseY);
 
 	App::s_Logger.AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
+}
+
+void App::SwitchBuildingState()
+{
+	if (s_UIState == UIState::building)
+	{
+		s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
+		SetUIState(UIState::none);
+	}
+	else if (s_UIState == UIState::none)
+	{
+		s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+		SetUIState(UIState::building);
+	}
+	else
+	{
+		return;
+	}
 }
 
 void App::ManageBuildingState()

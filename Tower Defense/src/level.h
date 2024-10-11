@@ -7,16 +7,13 @@
 
 #include <vector>
 
-constexpr uint16_t mapWidth = 70;
-constexpr uint16_t mapHeight = 70;
-
 class App;
 
 //Layer references to just map's layer
 struct Layer
 {
 	// returns a tile from specific coordinates
-	Tile *GetTileFrom(std::size_t posX, std::size_t posY) const { return tiles.at(posY * mapWidth + posX); }
+	Tile *GetTileFrom(std::size_t posX, std::size_t posY, uint16_t mapWidth) const { return tiles.at(posY * mapWidth + posX); }
 
 	std::vector<Tile*> tiles;
 };
@@ -43,7 +40,8 @@ public:
 	std::array<uint16_t, 3> m_MapData{}; // 0 = width, 1 = height, 2 = scale
 	uint16_t m_ScaledTileSize = 0;
 
-	Vector2D m_BasePos{ 34, 34 };
+	//Vector2D m_BasePos{ 34, 34 };
+	Vector2D m_BasePos{ 34, 11 };
 
 	Level(uint16_t levelID);
 	~Level() = default;
