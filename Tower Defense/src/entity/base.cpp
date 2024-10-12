@@ -2,7 +2,7 @@
 #include "../app.h"
 #include "../textureManager.h"
 
-extern std::vector<Entity*> &enemies;
+extern std::vector<Entity*> &g_Enemies;
 
 void Base::Draw() const
 {

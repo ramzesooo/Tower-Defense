@@ -77,7 +77,7 @@ public:
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
 	{
-		if (s_IsWindowMinimized)
+		if (s_IsWindowMinimized || s_IsWindowExposed)
 			return true;
 
 		switch (state)
@@ -114,6 +114,7 @@ public:
 	}
 private:
 	static bool s_IsWindowMinimized;
+	static bool s_IsWindowExposed;
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window *m_Window = nullptr;

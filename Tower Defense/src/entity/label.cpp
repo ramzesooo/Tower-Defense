@@ -1,6 +1,7 @@
 #include "label.h"
 #include "enemy.h"
 #include "../app.h"
+#include "../logger.h"
 
 Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
 	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)

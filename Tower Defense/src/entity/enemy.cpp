@@ -8,8 +8,8 @@
 constexpr int32_t enemyWidth = 32;
 constexpr int32_t enemyHeight = 32;
 
-extern std::vector<Entity*> &towers;
-extern std::vector<Entity*> &enemies;
+extern std::vector<Entity*> &g_Towers;
+extern std::vector<Entity*> &g_Enemies;
 
 SDL_Texture* Enemy::s_Square = nullptr;
 SDL_Texture* Enemy::s_GreenTex = nullptr;
@@ -98,18 +98,18 @@ void Enemy::Destroy()
 		m_OccupiedTile = nullptr;
 	}
 
-	for (const auto& a : m_Attackers)
+	for (const auto &a : m_Attackers)
 	{
 		a->StopAttacking(false);
 	}
 
-	for (const auto& p : App::s_Manager.GetGroup(EntityGroup::projectile))
+	for (const auto &p : App::s_Manager.GetGroup(EntityGroup::projectile))
 	{
 		if (static_cast<Projectile*>(p)->GetTarget() == this)
 			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 
-	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(enemies.size() - 1));
+	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
 }
 
 void Enemy::Update()
@@ -127,7 +127,7 @@ void Enemy::Update()
 	srcRect.y = m_CurrentAnim.index * enemyHeight;
 
 	Attacker* attacker = nullptr;
-	for (const auto& tower : towers)
+	for (const auto &tower : g_Towers)
 	{
 		attacker = static_cast<Tower*>(tower)->GetAttacker();
 
@@ -242,7 +242,9 @@ void Enemy::UpdateMovement()
 
 	if (!nextTile)
 	{
+#ifdef _DEBUG
 		App::s_Logger.AddLog("Enemy tried to walk into a not exising tile, movement for it has been blocked!\n");
+#endif
 		return;
 	}
 

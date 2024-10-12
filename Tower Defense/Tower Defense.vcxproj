@@ -118,14 +118,17 @@
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)dep\SDL2\lib\x86\;$(ProjectDir)dep\SDL2_image\lib\x86\;$(ProjectDir)dep\SDL2_ttf\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -156,14 +159,17 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)dep\SDL2\lib\x64\;$(ProjectDir)dep\SDL2_image\lib\x64\;$(ProjectDir)dep\SDL2_ttf\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -185,6 +191,7 @@
     <ClInclude Include="src\app.h" />
     <ClInclude Include="src\entity\anim.h" />
     <ClInclude Include="src\entity\base.h" />
+    <ClInclude Include="src\entity\health.h" />
     <ClInclude Include="src\entity\projectile.h" />
     <ClInclude Include="src\entity\attacker.h" />
     <ClInclude Include="src\entity\enemy.h" />

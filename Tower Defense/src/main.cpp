@@ -3,30 +3,34 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
+//#ifdef _DEBUG
+//#include <iostream>
+//#endif
+
 #include <chrono>
 
 constexpr uint32_t logsCooldown = 1000;
-uint16_t frames = 1;
+uint32_t frames = 1;
 
 int main(int argc, char** arg)
 {
+#ifdef _DEBUG
+	App::s_Logger.AddLog("DEBUG MODE");
 	for (int i = 0; i < argc; i++)
 	{
-		printf("Arg %d: %s\n", i, arg[i]);
+		App::s_Logger.AddLog("Arg: " + std::to_string(i) + ": " + arg[i]);
 	}
+#endif
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || TTF_Init() != 0)
 	{
 		App::s_Logger.AddLog(SDL_GetError());
 	}
 
-	if (TTF_Init() != 0)
-	{
-		App::s_Logger.AddLog(TTF_GetError());
-	}
-
+#ifdef _DEBUG
 	App::s_Logger.PrintQueuedLogs();
 	App::s_Logger.ClearLogs();
+#endif
 
 	uint32_t logsTime = SDL_GetTicks() + logsCooldown;
 
@@ -43,6 +47,8 @@ int main(int argc, char** arg)
 	while (app.IsRunning())
 	{
 		++frames;
+
+#ifdef _DEBUG
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
 			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
@@ -51,6 +57,14 @@ int main(int argc, char** arg)
 			logsTime = SDL_GetTicks() + logsCooldown;
 			frames = 0;
 		}
+#else
+		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
+		{
+			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
+			logsTime = SDL_GetTicks() + logsCooldown;
+			frames = 0;
+		}
+#endif
 
 		tp2 = std::chrono::system_clock::now();
 		elapsedTime = tp2 - tp1;

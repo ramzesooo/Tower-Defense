@@ -2,18 +2,34 @@
 
 #include <iostream>
 
-void Logger::AddLog(std::string_view newLog, bool endLine)
+Logger::Logger() : logFile("logs.txt")
+{}
+
+Logger::~Logger()
 {
-	if (endLine)
-	{
-		logs.push_back(std::string(newLog) + "\n");
-	}
-	else
-	{
-		logs.push_back(std::string(newLog));
-	}
+	logFile.close();
 }
 
+void Logger::AddLog(std::string_view newLog, bool endLine)
+{
+	logFile << newLog;
+
+	if (endLine)
+	{
+		logFile << std::endl;
+#ifdef _DEBUG
+		logs.emplace_back(std::string(newLog) + "\n");
+#endif
+	}
+#ifdef _DEBUG
+	else
+	{
+		logs.emplace_back(std::string(newLog));
+	}
+#endif
+}
+
+#ifdef _DEBUG
 void Logger::PrintQueuedLogs()
 {
 	for (const auto& log : logs)
@@ -26,3 +42,4 @@ void Logger::ClearLogs()
 {
 	logs.clear();
 }
+#endif

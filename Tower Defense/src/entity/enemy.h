@@ -1,5 +1,6 @@
 #pragma once
 #include "entity.h"
+#include "health.h"
 #include "tile.h"
 #include "projectile.h"
 #include "label.h"
@@ -8,15 +9,6 @@
 #include "../textureManager.h"
 
 #include "SDL.h"
-
-struct RectHP
-{
-	static constexpr SDL_Rect srcRect{ 0, 0, 32, 32 };
-	SDL_FRect squareRect{ 0.0f, 0.0f, 32.0f, 32.0f };
-	SDL_FRect barRect{ 0.0f, 0.0f, 32.0f, 32.0f };
-	// Label responsible for displaying enemy's hp
-	Label* labelHP = nullptr;
-};
 
 enum class EnemyType
 {
@@ -94,17 +86,17 @@ public:
 	void UpdateHealthBar();
 	void AdjustToView() override;
 
-	void OnHit(Projectile* projectile, uint16_t dmg);
+	void OnHit(Projectile *projectile, uint16_t dmg);
 
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
 	// And searches towers from x: -range, y: -range to: x: range, y: range
-	bool IsTowerInRange(Tower* tower, uint16_t range = 2) const;
+	bool IsTowerInRange(Tower *tower, uint16_t range = 2) const;
 
-	void SetOccupiedTile(Tile* newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
+	void SetOccupiedTile(Tile *newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
 
-	void SetAttachedLabel(Label* label) { m_RectHP.labelHP = label; }
+	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 private:
 	/*static constexpr int32_t s_EnemyWidth = 32;
 	static constexpr int32_t s_EnemyHeight = 32;*/

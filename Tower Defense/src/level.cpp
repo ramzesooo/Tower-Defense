@@ -9,12 +9,12 @@ constexpr uint16_t waveCooldown = 3500; // miliseconds
 
 constexpr char configName[] = ".config";
 
-extern std::vector<Entity*>& towers;
-extern std::vector<Entity*>& projectiles;
-extern std::vector<Entity*>& enemies;
-extern std::vector<Entity*>& attackers;
+extern std::vector<Entity*> &g_Projectiles;
+extern std::vector<Entity*> &g_Towers;
+extern std::vector<Entity*> &g_Attackers;
+extern std::vector<Entity*> &g_Enemies;
 
-extern std::default_random_engine rng;
+extern std::default_random_engine g_Rng;
 
 Level::Level(uint16_t levelID)
 	: m_LevelID(levelID), m_Texture(App::s_Textures.GetTexture("mapSheet"))
@@ -36,6 +36,8 @@ Level::Level(uint16_t levelID)
 		std::istringstream ss(line);
 		std::string value;
 
+
+		// Map data
 		if (lineNumber == 1)
 		{
 			// first line of config must contain map width, height and scale
@@ -50,6 +52,31 @@ Level::Level(uint16_t levelID)
 				}
 
 				m_MapData[i] = (uint16_t)std::stoi(value);
+			}
+
+			continue;
+		}
+		else if (lineNumber == 2) // Base pos
+		{
+			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+			{
+				App::s_Logger.AddLog("Couldn't reach out base's X position from level " + std::to_string(m_LevelID + 1));
+				m_BasePos.x = 0;
+				continue;
+			}
+			else
+			{
+				m_BasePos.x = (float)std::stoi(value);
+			}
+
+			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+			{
+				App::s_Logger.AddLog("Couldn't reach out base's Y position from level " + std::to_string(m_LevelID + 1));
+				m_BasePos.y = 0;
+			}
+			else
+			{
+				m_BasePos.y = (float)std::stoi(value);
 			}
 
 			continue;
@@ -235,7 +262,7 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
 
-	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(enemies.size()));
+	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));
 	return enemy;
 }
 
@@ -289,7 +316,7 @@ void Level::InitWave()
 	//static std::default_random_engine rng(App::s_Rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
-	Tile* spawner = spawners.at(spawnerDistr(rng));
+	Tile* spawner = spawners.at(spawnerDistr(g_Rng));
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
@@ -321,7 +348,7 @@ void Level::InitWave()
 
 	enemy->Move(moveVector);
 
-	if (enemies.size() == m_ExpectedEnemiesAmount)
+	if (g_Enemies.size() == m_ExpectedEnemiesAmount)
 		m_WaveProgress = WaveProgress::InProgress;
 }
 
@@ -344,7 +371,7 @@ void Level::ManageWaves()
 		InitWave();
 		return;
 	case WaveProgress::InProgress:
-		if (enemies.size() == 0)
+		if (g_Enemies.size() == 0)
 		{
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = { 0, 0 }; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
@@ -383,18 +410,18 @@ void Level::Render()
 
 	m_Base.Draw();
 
-	for (const auto& enemy : enemies)
+	for (const auto &enemy : g_Enemies)
 		enemy->Draw();
 
-	for (const auto& tower : towers)
+	for (const auto &tower : g_Towers)
 		tower->Draw();
 
-	for (const auto& attacker : attackers)
+	for (const auto &attacker : g_Attackers)
 		attacker->Draw();
 
 	App::s_Building.buildingPlace->Draw();
 
-	for (const auto& projectile : projectiles)
+	for (const auto &projectile : g_Projectiles)
 		projectile->Draw();
 }
 
@@ -429,18 +456,18 @@ void Level::OnUpdateCamera()
 
 	m_Base.AdjustToView();
 
-	for (const auto &e : enemies)
+	for (const auto &e : g_Enemies)
 	{
 		e->AdjustToView();
 	}
 
-	for (const auto &t : towers)
+	for (const auto &t : g_Towers)
 	{
 		// Towers trigger method AdjustToView() for attackers by themselves
 		t->AdjustToView();
 	}
 
-	for (const auto &p : projectiles)
+	for (const auto &p : g_Projectiles)
 	{
 		p->AdjustToView();
 	}

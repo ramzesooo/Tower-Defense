@@ -40,8 +40,7 @@ public:
 	std::array<uint16_t, 3> m_MapData{}; // 0 = width, 1 = height, 2 = scale
 	uint16_t m_ScaledTileSize = 0;
 
-	//Vector2D m_BasePos{ 34, 34 };
-	Vector2D m_BasePos{ 34, 11 };
+	Vector2D m_BasePos;
 
 	Level(uint16_t levelID);
 	~Level() = default;

@@ -33,17 +33,18 @@ BuildingState App::s_Building;
 std::random_device App::s_Rnd;
 
 bool App::s_IsWindowMinimized = false;
+bool App::s_IsWindowExposed = false;
 
 Label *App::s_EnemiesAmountLabel = nullptr;
 // END
 
-std::default_random_engine rng(App::s_Rnd());
+std::default_random_engine g_Rng(App::s_Rnd());
 
-auto& projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
-auto& labels = App::s_Manager.GetGroup(EntityGroup::label);
-auto& towers = App::s_Manager.GetGroup(EntityGroup::tower);
-auto& attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
-auto& enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
+auto &g_Projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
+auto &g_Labels = App::s_Manager.GetGroup(EntityGroup::label);
+auto &g_Towers = App::s_Manager.GetGroup(EntityGroup::tower);
+auto &g_Attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
+auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 App::App()
 {
@@ -60,6 +61,7 @@ App::App()
 	SDL_SetWindowIcon(m_Window, iconSurface);
 	SDL_FreeSurface(iconSurface);
 
+	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
 	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
@@ -104,13 +106,14 @@ App::App()
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->DidLoadingFail())
 	{
-		initialized = false;
 		App::s_Logger.AddLog("Beginner level couldn't be loaded properly.");
+		initialized = false;
 	}
 	else
 	{
 		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
+#ifdef _DEBUG
 		auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
 
@@ -118,6 +121,7 @@ App::App()
 
 		base->m_AttachedLabel = newLabel;
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
+#endif
 	}
 
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
@@ -140,7 +144,6 @@ App::App()
 
 App::~App()
 {
-	s_Manager.DestroyAllEntities();
 	levels.clear();
 
 	if (App::s_Renderer)
@@ -172,6 +175,17 @@ void App::EventHandler()
 			case SDL_WINDOWEVENT_RESTORED:
 				s_IsWindowMinimized = false;
 				return;
+			/*case SDL_WINDOWEVENT_EXPOSED:
+				s_IsWindowExposed = false;
+				printf("Exposed: %d\n", s_IsWindowExposed);
+				return;
+			case SDL_WINDOWEVENT_SHOWN:
+				s_IsWindowExposed = true;
+				printf("Exposed (shown): %d\n", s_IsWindowExposed);
+				return;
+			default:
+				printf("%d\n", App::s_Event.window.event);
+				return;*/
 		}
 		return;
 	// END OF WINDOW EVENTS
@@ -213,11 +227,11 @@ void App::EventHandler()
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
 		case SDLK_F8:
-			for (const auto& e : enemies)
+			for (const auto &e : g_Enemies)
 				e->Destroy();
 			return;
 		case SDLK_F10:
-			if (towers.empty())
+			if (g_Towers.empty())
 				return;
 			m_DestroyTower = true;
 			return;
@@ -257,7 +271,7 @@ void App::Update()
 	// This code should be removed after removing SDLK_F10 from EventHandler
 	if (m_DestroyTower)
 	{
-		static_cast<Tower*>(towers.back())->Destroy();
+		static_cast<Tower*>(g_Towers.back())->Destroy();
 		m_DestroyTower = false;
 	}
 
@@ -273,7 +287,7 @@ void App::Render()
 
 	App::s_CurrentLevel->Render();
 
-	for (const auto &label : labels)
+	for (const auto &label : g_Labels)
 	{
 		label->Draw();
 	}
@@ -431,5 +445,5 @@ uint16_t App::GetDamageOf(ProjectileType type)
 	}
 
 	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);
-	return dmg(rng);
+	return dmg(g_Rng);
 }
