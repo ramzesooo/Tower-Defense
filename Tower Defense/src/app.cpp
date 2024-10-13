@@ -35,6 +35,8 @@ std::random_device App::s_Rnd;
 bool App::s_IsWindowMinimized = false;
 bool App::s_IsWindowExposed = false;
 
+SDL_Texture *App::s_GreenTex = nullptr;
+SDL_Texture *App::s_Square = nullptr;
 Label *App::s_EnemiesAmountLabel = nullptr;
 // END
 
@@ -93,7 +95,11 @@ App::App()
 	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
-	App::s_Textures.AddFont("hpBar", "assets\\Rostack.otf", 13);
+	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
+	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);
+
+	s_GreenTex = App::s_Textures.GetTexture("green");
+	s_Square = App::s_Textures.GetTexture("square");
 
 	levels.reserve(levelsToLoad);
 
@@ -420,7 +426,7 @@ void App::ManageBuildingState()
 	for (auto i = 0u; i < 4; i++)
 	{
 		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
-		if (!pointedTile || !pointedTile->GetTowerOccupying())
+		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
 			continue;
 
 		s_Building.originalTexture = s_Textures.GetTexture("cantBuild");

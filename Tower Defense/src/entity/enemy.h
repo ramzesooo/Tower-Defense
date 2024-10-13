@@ -98,10 +98,6 @@ public:
 
 	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 private:
-	/*static constexpr int32_t s_EnemyWidth = 32;
-	static constexpr int32_t s_EnemyHeight = 32;*/
-	static SDL_Texture* s_Square;
-	static SDL_Texture* s_GreenTex;
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;

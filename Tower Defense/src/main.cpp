@@ -3,10 +3,6 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-//#ifdef _DEBUG
-//#include <iostream>
-//#endif
-
 #include <chrono>
 
 // SDL2 2.30.8
@@ -19,7 +15,7 @@ uint32_t frames = 1;
 int main(int argc, char** arg)
 {
 #ifdef DEBUG
-	App::s_Logger.AddLog("DEBUG MODE (" + std::to_string(DEBUG) + ")");
+	App::s_Logger.AddLog("DEBUG MODE");
 	for (int i = 0; i < argc; i++)
 	{
 		App::s_Logger.AddLog("Arg: " + std::to_string(i) + ": " + arg[i]);

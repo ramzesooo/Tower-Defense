@@ -122,6 +122,10 @@ private:
 // MAIN SECTION END
 
 public:
+	// these textures are needed for rendering RectHP (health.h)
+	static SDL_Texture *s_Square;
+	static SDL_Texture *s_GreenTex;
+
 	static Label *s_EnemiesAmountLabel;
 
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)

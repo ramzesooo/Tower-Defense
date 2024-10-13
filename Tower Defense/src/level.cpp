@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
@@ -200,8 +201,23 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
 	m_Base.destRect = { scaledPosX, scaledPosY, m_Base.destRect.w * 2, m_Base.destRect.h * 2 };
 	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
-	m_Base.m_HP = 100;
+	m_Base.m_MaxHP = m_Base.m_HP = 100;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
+	
+	m_Base.m_RectHP.squareRect.x = std::roundf(App::s_Camera.w / 4);
+	m_Base.m_RectHP.squareRect.y = App::s_Camera.h / 24;
+	m_Base.m_RectHP.squareRect.w = App::s_Camera.w / 2;
+	m_Base.m_RectHP.squareRect.h = App::s_Camera.h / 12;
+
+	m_Base.m_RectHP.barRect = m_Base.m_RectHP.squareRect;
+	m_Base.m_RectHP.barRect.w = std::fabs(m_Base.m_RectHP.squareRect.w / 100 * (-m_Base.m_HPPercent));
+	
+	m_Base.m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("baseHealth"), SDL_Color(255, 255, 255, 255));
+	m_Base.m_RectHP.labelHP->AddGroup(EntityGroup::label);
+
+	float HPBarX = m_Base.m_RectHP.barRect.x + (m_Base.m_RectHP.squareRect.w / 3.0f);
+	m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h / 4.0f)));
+	m_Base.m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_Base.m_HPPercent) + "%");
 
 	App::s_Logger.AddLog("Created base (", false);
 	App::s_Logger.AddLog(std::to_string(scaledPosX), false);
@@ -408,8 +424,6 @@ void Level::Render()
 		}
 	}
 
-	m_Base.Draw();
-
 	for (const auto &enemy : g_Enemies)
 		enemy->Draw();
 
@@ -418,6 +432,8 @@ void Level::Render()
 
 	for (const auto &attacker : g_Attackers)
 		attacker->Draw();
+
+	m_Base.Draw();
 
 	App::s_Building.buildingPlace->Draw();
 

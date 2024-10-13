@@ -11,9 +11,6 @@ constexpr int32_t enemyHeight = 32;
 extern std::vector<Entity*> &g_Towers;
 extern std::vector<Entity*> &g_Enemies;
 
-SDL_Texture* Enemy::s_Square = nullptr;
-SDL_Texture* Enemy::s_GreenTex = nullptr;
-
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
@@ -25,9 +22,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
-
-	Enemy::s_Square = App::s_Textures.GetTexture("square");
-	Enemy::s_GreenTex = App::s_Textures.GetTexture("green");
 
 	m_RectHP.squareRect.w = float(App::s_CurrentLevel->m_ScaledTileSize);
 	m_RectHP.squareRect.h = float(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
@@ -66,7 +60,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("hpBar"), SDL_Color(255, 255, 255, 255), this);
+	m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
 	m_RectHP.labelHP->AddGroup(EntityGroup::label);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
@@ -150,8 +144,8 @@ void Enemy::Update()
 void Enemy::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
-	TextureManager::DrawTextureF(Enemy::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
-	TextureManager::DrawTextureF(Enemy::s_Square, RectHP::srcRect, m_RectHP.squareRect);
+	TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
+	TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
 }
 
 void Enemy::PlayAnim(std::string_view animID)
@@ -334,7 +328,7 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	}
 
 	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
-
+	
 	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
 
 	UpdateHealthBar();
