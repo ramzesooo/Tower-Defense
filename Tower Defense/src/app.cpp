@@ -37,7 +37,10 @@ bool App::s_IsWindowExposed = false;
 
 SDL_Texture *App::s_GreenTex = nullptr;
 SDL_Texture *App::s_Square = nullptr;
+
+#ifdef DEBUG
 Label *App::s_EnemiesAmountLabel = nullptr;
+#endif
 // END
 
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -142,8 +145,10 @@ App::App()
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
+#ifdef DEBUG
 	s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
 	s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
+#endif
 
 	m_IsRunning = initialized;
 }

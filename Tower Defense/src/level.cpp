@@ -215,9 +215,9 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("baseHealth"), SDL_Color(255, 255, 255, 255));
 	m_Base.m_RectHP.labelHP->AddGroup(EntityGroup::label);
 
-	float HPBarX = m_Base.m_RectHP.barRect.x + (m_Base.m_RectHP.squareRect.w / 3.0f);
-	m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h / 4.0f)));
 	m_Base.m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_Base.m_HPPercent) + "%");
+	float HPBarX = m_Base.m_RectHP.squareRect.x + (m_Base.m_RectHP.squareRect.w / 2.0f) - (float)m_Base.m_RectHP.labelHP->GetRect().w / 2.0f;
+	m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h / 4.0f)));
 
 	App::s_Logger.AddLog("Created base (", false);
 	App::s_Logger.AddLog(std::to_string(scaledPosX), false);
@@ -278,7 +278,9 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
 
+#ifdef DEBUG
 	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));
+#endif
 	return enemy;
 }
 

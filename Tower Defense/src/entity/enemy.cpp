@@ -103,7 +103,9 @@ void Enemy::Destroy()
 			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 
+#ifdef DEBUG
 	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
+#endif
 }
 
 void Enemy::Update()

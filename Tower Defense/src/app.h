@@ -126,7 +126,9 @@ public:
 	static SDL_Texture *s_Square;
 	static SDL_Texture *s_GreenTex;
 
+#ifdef DEBUG
 	static Label *s_EnemiesAmountLabel;
+#endif
 
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
