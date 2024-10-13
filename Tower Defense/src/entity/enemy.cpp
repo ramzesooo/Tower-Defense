@@ -242,7 +242,7 @@ void Enemy::UpdateMovement()
 
 	if (!nextTile)
 	{
-#ifdef _DEBUG
+#ifdef DEBUG
 		App::s_Logger.AddLog("Enemy tried to walk into a not exising tile, movement for it has been blocked!\n");
 #endif
 		return;

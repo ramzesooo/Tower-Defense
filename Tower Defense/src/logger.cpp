@@ -17,11 +17,11 @@ void Logger::AddLog(std::string_view newLog, bool endLine)
 	if (endLine)
 	{
 		logFile << std::endl;
-#ifdef _DEBUG
+#ifdef DEBUG
 		logs.emplace_back(std::string(newLog) + "\n");
 #endif
 	}
-#ifdef _DEBUG
+#ifdef DEBUG
 	else
 	{
 		logs.emplace_back(std::string(newLog));
@@ -29,7 +29,7 @@ void Logger::AddLog(std::string_view newLog, bool endLine)
 #endif
 }
 
-#ifdef _DEBUG
+#ifdef DEBUG
 void Logger::PrintQueuedLogs()
 {
 	for (const auto& log : logs)

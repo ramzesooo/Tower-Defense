@@ -9,13 +9,17 @@
 
 #include <chrono>
 
+// SDL2 2.30.8
+// SDL2_image 2.8.2
+// SDL2_ttf 2.22.0
+
 constexpr uint32_t logsCooldown = 1000;
 uint32_t frames = 1;
 
 int main(int argc, char** arg)
 {
-#ifdef _DEBUG
-	App::s_Logger.AddLog("DEBUG MODE");
+#ifdef DEBUG
+	App::s_Logger.AddLog("DEBUG MODE (" + std::to_string(DEBUG) + ")");
 	for (int i = 0; i < argc; i++)
 	{
 		App::s_Logger.AddLog("Arg: " + std::to_string(i) + ": " + arg[i]);
@@ -27,7 +31,7 @@ int main(int argc, char** arg)
 		App::s_Logger.AddLog(SDL_GetError());
 	}
 
-#ifdef _DEBUG
+#ifdef DEBUG
 	App::s_Logger.PrintQueuedLogs();
 	App::s_Logger.ClearLogs();
 #endif
@@ -48,7 +52,7 @@ int main(int argc, char** arg)
 	{
 		++frames;
 
-#ifdef _DEBUG
+#ifdef DEBUG
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
 		{
 			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());

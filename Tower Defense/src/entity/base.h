@@ -14,7 +14,7 @@ public:
 	SDL_Rect destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos{ 0, 0 };
 	SDL_Texture *m_Texture = nullptr;
-#ifdef _DEBUG
+#ifdef DEBUG
 	Label *m_AttachedLabel = nullptr;
 #endif
 	Tile *m_Tile = nullptr;

@@ -11,13 +11,13 @@ public:
 	~Logger();
 
 	void AddLog(std::string_view newLog, bool endLine = true);
-#ifdef _DEBUG
+#ifdef DEBUG
 	void PrintQueuedLogs();
 	void ClearLogs();
 #endif
 private:
 	std::ofstream logFile;
-#ifdef _DEBUG
+#ifdef DEBUG
 	std::vector<std::string> logs;
 #endif
 };

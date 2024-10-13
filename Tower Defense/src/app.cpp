@@ -113,7 +113,7 @@ App::App()
 	{
 		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
-#ifdef _DEBUG
+#ifdef DEBUG
 		auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
 		newLabel->AddGroup(EntityGroup::label);
 
