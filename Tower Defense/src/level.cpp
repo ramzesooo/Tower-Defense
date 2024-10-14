@@ -204,26 +204,25 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.m_MaxHP = m_Base.m_HP = 100;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
 	
-	m_Base.m_RectHP.squareRect.x = std::roundf(App::s_Camera.w / 4);
-	m_Base.m_RectHP.squareRect.y = App::s_Camera.h / 24;
-	m_Base.m_RectHP.squareRect.w = App::s_Camera.w / 2;
-	m_Base.m_RectHP.squareRect.h = App::s_Camera.h / 12;
+	/*
+	m_Base.m_RectHP.squareRect.x = App::s_Camera.w / 8;
+	m_Base.m_RectHP.squareRect.y = App::s_Camera.h / 10;
+	//m_Base.m_RectHP.squareRect.w = App::s_Camera.w / 3;
+	m_Base.m_RectHP.squareRect.w = m_Base.m_RectHP.squareRect.x / 2;
+	m_Base.m_RectHP.squareRect.h = App::s_Camera.h / 20;
 
 	m_Base.m_RectHP.barRect = m_Base.m_RectHP.squareRect;
-	m_Base.m_RectHP.barRect.w = std::fabs(m_Base.m_RectHP.squareRect.w / 100 * (-m_Base.m_HPPercent));
+	m_Base.m_RectHP.barRect.w = std::fabs(m_Base.m_RectHP.squareRect.w / 100 * (-m_Base.m_HPPercent)); */
 	
 	m_Base.m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("baseHealth"), SDL_Color(255, 255, 255, 255));
 	m_Base.m_RectHP.labelHP->AddGroup(EntityGroup::label);
-
 	m_Base.m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_Base.m_HPPercent) + "%");
-	float HPBarX = m_Base.m_RectHP.squareRect.x + (m_Base.m_RectHP.squareRect.w / 2.0f) - (float)m_Base.m_RectHP.labelHP->GetRect().w / 2.0f;
-	m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h / 4.0f)));
+	//float HPBarX = m_Base.m_RectHP.squareRect.x + (m_Base.m_RectHP.squareRect.w / 2.0f) - (float)m_Base.m_RectHP.labelHP->GetRect().w / 2.0f;
+	//float HPBarY = m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h - m_Base.m_RectHP.labelHP->GetRect().h);
+	//m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, HPBarY));
 
 	App::s_Logger.AddLog("Created base (", false);
-	App::s_Logger.AddLog(std::to_string(scaledPosX), false);
-	App::s_Logger.AddLog(", ", false);
-	App::s_Logger.AddLog(std::to_string(scaledPosY), false);
-	App::s_Logger.AddLog(")");
+	App::s_Logger.AddLog(std::to_string(scaledPosX) + ", " + std::to_string(scaledPosY) + ")");
 }
 
 Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)

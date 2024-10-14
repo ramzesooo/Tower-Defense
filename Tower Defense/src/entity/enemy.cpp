@@ -9,7 +9,9 @@ constexpr int32_t enemyWidth = 32;
 constexpr int32_t enemyHeight = 32;
 
 extern std::vector<Entity*> &g_Towers;
+#ifdef DEBUG
 extern std::vector<Entity*> &g_Enemies;
+#endif
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
