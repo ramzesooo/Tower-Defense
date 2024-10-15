@@ -11,10 +11,10 @@ Adding more, about Visual Studio, the solution file as well as writing whole sou
 
 ## Assets
 For making some assets I've mostly used **Pyxel Edit**, but some of them have been made by someone else:
-- tileset from **oryxdesignlab.com**
-- attackers and enemies from [**Puny Characters by Shade**](https://merchant-shade.itch.io/16x16-puny-characters)
+- Tileset from [**oryxdesignlab.com**](https://www.oryxdesignlab.com/products/16-bit-fantasy-tileset)
+- Attackers and Enemies from [**Puny Characters by Shade**](https://merchant-shade.itch.io/16x16-puny-characters)
 - Towers from [**"Survival - Tower Defense"** *by FkgCluster*](https://fkgcluster.itch.io/survivaltowerdefense)
-- Health bars from [Pixel Health Bar Asset Pack 2 by adwitr](https://adwitr.itch.io/pixel-health-bar-asset-pack-2)
+- Health bars from [**Pixel Health Bar Asset Pack 2 by adwitr**](https://adwitr.itch.io/pixel-health-bar-asset-pack-2)
 
 ## Idea of the game
 Basically, while making the game I've got more than just one idea of designing it, but at the moment I ended up with specifying amount of levels in *app.cpp* to prepare all of them at the start of the game, but the main job is done in App::LoadLevel(), I tried to make all of it to be done automatically and I tried to avoid hard-coding anything to make it easier to be adjusted if somehow anybody tried to have some fun with the game and make some adjustments/changes/tests, whatever.
