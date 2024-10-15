@@ -62,8 +62,10 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
-	m_RectHP.labelHP->AddGroup(EntityGroup::label);
+	//m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
+	//m_RectHP.labelHP->AddGroup(EntityGroup::label);
+
+	m_RectHP.labelHP = App::s_Manager.NewLabel(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;

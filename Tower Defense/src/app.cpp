@@ -46,7 +46,7 @@ Label *App::s_EnemiesAmountLabel = nullptr;
 std::default_random_engine g_Rng(App::s_Rnd());
 
 auto &g_Projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
-auto &g_Labels = App::s_Manager.GetGroup(EntityGroup::label);
+//auto &g_Labels = App::s_Manager.GetGroup(EntityGroup::label);
 auto &g_Towers = App::s_Manager.GetGroup(EntityGroup::tower);
 auto &g_Attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
 auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
@@ -79,14 +79,19 @@ App::App()
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
 
 	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
+
 	App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
 	App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
 	App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
+	App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
+	App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
+
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
 	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
+
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
@@ -102,6 +107,9 @@ App::App()
 
 	s_GreenTex = App::s_Textures.GetTexture("green");
 	s_Square = App::s_Textures.GetTexture("square");
+	
+	Health::s_EmptyBarTexture = App::s_Textures.GetTexture("emptyHealth");
+	Health::s_FullBarTexture = App::s_Textures.GetTexture("fullHealth");
 
 	levels.reserve(levelsToLoad);
 
@@ -122,8 +130,10 @@ App::App()
 		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
 #ifdef DEBUG
-		auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
-		newLabel->AddGroup(EntityGroup::label);
+		//auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
+		//newLabel->AddGroup(EntityGroup::label);
+
+		auto newLabel = App::s_Manager.NewLabel(4, 2, "pos", App::s_Textures.GetFont("default"));
 
 		Base* base = App::s_CurrentLevel->GetBase();
 
@@ -137,16 +147,18 @@ App::App()
 
 	UpdateCamera();
 
-	m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
+	//m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
+	m_PauseLabel = App::s_Manager.NewLabel(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
 	m_PauseLabel->m_Drawable = false;
-	m_PauseLabel->AddGroup(EntityGroup::label);
+	//m_PauseLabel->AddGroup(EntityGroup::label);
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 #ifdef DEBUG
-	s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
-	s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
+	//s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
+	//s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
+	s_EnemiesAmountLabel = App::s_Manager.NewLabel(10, 100, " ", App::s_Textures.GetFont("default"));
 #endif
 
 	m_IsRunning = initialized;
@@ -297,10 +309,10 @@ void App::Render()
 
 	App::s_CurrentLevel->Render();
 
-	for (const auto &label : g_Labels)
-	{
-		label->Draw();
-	}
+#ifdef DEBUG
+	s_EnemiesAmountLabel->Draw();
+#endif
+	m_PauseLabel->Draw();
 
 	SDL_RenderPresent(App::s_Renderer);
 }

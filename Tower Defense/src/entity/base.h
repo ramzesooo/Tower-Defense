@@ -1,6 +1,6 @@
 #pragma once
-#include "label.h"
 #include "health.h"
+#include "label.h"
 #include "tile.h"
 #include "../Vector2D.h"
 
@@ -19,14 +19,16 @@ public:
 #endif
 	Tile *m_Tile = nullptr;
 
-	RectHP m_RectHP;
+	//RectHP m_RectHP;
 	uint16_t m_HP = 0;
 	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
 
+	BaseHealth m_HealthBar;
+
 	const SDL_Rect& GetRect() const { return destRect; }
 
-	void Draw() const;
+	void Draw();
 	void TakeDamage(uint16_t dmg);
 	void AdjustToView();
 };

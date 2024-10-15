@@ -7,7 +7,7 @@
 
 #include <string_view>
 
-class Label : public Entity
+class Label
 {
 public:
 	Entity* m_AttachedTo = nullptr;
@@ -35,9 +35,9 @@ public:
 		return *this;
 	}
 
-	void Destroy() override;
+	void Destroy();
 
-	void Draw() override;
+	void Draw();
 
 	void UpdateText(std::string_view text);
 	void UpdateColor(SDL_Color newColor);
@@ -54,7 +54,7 @@ public:
 		destRect.y = posY;
 	}
 
-	Vector2D GetPos() const override { return { (float)destRect.x, (float)destRect.y }; }
+	Vector2D GetPos() const { return { (float)destRect.x, (float)destRect.y }; }
 	SDL_Rect GetRect() const { return destRect; }
 private:
 	std::string_view m_Text = "";

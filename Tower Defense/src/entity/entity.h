@@ -9,6 +9,7 @@
 #include <bitset>
 
 class Tile;
+class Label;
 
 enum class EntityGroup
 {
@@ -16,7 +17,7 @@ enum class EntityGroup
 	tower,
 	attacker,
 	projectile,
-	label,
+	//label,
 	//tile,
 	size
 };
@@ -73,6 +74,28 @@ public:
 		tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
 		return tiles.back().get();
 	}
+	
+	template<class... Args>
+	inline Label *NewLabel(Args&&... args)
+	{
+		labels.emplace_back(std::make_unique<Label>(std::forward<Args>(args)...));
+		return labels.back().get();
+	}
+
+	inline void DestroyLabel(Label *label)
+	{
+		if (!label)
+			return;
+
+		for (auto it = labels.begin(); it != labels.end(); ++it)
+		{
+			if ((*it).get() == label)
+			{
+				labels.erase(it);
+				return;
+			}
+		}
+	}
 
 	inline void DestroyAllEntities()
 	{ 
@@ -84,6 +107,7 @@ public:
 	}
 private:
 	std::vector<std::unique_ptr<Tile>> tiles;
+	std::vector<std::unique_ptr<Label>> labels;
 	std::vector<std::unique_ptr<Entity>> entities;
 	std::array<std::vector<Entity*>, (std::size_t)EntityGroup::size> groupedEntities;
 };
