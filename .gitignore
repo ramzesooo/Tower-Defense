@@ -385,3 +385,9 @@ FodyWeavers.xsd
 /Tower Defense/assets/entities/enemy/dwarf_king.png
 /TODO.txt
 /Tower Defense/logs.txt
+/Tower Defense/assets/ui/tile_CanBuild.png
+/Tower Defense/assets/ui/tile_CanBuild.pyxel
+/Tower Defense/assets/ui/tile_CantBuild.png
+/Tower Defense/assets/ui/tile_CantBuild.pyxel
+/Tower Defense/assets/ui/tile_Upgrade.png
+/Tower Defense/assets/ui/tile_Upgrade.pyxel

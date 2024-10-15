@@ -79,15 +79,14 @@ App::App()
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
 
 	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
-	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
-	App::s_Textures.AddTexture("canBuild", "assets\\tile_CanBuild.png");
-
-	App::s_Textures.AddTexture("cantBuild", "assets\\tile_CantBuild.png");
-	App::s_Textures.AddTexture("upgradeTower", "assets\\tile_Upgrade.png");
+	App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
+	App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
+	App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
+	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
