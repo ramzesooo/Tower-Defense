@@ -31,7 +31,7 @@ public:
 	Enemy(const Enemy& r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile),
 		m_MovementSpeed(r.m_MovementSpeed), m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), animations(r.animations), m_Type(r.m_Type),
 		m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
-	~Enemy() = default;
+	~Enemy();
 
 	inline Enemy& operator=(const Enemy& r)
 	{
@@ -112,9 +112,6 @@ private:
 	uint16_t m_Scale = 1;
 
 	Tile* m_OccupiedTile = nullptr;
-
-	// Damage dealt to the base
-	uint16_t m_Damage = 1;
 
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;

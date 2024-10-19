@@ -1,5 +1,6 @@
 #include "level.h"
 #include "app.h"
+#include "entity/label.h"
 
 #include <fstream>
 #include <sstream>
@@ -20,6 +21,7 @@ extern std::default_random_engine g_Rng;
 Level::Level(uint16_t levelID)
 	: m_LevelID(levelID), m_Texture(App::s_Textures.GetTexture("mapSheet"))
 {
+	// LOAD CONFIG
 	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\" + configName);
 
 	if (configFile.fail())
@@ -94,6 +96,7 @@ Level::Level(uint16_t levelID)
 			wave[i] = (uint16_t)std::stoi(value);
 		}
 	}
+	// LOAD CONFIG
 
 	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
 }
@@ -201,29 +204,8 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
 	m_Base.destRect = { scaledPosX, scaledPosY, m_Base.destRect.w * 2, m_Base.destRect.h * 2 };
 	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
-	//m_Base.m_MaxHP = m_Base.m_HP = 100;
-	m_Base.m_MaxHP = m_Base.m_HP = 3;
+	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
-
-	m_Base.m_HealthBar.m_HeartsAmount = m_Base.m_HealthBar.m_LeftHearts = 3;
-	
-	/*
-	m_Base.m_RectHP.squareRect.x = App::s_Camera.w / 8;
-	m_Base.m_RectHP.squareRect.y = App::s_Camera.h / 10;
-	//m_Base.m_RectHP.squareRect.w = App::s_Camera.w / 3;
-	m_Base.m_RectHP.squareRect.w = m_Base.m_RectHP.squareRect.x / 2;
-	m_Base.m_RectHP.squareRect.h = App::s_Camera.h / 20;
-
-	m_Base.m_RectHP.barRect = m_Base.m_RectHP.squareRect;
-	m_Base.m_RectHP.barRect.w = std::fabs(m_Base.m_RectHP.squareRect.w / 100 * (-m_Base.m_HPPercent)); */
-	
-	//m_Base.m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("baseHealth"), SDL_Color(255, 255, 255, 255));
-	//m_Base.m_RectHP.labelHP->AddGroup(EntityGroup::label);
-	//m_Base.m_RectHP.labelHP = App::s_Manager.NewLabel(0, 0, "-0", App::s_Textures.GetFont("baseHealth"), SDL_Color(255, 255, 255, 255));
-	//m_Base.m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_Base.m_HPPercent) + "%");
-	//float HPBarX = m_Base.m_RectHP.squareRect.x + (m_Base.m_RectHP.squareRect.w / 2.0f) - (float)m_Base.m_RectHP.labelHP->GetRect().w / 2.0f;
-	//float HPBarY = m_Base.m_RectHP.barRect.y + (m_Base.m_RectHP.barRect.h - m_Base.m_RectHP.labelHP->GetRect().h);
-	//m_Base.m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, HPBarY));
 
 	App::s_Logger.AddLog("Created base (", false);
 	App::s_Logger.AddLog(std::to_string(scaledPosX) + ", " + std::to_string(scaledPosY) + ")");
@@ -334,7 +316,6 @@ void Level::InitWave()
 		return;
 	}
 
-	//static std::default_random_engine rng(App::s_Rnd());
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
 
 	Tile* spawner = spawners.at(spawnerDistr(g_Rng));
@@ -344,14 +325,6 @@ void Level::InitWave()
 	Vector2D moveVector;
 
 	EnemyType type = EnemyType::elf;
-	//for (auto i = 0u; i < m_Wave.spawnedSpecificEnemies.size(); ++i)
-	/*for (std::size_t i = 0u; i < (std::size_t)EnemyType::size; ++i)
-	{
-		if (m_Wave.spawnedSpecificEnemies[i] == m_SpecificEnemiesAmount[i])
-			continue;
-
-		type = (EnemyType)i;
-	}*/
 	for (std::size_t i = 0u; i < (std::size_t)EnemyType::size; ++i)
 	{
 		if (m_SpecificEnemiesAmount[i] == m_Waves.at(m_CurrentWave)[i])
@@ -385,6 +358,9 @@ void Level::ManageWaves()
 				m_ExpectedEnemiesAmount += i;
 
 			InitWave();
+
+			App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(m_CurrentWave + 1) + "/" + std::to_string(GetWavesAmount()));
+
 			m_WaveProgress = WaveProgress::Initializing;
 		}
 		return;
@@ -395,7 +371,7 @@ void Level::ManageWaves()
 		if (g_Enemies.size() == 0)
 		{
 			m_WaveProgress = WaveProgress::Finished;
-			m_SpecificEnemiesAmount = { 0, 0 }; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
+			m_SpecificEnemiesAmount = {};
 		}
 		return;
 	case WaveProgress::Finished:
@@ -411,19 +387,13 @@ void Level::ManageWaves()
 
 void Level::Render()
 {
-	for (uint16_t i = 0; i < layers.size(); ++i)
+	for (auto i = 0u; i < layers.size(); ++i)
 	{
 		for (const auto &tile : layers.at(i).tiles)
 		{
-			if (!tile)
-				continue;
-
-			// It's more expensive than rendering all tiles
-			
-			//Vector2D tilePos = tile->GetPos();
-			//if ((tilePos.x + tile->GetWidth() < App::s_Camera.x && tilePos.y + tile->GetHeight() < App::s_Camera.y)
-			//	|| (tilePos.x > App::s_Camera.x + App::s_Camera.w && tilePos.y > App::s_Camera.y + App::s_Camera.h))
-			//	continue;
+			// Might be necessary, but the game isn't supposed to create nullptr tiles, if it does, then it's probably an issue with level
+			//if (!tile)
+				//continue;
 
 			tile->Draw();
 		}
@@ -444,6 +414,8 @@ void Level::Render()
 
 	for (const auto &projectile : g_Projectiles)
 		projectile->Draw();
+
+	//m_Base.m_HealthBar.Draw();
 }
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
@@ -462,14 +434,12 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 }
 void Level::OnUpdateCamera()
 {
-	for (uint16_t i = 0; i < 3; ++i)
+	for (auto i = 0u; i < layers.size(); ++i)
 	{
 		for (const auto &tile : layers.at(i).tiles)
 		{
-			if (!tile)
-			{
-				continue;
-			}
+			//if (!tile)
+				//continue;
 
 			tile->AdjustToView();
 		}

@@ -270,7 +270,6 @@
     <ClCompile Include="src\entity\base.cpp" />
     <ClCompile Include="src\entity\enemy.cpp" />
     <ClCompile Include="src\entity\entity.cpp" />
-    <ClCompile Include="src\entity\health.cpp" />
     <ClCompile Include="src\entity\label.cpp" />
     <ClCompile Include="src\entity\projectile.cpp" />
     <ClCompile Include="src\level.cpp" />

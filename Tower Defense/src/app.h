@@ -16,24 +16,46 @@
 #include <memory>
 #include <random>
 
-//struct BuildingState contains all needed informations and it's one static variable in App class
-//It helps to avoid duplicating code
-struct BuildingState
+class UIElement
 {
-	//Tile *buildingPlace = nullptr; // tile shown in building state
-	//Tile buildingPlace; // tile shown in building state
-	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileTypes::special, 2);
-	Tile *pointedTile = nullptr; // tile pointed by a mouse
-	Vector2D coordinates{ 0.0f, 0.0f };
-	bool canBuild = false;
-	Tower *towerToUpgrade = nullptr;
-	SDL_Texture *originalTexture = nullptr;
+public:
+	static constexpr SDL_Rect srcRect{ 0, 0, 38, 12 }; // background rectangle
+	static constexpr SDL_Rect coinRect{ 0, 0, 5, 6 }; // coin rectangle
+	static constexpr SDL_Rect heartRect{ 0, 0, 32, 29 };
+	static SDL_Rect coinDestRect;
+	static SDL_Rect heartDestRect;
+	static SDL_Texture *s_BgTexture;
+	static SDL_Texture *s_CoinTexture;
+	static SDL_Texture *s_HeartTexture;
+	SDL_Rect destRect{ 0, 0, 0, 0 };
+	Label m_Label;
+
+	inline void Draw()
+	{
+		TextureManager::DrawTexture(UIElement::s_BgTexture, UIElement::srcRect, this->destRect);
+		this->m_Label.Draw();
+	}
 };
 
 enum class UIState
 {
 	none = 0, // none means game is running by default
 	building
+};
+
+//struct BuildingState contains all needed informations and it's one static variable in App class
+//It helps to avoid duplicating code
+struct BuildingState
+{
+	//TODO:
+	//Swap buildingPlace variable to stack memory
+	//Tile buildingPlace;
+	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileTypes::special, 2); // tile shown in building state
+	Tile *pointedTile = nullptr; // tile pointed by a mouse
+	Vector2D coordinates{ 0.0f, 0.0f };
+	bool canBuild = false;
+	Tower *towerToUpgrade = nullptr;
+	SDL_Texture *originalTexture = nullptr;
 };
 
 class App
@@ -61,12 +83,16 @@ public:
 
 	static std::random_device s_Rnd;
 
+	static bool s_IsWindowMinimized;
+
 	App();
 	~App();
 
 	void EventHandler();
 	void Update();
 	void Render();
+
+	void DrawUI();
 
 	void UpdateCamera();
 
@@ -77,7 +103,7 @@ public:
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
 	{
-		if (s_IsWindowMinimized || s_IsWindowExposed)
+		if (s_IsWindowMinimized)
 			return true;
 
 		switch (state)
@@ -113,8 +139,6 @@ public:
 		}
 	}
 private:
-	static bool s_IsWindowMinimized;
-	static bool s_IsWindowExposed;
 	bool m_IsRunning = false;
 	bool m_IsFullscreen = false;
 	SDL_Window *m_Window = nullptr;
@@ -125,6 +149,10 @@ public:
 	// these textures are needed for rendering RectHP (health.h)
 	static SDL_Texture *s_Square;
 	static SDL_Texture *s_GreenTex;
+
+	static UIElement s_UIWaves;
+	static UIElement s_UICoins;
+	static UIElement s_UILifes;
 
 #ifdef DEBUG
 	static Label *s_EnemiesAmountLabel;
@@ -177,8 +205,67 @@ public:
 	}
 
 	static uint16_t GetDamageOf(ProjectileType type);
+
+	inline void SetCoins(uint16_t coins) { m_Coins = coins; }
+
+	// Arg is not required, adds 1 by default
+	inline void AddCoins(uint16_t coins = 1)
+	{
+		if (coins == 0)
+			return;
+
+		m_Coins += coins;
+		App::s_UICoins.m_Label.UpdateText(std::to_string(m_Coins));
+	}
+
+	// Arg is not required, takes 1 by default
+	inline void TakeCoins(uint16_t coins = 1)
+	{
+		if (coins == 0 || m_Coins == 0)
+			return;
+
+		if (coins >= m_Coins)
+			m_Coins = 0;
+		else
+			m_Coins -= coins;
+
+		App::s_UICoins.m_Label.UpdateText(std::to_string(m_Coins));
+	}
+
+	inline static void SetLifes(uint16_t lifes) { s_CurrentLevel->GetBase()->m_Lifes = lifes; }
+
+	// Arg is not required, adds 1 by default
+	inline static void AddLifes(uint16_t lifes = 1)
+	{ 
+		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
+			return;
+
+		s_CurrentLevel->GetBase()->m_Lifes += lifes;
+		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+	}
+
+	// Arg is not required, takes 1 by default
+	inline static void TakeLifes(uint16_t lifes = 1)
+	{
+		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
+			return;
+
+		if (lifes >= s_CurrentLevel->GetBase()->m_Lifes)
+		{
+			s_CurrentLevel->GetBase()->m_Lifes = 0;
+			s_CurrentLevel->GetBase()->m_IsActive = false;
+		}
+		else
+		{
+			s_CurrentLevel->GetBase()->m_Lifes -= lifes;
+		}
+
+		printf("Base active: %d, lifes: %d\n", s_CurrentLevel->GetBase()->m_IsActive, s_CurrentLevel->GetBase()->m_Lifes);
+
+		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+	}
 private:
-	std::vector<std::unique_ptr<Level>> levels;
+	std::vector<std::unique_ptr<Level>> m_Levels;
 	Label *m_PauseLabel = nullptr;
-	bool m_DestroyTower = false;
+	uint16_t m_Coins = 0;
 };

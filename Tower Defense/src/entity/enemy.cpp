@@ -41,22 +41,18 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	case EnemyType::elf:
 		m_HP = m_MaxHP = 50;
 		m_MovementSpeed = 1.5f;
-		m_Damage = 1;
 		break;
 	case EnemyType::goblinWarrior:
 		m_HP = m_MaxHP = 85;
 		m_MovementSpeed = 1.35f;
-		m_Damage = 1;
 		break;
 	case EnemyType::dwarfSoldier:
 		m_HP = m_MaxHP = 120;
 		m_MovementSpeed = 1.3f;
-		m_Damage = 1;
 		break;
 	case EnemyType::dwarfKing:
 		m_HP = m_MaxHP = 130;
 		m_MovementSpeed = 1.4f;
-		m_Damage = 2;
 		break;
 	}
 
@@ -80,15 +76,24 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
 }
 
-void Enemy::Destroy()
+Enemy::~Enemy()
 {
-	m_IsActive = false;
-
 	if (m_RectHP.labelHP)
 	{
 		m_RectHP.labelHP->m_AttachedTo = nullptr;
 		m_RectHP.labelHP->Destroy();
 	}
+}
+
+void Enemy::Destroy()
+{
+	m_IsActive = false;
+
+	/*if (m_RectHP.labelHP)
+	{
+		m_RectHP.labelHP->m_AttachedTo = nullptr;
+		m_RectHP.labelHP->Destroy();
+	}*/
 
 	if (m_OccupiedTile)
 	{
@@ -149,9 +154,14 @@ void Enemy::Update()
 
 void Enemy::Draw()
 {
+	/*if (!m_IsActive)
+		return;*/
+
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 	TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
 	TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
+
+	m_RectHP.labelHP->Draw();
 }
 
 void Enemy::PlayAnim(std::string_view animID)
@@ -228,12 +238,11 @@ void Enemy::Move(float destinationX, float destinationY)
 
 void Enemy::UpdateMovement()
 {
-	//m_Pos += m_Velocity * App::s_ElapsedTime;
 	const SDL_Rect& rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
 	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
 		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
 	{
-		App::s_CurrentLevel->GetBase()->TakeDamage(m_Damage);
+		App::TakeLifes();
 		Destroy();
 		return;
 	}
@@ -243,8 +252,9 @@ void Enemy::UpdateMovement()
 	if (!nextTile)
 	{
 #ifdef DEBUG
-		App::s_Logger.AddLog("Enemy tried to walk into a not exising tile, movement for it has been blocked!\n");
+		App::s_Logger.AddLog("Enemy tried to walk into a non-exising tile, enemy has been destroyed!\n");
 #endif
+		Destroy();
 		return;
 	}
 
@@ -306,8 +316,9 @@ void Enemy::UpdateHealthBar()
 	m_RectHP.barRect = m_RectHP.squareRect;
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
-	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	//float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
+	//m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
 
 void Enemy::AdjustToView()

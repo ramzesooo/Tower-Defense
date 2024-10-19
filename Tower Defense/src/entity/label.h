@@ -13,8 +13,10 @@ public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_Drawable = true;
 
+	Label() : m_OnStack(true) {}
 	Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
-	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect), m_Color(r.m_Color) {}
+	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect),
+		m_Color(r.m_Color) {}
 	~Label() = default;
 
 	inline Label& operator=(const Label &r)
@@ -57,6 +59,7 @@ public:
 	Vector2D GetPos() const { return { (float)destRect.x, (float)destRect.y }; }
 	SDL_Rect GetRect() const { return destRect; }
 private:
+	bool m_OnStack = false; // false if it's unique pointer in Manager's vector
 	std::string_view m_Text = "";
 	TTF_Font *m_Font = nullptr;
 	SDL_Texture *m_Texture = nullptr;

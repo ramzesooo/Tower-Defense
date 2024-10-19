@@ -79,10 +79,12 @@ public:
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
 	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
-	Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
+	inline Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();
+
+	inline std::size_t GetWavesAmount() const { return m_Waves.size(); }
 
 	// NOTE: It's not used anywhere and probably it's not needed anymore.
 	// Chunk can contain nullptr as a tile which means it's out of a map
@@ -98,7 +100,7 @@ private:
 	std::vector<Tile*> spawners;
 
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
-	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{}; // CHANGE THIS IF ADDING OR REMOVING ENEMY TYPE
+	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{};
 
 	//Wave m_Wave;
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave

@@ -33,10 +33,20 @@ BuildingState App::s_Building;
 std::random_device App::s_Rnd;
 
 bool App::s_IsWindowMinimized = false;
-bool App::s_IsWindowExposed = false;
 
 SDL_Texture *App::s_GreenTex = nullptr;
 SDL_Texture *App::s_Square = nullptr;
+
+SDL_Texture *UIElement::s_BgTexture = nullptr;
+SDL_Texture *UIElement::s_CoinTexture = nullptr;
+SDL_Texture *UIElement::s_HeartTexture = nullptr;
+
+SDL_Rect UIElement::coinDestRect;
+SDL_Rect UIElement::heartDestRect;
+
+UIElement App::s_UICoins;
+UIElement App::s_UIWaves;
+UIElement App::s_UILifes;
 
 #ifdef DEBUG
 Label *App::s_EnemiesAmountLabel = nullptr;
@@ -46,7 +56,6 @@ Label *App::s_EnemiesAmountLabel = nullptr;
 std::default_random_engine g_Rng(App::s_Rnd());
 
 auto &g_Projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
-//auto &g_Labels = App::s_Manager.GetGroup(EntityGroup::label);
 auto &g_Towers = App::s_Manager.GetGroup(EntityGroup::tower);
 auto &g_Attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
 auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
@@ -83,8 +92,11 @@ App::App()
 	App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
 	App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
 	App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
-	App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
-	App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
+	//App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
+	//App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
+	App::s_Textures.AddTexture("elementUI", "assets\\ui\\ui_element.png");
+	App::s_Textures.AddTexture("coinUI", "assets\\ui\\coin.png");
+	App::s_Textures.AddTexture("heartUI", "assets\\ui\\heart.png");
 
 	App::s_Textures.AddTexture("base", "assets\\base.png");
 	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
@@ -107,22 +119,23 @@ App::App()
 
 	s_GreenTex = App::s_Textures.GetTexture("green");
 	s_Square = App::s_Textures.GetTexture("square");
-	
-	Health::s_EmptyBarTexture = App::s_Textures.GetTexture("emptyHealth");
-	Health::s_FullBarTexture = App::s_Textures.GetTexture("fullHealth");
 
-	levels.reserve(levelsToLoad);
+	UIElement::s_BgTexture = App::s_Textures.GetTexture("elementUI");
+	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
+	UIElement::s_HeartTexture = App::s_Textures.GetTexture("heartUI");
+
+	m_Levels.reserve(levelsToLoad);
 
 	for (uint16_t i = 0; i < levelsToLoad; i++)
 	{
-		levels.emplace_back(std::move(std::make_unique<Level>(i)));
+		m_Levels.emplace_back(std::move(std::make_unique<Level>(i)));
 	}
 
-	App::s_CurrentLevel = levels.at(0).get();
+	App::s_CurrentLevel = m_Levels.at(0).get();
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->DidLoadingFail())
 	{
-		App::s_Logger.AddLog("Beginner level couldn't be loaded properly.");
+		App::s_Logger.AddLog("First level couldn't be loaded properly.");
 		initialized = false;
 	}
 	else
@@ -130,9 +143,6 @@ App::App()
 		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
 
 #ifdef DEBUG
-		//auto newLabel = App::s_Manager.NewEntity<Label>(4, 2, "pos", App::s_Textures.GetFont("default"));
-		//newLabel->AddGroup(EntityGroup::label);
-
 		auto newLabel = App::s_Manager.NewLabel(4, 2, "pos", App::s_Textures.GetFont("default"));
 
 		Base* base = App::s_CurrentLevel->GetBase();
@@ -140,6 +150,25 @@ App::App()
 		base->m_AttachedLabel = newLabel;
 		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
 #endif
+
+		// UI ELEMENTS
+		s_UIWaves.destRect = { (int32_t)App::s_Camera.w / 30, (int32_t)App::s_Camera.h / 30, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
+		s_UIWaves.m_Label = Label(s_UIWaves.destRect.x, s_UIWaves.destRect.y, "Wave: 1/" + std::to_string(s_CurrentLevel->GetWavesAmount()), App::s_Textures.GetFont("default"));
+		SDL_Rect labelRect = s_UIWaves.m_Label.GetRect();
+		s_UIWaves.m_Label.UpdatePos(labelRect.x + (s_UIWaves.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UIWaves.destRect.h / 2 - labelRect.h / 2));
+
+		s_UICoins.destRect = { (int32_t)App::s_Camera.w / 30, s_UIWaves.destRect.y + s_UIWaves.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
+		s_UICoins.m_Label = Label(s_UICoins.destRect.x, s_UICoins.destRect.y, std::to_string(m_Coins), App::s_Textures.GetFont("default"));
+		labelRect = s_UICoins.m_Label.GetRect();
+		s_UICoins.m_Label.UpdatePos(labelRect.x + (s_UICoins.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UICoins.destRect.h / 2 - labelRect.h / 2));
+		UIElement::coinDestRect = { s_UICoins.destRect.x + UIElement::coinRect.w, s_UICoins.destRect.y + s_UICoins.destRect.h / 4, UIElement::coinRect.w * 3, s_UICoins.destRect.h / 2 };
+
+		s_UILifes.destRect = { (int32_t)App::s_Camera.w / 30, s_UICoins.destRect.y + s_UICoins.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
+		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, std::to_string(s_CurrentLevel->GetBase()->m_Lifes), App::s_Textures.GetFont("default"));
+		labelRect = s_UILifes.m_Label.GetRect();
+		s_UILifes.m_Label.UpdatePos(labelRect.x + (s_UILifes.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UILifes.destRect.h / 2 - labelRect.h / 2));
+		UIElement::heartDestRect = { s_UILifes.destRect.x, s_UILifes.destRect.y + s_UILifes.destRect.h / 4, UIElement::heartRect.w, s_UILifes.destRect.h - UIElement::heartRect.h / 2 };
+		// UI ELEMENTS
 	}
 
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
@@ -147,18 +176,14 @@ App::App()
 
 	UpdateCamera();
 
-	//m_PauseLabel = App::s_Manager.NewEntity<Label>(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
 	m_PauseLabel = App::s_Manager.NewLabel(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
 	m_PauseLabel->m_Drawable = false;
-	//m_PauseLabel->AddGroup(EntityGroup::label);
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 #ifdef DEBUG
-	//s_EnemiesAmountLabel = App::s_Manager.NewEntity<Label>(10, 100, " ", App::s_Textures.GetFont("default"));
-	//s_EnemiesAmountLabel->AddGroup(EntityGroup::label);
-	s_EnemiesAmountLabel = App::s_Manager.NewLabel(10, 100, " ", App::s_Textures.GetFont("default"));
+	s_EnemiesAmountLabel = App::s_Manager.NewLabel(10, 200, " ", App::s_Textures.GetFont("default"));
 #endif
 
 	m_IsRunning = initialized;
@@ -166,7 +191,7 @@ App::App()
 
 App::~App()
 {
-	levels.clear();
+	m_Levels.clear();
 
 	if (App::s_Renderer)
 		SDL_DestroyRenderer(App::s_Renderer);
@@ -197,19 +222,9 @@ void App::EventHandler()
 			case SDL_WINDOWEVENT_RESTORED:
 				s_IsWindowMinimized = false;
 				return;
-			/*case SDL_WINDOWEVENT_EXPOSED:
-				s_IsWindowExposed = false;
-				printf("Exposed: %d\n", s_IsWindowExposed);
-				return;
-			case SDL_WINDOWEVENT_SHOWN:
-				s_IsWindowExposed = true;
-				printf("Exposed (shown): %d\n", s_IsWindowExposed);
-				return;
 			default:
-				printf("%d\n", App::s_Event.window.event);
-				return;*/
+				return;
 		}
-		return;
 	// END OF WINDOW EVENTS
 	
 	// MOUSE EVENTS
@@ -248,14 +263,21 @@ void App::EventHandler()
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
+		case SDLK_F5:
+			AddLifes();
+			return;
+		case SDLK_F6:
+			TakeLifes();
+			return;
+		case SDLK_F7:
+			AddCoins();
+			return;
 		case SDLK_F8:
-			for (const auto &e : g_Enemies)
-				e->Destroy();
+			TakeCoins();
 			return;
 		case SDLK_F10:
-			if (g_Towers.empty())
-				return;
-			m_DestroyTower = true;
+			for (const auto &e : g_Enemies)
+				e->Destroy();
 			return;
 		case SDLK_F11:
 			if (m_IsFullscreen)
@@ -289,14 +311,6 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	// NOTE: The only case where m_DestroyTower can be modified is EventHandler case SDLK_F10
-	// This code should be removed after removing SDLK_F10 from EventHandler
-	if (m_DestroyTower)
-	{
-		static_cast<Tower*>(g_Towers.back())->Destroy();
-		m_DestroyTower = false;
-	}
-
 	App::s_CurrentLevel->ManageWaves();
 
 	App::s_Manager.Refresh();
@@ -309,12 +323,25 @@ void App::Render()
 
 	App::s_CurrentLevel->Render();
 
+	DrawUI();
+
+	SDL_RenderPresent(App::s_Renderer);
+}
+
+void App::DrawUI()
+{
 #ifdef DEBUG
 	s_EnemiesAmountLabel->Draw();
 #endif
 	m_PauseLabel->Draw();
 
-	SDL_RenderPresent(App::s_Renderer);
+	s_UIWaves.Draw();
+
+	s_UICoins.Draw();
+	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);
+	
+	s_UILifes.Draw();
+	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
 }
 
 void App::UpdateCamera()

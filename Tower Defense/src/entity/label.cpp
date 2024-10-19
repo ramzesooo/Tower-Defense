@@ -37,10 +37,14 @@ void Label::Destroy()
 		static_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
 	}
 
-	// Don't need to use if (m_Texture), because it'll just throw SDL error about invalid texture if it's nullptr
-	SDL_DestroyTexture(m_Texture);
+	if (m_Texture)
+	{
+		SDL_DestroyTexture(m_Texture);
+		m_Texture = nullptr;
+	}
 
-	App::s_Manager.DestroyLabel(this);
+	if (!m_OnStack)
+		App::s_Manager.DestroyLabel(this);
 }
 
 void Label::Draw()
