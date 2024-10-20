@@ -138,7 +138,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	}
 
 	int32_t tileCode;
-	TileTypes tileType = (TileTypes)layerID;
+	TileType tileType = (TileType)layerID;
 	/*TileTypes tileType;
 
 	switch (layers.size())
@@ -370,6 +370,16 @@ void Level::ManageWaves()
 	case WaveProgress::InProgress:
 		if (g_Enemies.size() == 0)
 		{
+			m_WaveProgress = WaveProgress::Finished;
+			m_SpecificEnemiesAmount = {};
+		}
+		else if (!m_Base.m_IsActive)
+		{
+			for (const auto &e : g_Enemies)
+			{
+				e->Destroy();
+			}
+
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = {};
 		}

@@ -21,12 +21,9 @@ public:
 
 	void AddTexture(std::string_view textureID, const char* path);
 
-	// Don't need this, since there are static methods for drawing
-	void DrawTexture(std::string_view textureID);
-
 	// DrawTexture is responsible for drawing rectangles with integer values
 	// angle is NULL and flip is SDL_FLIP_NONE by default
-	static void DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	static void DrawTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dest, double angle = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
 	// DrawTextureF is responsible for drawing rectangles with float values
 	// angle is NULL and flip is SDL_FLIP_NONE by default

@@ -2,10 +2,6 @@
 #include "../app.h"
 #include "../textureManager.h"
 
-#include <cmath>
-
-extern std::vector<Entity*> &g_Enemies;
-
 void Base::Draw()
 {
 #ifdef DEBUG

@@ -49,7 +49,7 @@ void Label::Destroy()
 
 void Label::Draw()
 {
-	if (!m_Drawable)
+	if (!m_Drawable || !m_Texture)
 		return;
 
 	SDL_RenderCopy(App::s_Renderer, m_Texture, nullptr, &destRect);

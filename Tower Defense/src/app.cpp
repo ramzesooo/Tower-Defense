@@ -75,8 +75,11 @@ App::App()
 	SDL_SetWindowIcon(m_Window, iconSurface);
 	SDL_FreeSurface(iconSurface);
 
-	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+#ifdef DEBUG
+	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+#else
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
+#endif
 	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
 	{
@@ -103,6 +106,7 @@ App::App()
 	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
 	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
 	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
+	App::s_Textures.AddTexture("grayArrow", "assets\\grayArrow_32x32.png");
 
 	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
 	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
@@ -123,6 +127,8 @@ App::App()
 	UIElement::s_BgTexture = App::s_Textures.GetTexture("elementUI");
 	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
 	UIElement::s_HeartTexture = App::s_Textures.GetTexture("heartUI");
+
+	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
 
 	m_Levels.reserve(levelsToLoad);
 

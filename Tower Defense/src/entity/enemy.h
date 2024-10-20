@@ -24,6 +24,7 @@ class Tower;
 class Enemy : public Entity
 {
 public:
+	static SDL_Texture *s_ArrowTexture; // texture of arrow showing where are the enemies out of camera
 	// vector of attackers targeting this specific enemy
 	std::vector<Attacker*> m_Attackers;
 
@@ -120,4 +121,6 @@ private:
 
 	Animation m_CurrentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
+
+	SDL_Rect m_PointingArrowDest{ 0, 0, 48, 48 };
 };

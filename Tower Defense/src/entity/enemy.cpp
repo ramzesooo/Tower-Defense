@@ -13,12 +13,12 @@ extern std::vector<Entity*> &g_Towers;
 extern std::vector<Entity*> &g_Enemies;
 #endif
 
+SDL_Texture *Enemy::s_ArrowTexture = nullptr;
+
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
 {
-	//destRect.x = (int32_t)posX * App::s_CurrentLevel->m_ScaledTileSize;
-	//destRect.y = (int32_t)posY * App::s_CurrentLevel->m_ScaledTileSize;
 	destRect.w = enemyWidth * m_Scale;
 	destRect.h = enemyHeight * m_Scale;
 
@@ -119,14 +119,7 @@ void Enemy::Destroy()
 
 void Enemy::Update()
 {
-	if (!App::s_CurrentLevel->GetBase()->m_IsActive)
-	{
-		Destroy();
-		return;
-	}
-
-	if (IsMoving())
-		UpdateMovement();
+	UpdateMovement();
 
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * enemyHeight;
@@ -144,24 +137,65 @@ void Enemy::Update()
 			if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
 				attacker->StopAttacking();
 		}
-		else if (!attacker->IsAttacking() && m_IsActive)
+		else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange((Tower*)tower, App::s_TowerRange))
 		{
-			if (IsTowerInRange((Tower*)tower, App::s_TowerRange))
-				attacker->InitAttack(this);
+			attacker->InitAttack(this);
 		}
 	}
 }
 
 void Enemy::Draw()
 {
-	/*if (!m_IsActive)
-		return;*/
+	// If enemy should be drawn because its position is in camera
+	if (destRect.x + destRect.w > 0 && destRect.x < App::s_Camera.w
+		&& destRect.y + destRect.h > 0 && destRect.y < App::s_Camera.h)
+	{
+		TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 
-	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
-	TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
-	TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
+		TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
+		TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
+		m_RectHP.labelHP->Draw();
+		return;
+	}
 
-	m_RectHP.labelHP->Draw();
+	double angle = 0;
+
+	// If enemy shouldn't be drawn, then draw the arrow pointing to the enemy
+	if (destRect.x + destRect.w < 0)
+	{
+		m_PointingArrowDest.x = 0;
+
+		angle = 270;
+	}
+	else if (destRect.x > App::s_Camera.w)
+	{
+		m_PointingArrowDest.x = (int32_t)App::s_Camera.w - m_PointingArrowDest.w;
+
+		angle = 90;
+	}
+	else
+	{
+		m_PointingArrowDest.x = destRect.x;
+	}
+
+	if (destRect.y + destRect.h < 0)
+	{
+		m_PointingArrowDest.y = 0;
+
+		angle = 0;
+	}
+	else if (destRect.y > App::s_Camera.h)
+	{
+		m_PointingArrowDest.y = (int32_t)App::s_Camera.h - m_PointingArrowDest.h;
+
+		angle = 180;
+	}
+	else
+	{
+		m_PointingArrowDest.y = destRect.y;
+	}
+
+	SDL_RenderCopyEx(App::s_Renderer, Enemy::s_ArrowTexture, nullptr, &m_PointingArrowDest, angle, NULL, SDL_FLIP_NONE);
 }
 
 void Enemy::PlayAnim(std::string_view animID)
@@ -277,21 +311,13 @@ void Enemy::UpdateMovement()
 
 	// The direction of walk animation doesn't really matter in the game, so it can be done in the easiest possible way
 	if (m_Velocity.x > 0)
-	{
 		PlayAnim("WalkRight");
-	}
 	else if (m_Velocity.x < 0)
-	{
 		PlayAnim("WalkLeft");
-	}
 	else if (m_Velocity.y > 0)
-	{
 		PlayAnim("Walk");
-	}
 	else if (m_Velocity.y < 0)
-	{
 		PlayAnim("WalkUp");
-	}
 
 	if (nextTile != m_OccupiedTile)
 	{
@@ -316,8 +342,6 @@ void Enemy::UpdateHealthBar()
 	m_RectHP.barRect = m_RectHP.squareRect;
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
-	//float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	//m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 	m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
 

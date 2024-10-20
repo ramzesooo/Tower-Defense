@@ -6,12 +6,12 @@
 
 TextureManager::~TextureManager()
 {
-	for (const auto& font : fonts)
+	for (const auto &font : fonts)
 	{
 		TTF_CloseFont(font.second);
 	}
 
-	for (const auto& texture : textures)
+	for (const auto &texture : textures)
 	{
 		SDL_DestroyTexture(texture.second);
 	}
@@ -35,28 +35,6 @@ void TextureManager::AddTexture(std::string_view textureID, const char* path)
 	SDL_FreeSurface(tempSurface);
 
 	textures.emplace(std::string(textureID), texture);
-}
-
-void TextureManager::DrawTexture(std::string_view textureID)
-{
-	auto it = textures.find(textureID);
-	if (it == textures.end())
-	{
-		App::s_Logger.AddLog("Missing " + std::string(textureID));
-		/*App::s_Logger.AddLog(SDL_GetError());
-		SDL_ClearError();*/
-		return;
-	}
-
-	SDL_Texture* texture = it->second;
-	if (!texture)
-	{
-		App::s_Logger.AddLog("Missing " + std::string(textureID));
-	}
-	else
-	{
-		App::s_Logger.AddLog("Exists " + std::string(textureID));
-	}
 }
 
 void TextureManager::DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle, SDL_RendererFlip flip)

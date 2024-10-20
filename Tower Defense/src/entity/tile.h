@@ -9,7 +9,7 @@
 // 1 suits to all additional stuff, but without collision
 // 2 suits to layer with collisions (e.g. trees) including spawners
 // special is an exception
-enum class TileTypes
+enum class TileType
 {
 	regular = 0,
 	additional,
@@ -26,8 +26,8 @@ class Tower;
 class Tile : public Entity
 {
 public:
-	Tile(TileTypes type, int32_t tileScale);
-	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileTypes type = TileTypes::regular);
+	Tile(TileType type, int32_t tileScale);
+	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type = TileType::regular);
 	Tile(const Tile& r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type), m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile) {}
 	~Tile() = default;
 
@@ -76,7 +76,7 @@ private:
 	SDL_Rect srcRect{ 0, 0, 24, 24 }, destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos;
 	SDL_Texture* m_Texture = nullptr;
-	TileTypes m_Type;
+	TileType m_Type;
 
 	Entity* m_EntityOccupying = nullptr;
 	Tower* m_TowerOnTile = nullptr;

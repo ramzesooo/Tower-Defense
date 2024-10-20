@@ -50,7 +50,7 @@ struct BuildingState
 	//TODO:
 	//Swap buildingPlace variable to stack memory
 	//Tile buildingPlace;
-	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileTypes::special, 2); // tile shown in building state
+	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileType::special, 2); // tile shown in building state
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
 	Vector2D coordinates{ 0.0f, 0.0f };
 	bool canBuild = false;
@@ -232,10 +232,10 @@ public:
 		App::s_UICoins.m_Label.UpdateText(std::to_string(m_Coins));
 	}
 
-	inline static void SetLifes(uint16_t lifes) { s_CurrentLevel->GetBase()->m_Lifes = lifes; }
+	static inline void SetLifes(uint16_t lifes) { s_CurrentLevel->GetBase()->m_Lifes = lifes; }
 
 	// Arg is not required, adds 1 by default
-	inline static void AddLifes(uint16_t lifes = 1)
+	static inline void AddLifes(uint16_t lifes = 1)
 	{ 
 		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
 			return;
@@ -245,7 +245,7 @@ public:
 	}
 
 	// Arg is not required, takes 1 by default
-	inline static void TakeLifes(uint16_t lifes = 1)
+	static inline void TakeLifes(uint16_t lifes = 1)
 	{
 		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
 			return;
