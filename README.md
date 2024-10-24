@@ -22,6 +22,24 @@ Basically, while making the game I've got more than just one idea of designing i
 The map file can be done literally as you wish, but important thing is to make all 3 layers of tiles (counting from 0), because the idea of loading map was like that:
 Every layer of tiles is a seperated text file with extension *.map* containing all tiles separated by a comma *(,)*, and every layer has its own job - it's all should be properly described in class Level.
 Every level must have config file named like this: *.config* and it's important to keep correct values in correct lines, since the game takes it all in proper order. It should be properly described too in source code.
+### Keyboard
+**B** - Switch between building mode
 
-### Win32 and x64
-Currently, I'm trying to keep it compatible with both (Win32 and x64), but I can't promise it will stay like this (although nothing says I will stop doing that)
+**Y** - Lock/unlock camera moving
+
+**F1-F4** - Prepared resolutions
+
+**F5** - Add 1 life
+
+**F6** - Take 1 life
+
+**F7** - Add 1 coin
+
+**F8** - Take 1 coin
+
+**F10** - Destroy all enemies
+
+**F11** - Fullscreen on/off
+
+### Compatibility
+For now it's prepared only for Windows (both of x86 and x64) in Visual Studio, but there is a high chance of involving CMake into this also developing for Linux later
