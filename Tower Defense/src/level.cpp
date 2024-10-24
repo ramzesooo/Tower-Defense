@@ -445,6 +445,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 
 	return layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
 }
+
 void Level::OnUpdateCamera()
 {
 	for (auto i = 0u; i < layers.size(); ++i)

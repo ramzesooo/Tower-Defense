@@ -593,7 +593,6 @@ void App::ManageCamera()
 
 uint16_t App::GetDamageOf(ProjectileType type)
 {
-	//static std::default_random_engine rng(App::s_Rnd());
 	uint16_t minDmg = 0, maxDmg = 0;
 
 	switch (type)

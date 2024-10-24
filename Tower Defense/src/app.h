@@ -68,7 +68,6 @@ struct BuildingState
 
 class App
 {
-// MAIN SECTION
 public:
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
@@ -81,7 +80,7 @@ public:
 	static SDL_Event s_Event;
 	static SDL_FRect s_Camera;
 
-	static class Level *s_CurrentLevel;
+	static Level *s_CurrentLevel;
 	static uint16_t s_TowerRange;
 	static float s_ElapsedTime;
 	static UIState s_UIState;
@@ -93,6 +92,22 @@ public:
 
 	static bool s_IsWindowMinimized;
 
+	// these textures are needed for rendering RectHP (health.h)
+	static SDL_Texture *s_Square;
+	static SDL_Texture *s_GreenTex;
+
+	static UIElement s_UIWaves;
+	static UIElement s_UICoins;
+	static UIElement s_UILifes;
+
+#ifdef DEBUG
+	static Label *s_EnemiesAmountLabel;
+#endif
+
+	static bool s_IsCameraLocked;
+	static CameraMovement s_CameraMovement;
+
+public:
 	App();
 	~App();
 
@@ -146,29 +161,6 @@ public:
 			return;
 		}
 	}
-private:
-	bool m_IsRunning = false;
-	bool m_IsFullscreen = false;
-	SDL_Window *m_Window = nullptr;
-	UIState m_PreviousUIState = UIState::none;
-// MAIN SECTION END
-
-public:
-	// these textures are needed for rendering RectHP (health.h)
-	static SDL_Texture *s_Square;
-	static SDL_Texture *s_GreenTex;
-
-	static UIElement s_UIWaves;
-	static UIElement s_UICoins;
-	static UIElement s_UILifes;
-
-#ifdef DEBUG
-	static Label *s_EnemiesAmountLabel;
-#endif
-
-	static bool s_IsCameraLocked;
-	static CameraMovement s_CameraMovement;
-
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
 
@@ -281,8 +273,18 @@ public:
 
 		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
+
 private:
+	bool m_IsRunning = false;
+	bool m_IsFullscreen = false;
+
+	SDL_Window *m_Window = nullptr;
+
+	UIState m_PreviousUIState = UIState::none;
+
 	std::vector<std::unique_ptr<Level>> m_Levels;
+
 	Label *m_PauseLabel = nullptr;
+
 	uint16_t m_Coins = 0;
 };
