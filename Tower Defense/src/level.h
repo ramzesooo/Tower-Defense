@@ -37,7 +37,7 @@ class Level
 public:
 	constexpr static uint16_t s_LayersAmount = 3;
 	constexpr static uint16_t s_TileSize = 24;
-	std::array<uint16_t, 3> m_MapData{}; // 0 = width, 1 = height, 2 = scale
+	std::array<uint16_t, 5> m_MapData{}; // 0 = width (tiles amount), 1 = height (tiles amount), 2 = scale, 3 = width in pixels, 4 = height in pixels
 	uint16_t m_ScaledTileSize = 0;
 
 	Vector2D m_BasePos;

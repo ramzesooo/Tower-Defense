@@ -272,42 +272,34 @@ void Enemy::Move(float destinationX, float destinationY)
 
 void Enemy::UpdateMovement()
 {
-	const SDL_Rect& rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
-	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
-		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
-	{
-		App::TakeLifes();
-		Destroy();
-		return;
-	}
-
 	Tile *nextTile = App::s_CurrentLevel->GetTileFrom(uint32_t(m_Pos.x + (m_Velocity.x * App::s_ElapsedTime)), uint32_t(m_Pos.y + (m_Velocity.y * App::s_ElapsedTime)));
 
 	if (!nextTile)
 	{
-#ifdef DEBUG
 		App::s_Logger.AddLog("Enemy tried to walk into a non-exising tile, enemy has been destroyed!\n");
-#endif
 		Destroy();
 		return;
 	}
 
-	if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this)
-		return;
+	if (nextTile != m_OccupiedTile)
+	{
+		if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this)
+			return;
+
+		m_OccupiedTile->SetOccupyingEntity(nullptr);
+		m_OccupiedTile = nextTile;
+		m_OccupiedTile->SetOccupyingEntity(this);
+	}
 
 	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
 	/*m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
 	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;*/
 
 	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
-	{
 		m_Velocity.x = 0.0f;
-	}
 
 	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
-	{
 		m_Velocity.y = 0.0f;
-	}
 
 	// The direction of walk animation doesn't really matter in the game, so it can be done in the easiest possible way
 	if (m_Velocity.x > 0)
@@ -319,28 +311,35 @@ void Enemy::UpdateMovement()
 	else if (m_Velocity.y < 0)
 		PlayAnim("WalkUp");
 
-	if (nextTile != m_OccupiedTile)
-	{
-		m_OccupiedTile->SetOccupyingEntity(nullptr);
-		m_OccupiedTile = nextTile;
-		m_OccupiedTile->SetOccupyingEntity(this);
-	}
-
 	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
+
+	const SDL_Rect &rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
+	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
+		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
+	{
+		App::TakeLifes();
+		Destroy();
+		return;
+	}
 
 	UpdateHealthBar();
 }
 
 void Enemy::UpdateHealthBar()
 {
+	static float onePercent = m_RectHP.squareRect.w / 100; // references to width of 1% hp
+
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
 
-	m_RectHP.barRect = m_RectHP.squareRect;
-	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
+	//m_RectHP.barRect = m_RectHP.squareRect;
+	m_RectHP.barRect.x = m_RectHP.squareRect.x;
+	m_RectHP.barRect.y = m_RectHP.squareRect.y;
+	m_RectHP.barRect.w = std::fabs(onePercent * (-m_HPPercent));
+	//m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
@@ -379,16 +378,6 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 {
-	if (range < 0)
-	{
-		range = 0;
-	}
-
-	if (range >= App::s_CurrentLevel->m_MapData.at(0))
-	{
-		range = App::s_CurrentLevel->m_MapData.at(0) - 1;
-	}
-
 	int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t enemyX = (int32_t)m_Pos.x;

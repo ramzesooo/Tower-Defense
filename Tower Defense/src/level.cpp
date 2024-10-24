@@ -99,6 +99,9 @@ Level::Level(uint16_t levelID)
 	// LOAD CONFIG
 
 	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
+
+	m_MapData[3] = m_MapData.at(0) * m_ScaledTileSize;
+	m_MapData[4] = m_MapData.at(1) * m_ScaledTileSize;
 }
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)

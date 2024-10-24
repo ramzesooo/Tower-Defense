@@ -16,6 +16,14 @@
 #include <memory>
 #include <random>
 
+struct CameraMovement
+{
+	int32_t rangeW = 800 / 6;
+	int32_t rangeH = 600 / 6;
+	float moveX = 0;
+	float moveY = 0;
+};
+
 class UIElement
 {
 public:
@@ -158,11 +166,22 @@ public:
 	static Label *s_EnemiesAmountLabel;
 #endif
 
+	static bool s_IsCameraLocked;
+	static CameraMovement s_CameraMovement;
+
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
 
 	void SwitchBuildingState();
 	void ManageBuildingState();
+
+	inline void SwitchCameraMode() {
+		s_IsCameraLocked = !s_IsCameraLocked;
+		s_CameraMovement.moveX = 0;
+		s_CameraMovement.moveY = 0;
+	}
+
+	void ManageCamera();
 
 	static inline std::string_view TextureOf(AttackerType type)
 	{
@@ -259,8 +278,6 @@ public:
 		{
 			s_CurrentLevel->GetBase()->m_Lifes -= lifes;
 		}
-
-		printf("Base active: %d, lifes: %d\n", s_CurrentLevel->GetBase()->m_IsActive, s_CurrentLevel->GetBase()->m_Lifes);
 
 		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}

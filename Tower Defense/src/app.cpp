@@ -51,6 +51,10 @@ UIElement App::s_UILifes;
 #ifdef DEBUG
 Label *App::s_EnemiesAmountLabel = nullptr;
 #endif
+
+bool App::s_IsCameraLocked = true;
+
+CameraMovement App::s_CameraMovement;
 // END
 
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -89,6 +93,9 @@ App::App()
 
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
+
+	s_CameraMovement.rangeW = WINDOW_WIDTH / 5;
+	s_CameraMovement.rangeH = WINDOW_HEIGHT / 5;
 
 	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
 
@@ -237,9 +244,16 @@ void App::EventHandler()
 	case SDL_MOUSEMOTION:
 		s_MouseX = App::s_Event.motion.x;
 		s_MouseY = App::s_Event.motion.y;
-		ManageBuildingState();
+
+		if (s_UIState == UIState::building)
+		{
+			ManageBuildingState();
+			return;
+		}
+
+		ManageCamera();
 		return;
-	case SDL_MOUSEBUTTONUP:
+	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
 		App::s_CurrentLevel->HandleMouseButtonEvent();
 		return;
@@ -251,6 +265,9 @@ void App::EventHandler()
 		{
 		case SDLK_b:
 			SwitchBuildingState();
+			return;
+		case SDLK_y:
+			SwitchCameraMode();
 			return;
 		// Function keys
 		case SDLK_F1:
@@ -321,6 +338,36 @@ void App::Update()
 
 	App::s_Manager.Refresh();
 	App::s_Manager.Update();
+
+	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0 || s_CameraMovement.moveY != 0))
+	{
+		s_Camera.x += s_CameraMovement.moveX;
+		s_Camera.y += s_CameraMovement.moveY;
+
+		if (s_Camera.x < 0)
+		{
+			s_Camera.x = 0;
+			s_CameraMovement.moveX = 0;
+		}
+		else if (s_Camera.x > s_CurrentLevel->m_MapData.at(3) - s_Camera.w)
+		{
+			s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
+			s_CameraMovement.moveX = 0;
+		}
+
+		if (s_Camera.y < 0)
+		{
+			s_Camera.y = 0;
+			s_CameraMovement.moveY = 0;
+		}
+		else if (s_Camera.y > s_CurrentLevel->m_MapData.at(4) - s_Camera.h)
+		{
+			s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
+			s_CameraMovement.moveY = 0;
+		}
+		
+		s_CurrentLevel->OnUpdateCamera();
+	}
 }
 
 void App::Render()
@@ -353,8 +400,6 @@ void App::DrawUI()
 void App::UpdateCamera()
 {
 	Vector2D basePos = App::s_CurrentLevel->GetBase()->m_Pos;
-	float calculatedMapSizeX = float(App::s_CurrentLevel->m_MapData.at(0) * App::s_CurrentLevel->m_ScaledTileSize);
-	float calculatedMapSizeY = float(App::s_CurrentLevel->m_MapData.at(1) * App::s_CurrentLevel->m_ScaledTileSize);
 
 	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
 	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
@@ -363,18 +408,18 @@ void App::UpdateCamera()
 	{
 		App::s_Camera.x = 0;
 	}
-	else if (App::s_Camera.x > calculatedMapSizeX - App::s_Camera.w)
+	else if (App::s_Camera.x > s_CurrentLevel->m_MapData.at(3) - App::s_Camera.w)
 	{
-		App::s_Camera.x = calculatedMapSizeX - App::s_Camera.w;
+		App::s_Camera.x = s_CurrentLevel->m_MapData.at(3) - App::s_Camera.w;
 	}
 
 	if (App::s_Camera.y < 0)
 	{
 		App::s_Camera.y = 0;
 	}
-	else if (App::s_Camera.y > calculatedMapSizeY - App::s_Camera.h)
+	else if (App::s_Camera.y > s_CurrentLevel->m_MapData.at(4) - App::s_Camera.h)
 	{
-		App::s_Camera.y = calculatedMapSizeY - App::s_Camera.h;
+		App::s_Camera.y = s_CurrentLevel->m_MapData.at(4) - App::s_Camera.h;
 	}
 
 	App::s_CurrentLevel->OnUpdateCamera();
@@ -388,6 +433,9 @@ void App::OnResolutionChange()
 
 	App::s_Camera.w = (float)App::WINDOW_WIDTH;
 	App::s_Camera.h = (float)App::WINDOW_HEIGHT;
+
+	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
+	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
 
 	UpdateCamera();
 }
@@ -429,9 +477,6 @@ void App::SwitchBuildingState()
 
 void App::ManageBuildingState()
 {
-	if (s_UIState != UIState::building)
-		return;
-
 	s_Building.coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize);
 	s_Building.coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize);
 
@@ -472,7 +517,7 @@ void App::ManageBuildingState()
 	// 3: 1, 1,5
 	// x: 3 % 2 y: 3 / 2
 
-	for (auto i = 0u; i < 4; i++)
+	for (auto i = 0; i < 4; i++)
 	{
 		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
 		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
@@ -482,6 +527,67 @@ void App::ManageBuildingState()
 		s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
 		s_Building.canBuild = false;
 		return;
+	}
+}
+
+void App::ManageCamera()
+{
+	if (s_MouseX <= int32_t(s_CameraMovement.rangeW))
+	{
+		if (s_Camera.x > 0)
+		{
+			s_CameraMovement.moveX = -220 * s_ElapsedTime;
+		}
+		else
+		{
+			s_CameraMovement.moveX = 0;
+			s_Camera.x = 0;
+		}
+	}
+	else if (s_MouseX >= int32_t(s_Camera.w - s_CameraMovement.rangeW))
+	{
+		if (s_Camera.x + s_Camera.w < s_CurrentLevel->m_MapData.at(3))
+		{
+			s_CameraMovement.moveX = 220 * s_ElapsedTime;
+		}
+		else
+		{
+			s_CameraMovement.moveX = 0;
+			s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
+		}
+	}
+	else
+	{
+		s_CameraMovement.moveX = 0;
+	}
+
+	if (s_MouseY <= int32_t(s_CameraMovement.rangeH))
+	{
+		if (s_Camera.y > 0)
+		{
+			s_CameraMovement.moveY = -220 * s_ElapsedTime;
+		}
+		else
+		{
+			s_CameraMovement.moveY = 0;
+			s_Camera.y = 0;
+		}
+	}
+	else if (s_MouseY >= int32_t(s_Camera.h - s_CameraMovement.rangeH))
+	{
+		if (s_Camera.y + s_Camera.h < s_CurrentLevel->m_MapData.at(4))
+		{
+			s_CameraMovement.moveY = 220 * s_ElapsedTime;
+		}
+		else
+		{
+			s_CameraMovement.moveY = 0;
+			s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
+		}
+	}
+	else
+	{
+		s_CameraMovement.moveY = 0;
 	}
 }
 
