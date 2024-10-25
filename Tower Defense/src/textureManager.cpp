@@ -19,7 +19,7 @@ TextureManager::~TextureManager()
 	TTF_Quit();
 }
 
-void TextureManager::AddTexture(std::string_view textureID, const char* path)
+void TextureManager::AddTexture(const std::string &textureID, const char* path)
 {
 	SDL_Surface* tempSurface = IMG_Load(path);
 	if (!tempSurface)
@@ -34,7 +34,7 @@ void TextureManager::AddTexture(std::string_view textureID, const char* path)
 	}
 	SDL_FreeSurface(tempSurface);
 
-	textures.emplace(std::string(textureID), texture);
+	textures.emplace(textureID, texture);
 }
 
 void TextureManager::DrawTexture(SDL_Texture* texture, const SDL_Rect& src, const SDL_Rect& dest, double angle, SDL_RendererFlip flip)

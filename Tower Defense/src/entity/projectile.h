@@ -17,7 +17,7 @@ class Projectile : public Entity
 {
 public:
 	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
-	Projectile(const Projectile &r) : m_Texture(r.m_Texture), srcRect(r.srcRect), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
+	Projectile(const Projectile &r) : m_Texture(r.m_Texture), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
 		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner) {}
 	~Projectile() = default;
 
@@ -29,7 +29,6 @@ public:
 		}
 
 		m_Texture = r.m_Texture;
-		srcRect = r.srcRect;
 		destRect = r.destRect;
 		m_Angle = r.m_Angle;
 		m_Pos = r.m_Pos;
@@ -55,8 +54,9 @@ public:
 	ProjectileType GetType() const { return m_Type; }
 private:
 	static constexpr float baseVelocity = 200.0f;
+	static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Texture* m_Texture = nullptr;
-	SDL_Rect srcRect{ 0, 0, 16, 16 }, destRect{ 0, 0, 18, 18 };
+	SDL_Rect destRect{ 0, 0, 18, 18 };
 	double m_Angle = 360;
 	Vector2D m_Pos{ 0.0f, 0.0f };
 	Vector2D m_Velocity{ 0.0f, 0.0f };

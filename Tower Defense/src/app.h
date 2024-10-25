@@ -5,9 +5,11 @@
 #include "entity/attacker.h"
 #include "entity/enemy.h"
 #include "entity/projectile.h"
+#include "entity/tower.h"
 #include "level.h"
 #include "textureManager.h"
 #include "logger.h"
+#include "Vector2D.h"
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -15,6 +17,7 @@
 
 #include <memory>
 #include <random>
+#include <vector>
 
 struct CameraMovement
 {
@@ -175,7 +178,7 @@ public:
 
 	void ManageCamera();
 
-	static inline std::string_view TextureOf(AttackerType type)
+	static inline std::string TextureOf(AttackerType type)
 	{
 		switch (type)
 		{
@@ -189,7 +192,7 @@ public:
 		return "";
 	}
 
-	static inline std::string_view TextureOf(EnemyType type)
+	static inline std::string TextureOf(EnemyType type)
 	{
 		switch (type)
 		{
@@ -205,7 +208,7 @@ public:
 		return "";
 	}
 
-	static inline std::string_view TextureOf(ProjectileType type)
+	static inline std::string TextureOf(ProjectileType type)
 	{
 		switch (type)
 		{

@@ -4,6 +4,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <filesystem>
 
 struct proxy_hash {
 	using is_transparent = void;
@@ -19,7 +20,7 @@ public:
 	TextureManager() = default;
 	~TextureManager();
 
-	void AddTexture(std::string_view textureID, const char* path);
+	void AddTexture(const std::string& textureID, const char* path);
 
 	// DrawTexture is responsible for drawing rectangles with integer values
 	// angle is NULL and flip is SDL_FLIP_NONE by default

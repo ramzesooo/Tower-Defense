@@ -187,17 +187,17 @@ App::App()
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
-	UpdateCamera();
-
-	m_PauseLabel = App::s_Manager.NewLabel(int32_t(App::s_Camera.w) - 10, 10, "PAUSED", App::s_Textures.GetFont("default"));
+	m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
 	m_PauseLabel->m_Drawable = false;
 
 	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 #ifdef DEBUG
-	s_EnemiesAmountLabel = App::s_Manager.NewLabel(10, 200, " ", App::s_Textures.GetFont("default"));
+	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
 #endif
+
+	UpdateCamera();
 
 	m_IsRunning = initialized;
 }
@@ -206,8 +206,8 @@ App::~App()
 {
 	m_Levels.clear();
 
-	if (App::s_Renderer)
-		SDL_DestroyRenderer(App::s_Renderer);
+	if (s_Renderer)
+		SDL_DestroyRenderer(s_Renderer);
 
 	if (m_Window)
 		SDL_DestroyWindow(m_Window);
@@ -218,13 +218,13 @@ App::~App()
 
 void App::EventHandler()
 {
-	SDL_PollEvent(&App::s_Event);
+	SDL_PollEvent(&s_Event);
 
-	switch (App::s_Event.type)
+	switch (s_Event.type)
 	{
 	// WINDOW EVENTS
 	case SDL_WINDOWEVENT:
-		switch (App::s_Event.window.event)
+		switch (s_Event.window.event)
 		{
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				OnResolutionChange();
@@ -242,8 +242,8 @@ void App::EventHandler()
 	
 	// MOUSE EVENTS
 	case SDL_MOUSEMOTION:
-		s_MouseX = App::s_Event.motion.x;
-		s_MouseY = App::s_Event.motion.y;
+		s_MouseX = s_Event.motion.x;
+		s_MouseY = s_Event.motion.y;
 
 		if (s_UIState == UIState::building)
 		{
@@ -251,7 +251,12 @@ void App::EventHandler()
 			return;
 		}
 
-		ManageCamera();
+		if (!s_IsCameraLocked)
+		{
+			ManageCamera();
+			return;
+		}
+
 		return;
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
@@ -263,46 +268,56 @@ void App::EventHandler()
 	case SDL_KEYDOWN:
 		switch (App::s_Event.key.keysym.sym)
 		{
-		case SDLK_b:
+		case SDLK_b: // switch between building state
 			SwitchBuildingState();
 			return;
-		case SDLK_y:
+		case SDLK_y: // lock/unlock camera movement
 			SwitchCameraMode();
 			return;
+		case SDLK_TAB: // move the camera to the primary point (base)
+			{
+				const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+
+				s_Camera.x = basePos.x - s_Camera.w / 2.0f;
+				s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+
+				UpdateCamera();
+			}
+			return;
 		// Function keys
-		case SDLK_F1:
+		case SDLK_F1: // resolution 800x600
 			SDL_SetWindowSize(m_Window, 800, 600);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F2:
+		case SDLK_F2: // resolution 1024x768
 			SDL_SetWindowSize(m_Window, 1024, 768);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F3:
+		case SDLK_F3: // resolution 1280x720
 			SDL_SetWindowSize(m_Window, 1280, 720);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F4:
+		case SDLK_F4: // resolution 1920x1080
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F5:
+		case SDLK_F5: // Add life
 			AddLifes();
 			return;
-		case SDLK_F6:
+		case SDLK_F6: // Take life
 			TakeLifes();
 			return;
-		case SDLK_F7:
+		case SDLK_F7: // Add coin
 			AddCoins();
 			return;
-		case SDLK_F8:
+		case SDLK_F8: // Take coin
 			TakeCoins();
 			return;
-		case SDLK_F10:
+		case SDLK_F10: // Destroy all enemies
 			for (const auto &e : g_Enemies)
 				e->Destroy();
 			return;
-		case SDLK_F11:
+		case SDLK_F11: // Switch fullscreen
 			if (m_IsFullscreen)
 			{
 				SDL_SetWindowFullscreen(m_Window, 0);
@@ -339,34 +354,12 @@ void App::Update()
 	App::s_Manager.Refresh();
 	App::s_Manager.Update();
 
-	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0 || s_CameraMovement.moveY != 0))
+	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f))
 	{
 		s_Camera.x += s_CameraMovement.moveX;
 		s_Camera.y += s_CameraMovement.moveY;
 
-		if (s_Camera.x < 0)
-		{
-			s_Camera.x = 0;
-			s_CameraMovement.moveX = 0;
-		}
-		else if (s_Camera.x > s_CurrentLevel->m_MapData.at(3) - s_Camera.w)
-		{
-			s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
-			s_CameraMovement.moveX = 0;
-		}
-
-		if (s_Camera.y < 0)
-		{
-			s_Camera.y = 0;
-			s_CameraMovement.moveY = 0;
-		}
-		else if (s_Camera.y > s_CurrentLevel->m_MapData.at(4) - s_Camera.h)
-		{
-			s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
-			s_CameraMovement.moveY = 0;
-		}
-		
-		s_CurrentLevel->OnUpdateCamera();
+		UpdateCamera();
 	}
 }
 
@@ -399,43 +392,50 @@ void App::DrawUI()
 
 void App::UpdateCamera()
 {
-	Vector2D basePos = App::s_CurrentLevel->GetBase()->m_Pos;
-
-	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
-	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
-
-	if (App::s_Camera.x < 0)
+	if (s_Camera.x < 0.0f)
 	{
-		App::s_Camera.x = 0;
+		s_Camera.x = 0.0f;
+		s_CameraMovement.moveX = 0.0f;
 	}
-	else if (App::s_Camera.x > s_CurrentLevel->m_MapData.at(3) - App::s_Camera.w)
+	else if (s_Camera.x > s_CurrentLevel->m_MapData.at(3) - s_Camera.w)
 	{
-		App::s_Camera.x = s_CurrentLevel->m_MapData.at(3) - App::s_Camera.w;
+		s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
+		s_CameraMovement.moveX = 0.0f;
 	}
 
-	if (App::s_Camera.y < 0)
+	if (s_Camera.y < 0.0f)
 	{
-		App::s_Camera.y = 0;
+		s_Camera.y = 0.0f;
+		s_CameraMovement.moveY = 0.0f;
 	}
-	else if (App::s_Camera.y > s_CurrentLevel->m_MapData.at(4) - App::s_Camera.h)
+	else if (s_Camera.y > s_CurrentLevel->m_MapData.at(4) - s_Camera.h)
 	{
-		App::s_Camera.y = s_CurrentLevel->m_MapData.at(4) - App::s_Camera.h;
+		s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
+		s_CameraMovement.moveY = 0.0f;
 	}
 
-	App::s_CurrentLevel->OnUpdateCamera();
+	s_CurrentLevel->OnUpdateCamera();
 }
 
 void App::OnResolutionChange()
 {
-	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
+	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
-	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - App::s_Camera.w), 10 });
+	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
 
-	App::s_Camera.w = (float)App::WINDOW_WIDTH;
-	App::s_Camera.h = (float)App::WINDOW_HEIGHT;
+	s_Camera.w = (float)App::WINDOW_WIDTH;
+	s_Camera.h = (float)App::WINDOW_HEIGHT;
 
 	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
 	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
+
+	if (s_IsCameraLocked || (s_CameraMovement.moveX == 0.0f && s_CameraMovement.moveY == 0.0f))
+	{
+		const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+
+		s_Camera.x = basePos.x - s_Camera.w / 2.0f;
+		s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+	}
 
 	UpdateCamera();
 }
@@ -446,15 +446,20 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 	std::ifstream mapFile;
 	for (uint16_t i = 0; i < Level::s_LayersAmount; i++)
 	{
-		path = "levels\\" + std::to_string(App::s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
+		path = "levels\\" + std::to_string(s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(path);
 
-		App::s_CurrentLevel->Setup(mapFile, i);
+		s_CurrentLevel->Setup(mapFile, i);
 	}
 
-	App::s_CurrentLevel->SetupBase(baseX, baseY);
+	s_CurrentLevel->SetupBase(baseX, baseY);
 
-	App::s_Logger.AddLog("Loaded level " + std::to_string(App::s_CurrentLevel->GetID() + 1));
+	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+
+	s_Camera.x = basePos.x - s_Camera.w / 2.0f;
+	s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+
+	s_Logger.AddLog("Loaded level " + std::to_string(s_CurrentLevel->GetID() + 1));
 }
 
 void App::SwitchBuildingState()
@@ -534,60 +539,28 @@ void App::ManageCamera()
 {
 	if (s_MouseX <= int32_t(s_CameraMovement.rangeW))
 	{
-		if (s_Camera.x > 0)
-		{
-			s_CameraMovement.moveX = -220 * s_ElapsedTime;
-		}
-		else
-		{
-			s_CameraMovement.moveX = 0;
-			s_Camera.x = 0;
-		}
+		s_CameraMovement.moveX = -330.0f * s_ElapsedTime;
 	}
 	else if (s_MouseX >= int32_t(s_Camera.w - s_CameraMovement.rangeW))
 	{
-		if (s_Camera.x + s_Camera.w < s_CurrentLevel->m_MapData.at(3))
-		{
-			s_CameraMovement.moveX = 220 * s_ElapsedTime;
-		}
-		else
-		{
-			s_CameraMovement.moveX = 0;
-			s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
-		}
+		s_CameraMovement.moveX = 330.0f * s_ElapsedTime;
 	}
 	else
 	{
-		s_CameraMovement.moveX = 0;
+		s_CameraMovement.moveX = 0.0f;
 	}
 
 	if (s_MouseY <= int32_t(s_CameraMovement.rangeH))
 	{
-		if (s_Camera.y > 0)
-		{
-			s_CameraMovement.moveY = -220 * s_ElapsedTime;
-		}
-		else
-		{
-			s_CameraMovement.moveY = 0;
-			s_Camera.y = 0;
-		}
+		s_CameraMovement.moveY = -330.0f * s_ElapsedTime;
 	}
 	else if (s_MouseY >= int32_t(s_Camera.h - s_CameraMovement.rangeH))
 	{
-		if (s_Camera.y + s_Camera.h < s_CurrentLevel->m_MapData.at(4))
-		{
-			s_CameraMovement.moveY = 220 * s_ElapsedTime;
-		}
-		else
-		{
-			s_CameraMovement.moveY = 0;
-			s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
-		}
+		s_CameraMovement.moveY = 330.0f * s_ElapsedTime;
 	}
 	else
 	{
-		s_CameraMovement.moveY = 0;
+		s_CameraMovement.moveY = 0.0f;
 	}
 }
 

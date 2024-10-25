@@ -1,8 +1,9 @@
 #pragma once
 #include "entity.h"
+#include "attacker.h"
+#include "projectile.h"
 #include "health.h"
 #include "tile.h"
-#include "projectile.h"
 #include "label.h"
 #include "anim.h"
 #include "../Vector2D.h"
