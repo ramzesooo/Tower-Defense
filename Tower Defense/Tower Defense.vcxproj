@@ -275,6 +275,7 @@
     <ClCompile Include="src\level.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\menu.cpp" />
     <ClCompile Include="src\textureManager.cpp" />
     <ClCompile Include="src\entity\tile.cpp" />
     <ClCompile Include="src\entity\tower.cpp" />
@@ -291,6 +292,7 @@
     <ClInclude Include="src\entity\label.h" />
     <ClInclude Include="src\level.h" />
     <ClInclude Include="src\logger.h" />
+    <ClInclude Include="src\menu.h" />
     <ClInclude Include="src\textureManager.h" />
     <ClInclude Include="src\entity\tile.h" />
     <ClInclude Include="src\entity\tower.h" />

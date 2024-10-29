@@ -3,13 +3,13 @@
 #include "../app.h"
 #include "../logger.h"
 
-Label::Label(int32_t posX, int32_t posY, std::string_view text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
+Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
 	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)
 {
 	destRect.x = posX;
 	destRect.y = posY;
 
-	SDL_Surface* surface = TTF_RenderText_Blended(m_Font, std::string(m_Text).c_str(), m_Color);
+	SDL_Surface* surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
 	{
 		App::s_Logger.AddLog("Failed to create a surface in Label::UpdateText");
@@ -55,9 +55,9 @@ void Label::Draw()
 	SDL_RenderCopy(App::s_Renderer, m_Texture, nullptr, &destRect);
 }
 
-void Label::UpdateText(std::string_view text)
+void Label::UpdateText(const std::string& text)
 {
-	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, std::string(text).c_str(), m_Color);
+	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
 	{
 		App::s_Logger.AddLog("Failed to create a surface in Label::UpdateText");

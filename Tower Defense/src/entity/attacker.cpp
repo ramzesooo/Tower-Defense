@@ -11,9 +11,11 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 		case AttackerType::archer:
 		case AttackerType::musketeer:
 			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f;
+			m_ProjectileType = ProjectileType::arrow;
 			break;
 		case AttackerType::hunter:
 			m_Pos.x -= (float)App::s_CurrentLevel->m_ScaledTileSize / 4.0f;
+			m_ProjectileType = ProjectileType::arrow;
 			break;
 	}
 	destRect.w = Attacker::s_AttackerWidth * m_Scale;
@@ -48,7 +50,7 @@ void Attacker::Update()
 	if (IsAttacking() && SDL_TICKS_PASSED(ticks, m_NextShot))
 	{
 		m_NextShot = SDL_GetTicks() + m_ShotCooldown;
-		App::s_CurrentLevel->AddProjectile(ProjectileType::arrow, this, m_Target);
+		App::s_CurrentLevel->AddProjectile(m_ProjectileType, this, m_Target);
 	}
 
 	srcRect.x = srcRect.w * (((ticks - m_AdjustedTicks) / m_CurrentAnim.speed) % m_CurrentAnim.frames);

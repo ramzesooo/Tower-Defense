@@ -25,6 +25,9 @@ class Tower;
 class Enemy : public Entity
 {
 public:
+	static constexpr int32_t s_EnemyWidth = 32;
+	static constexpr int32_t s_EnemyHeight = 32;
+
 	static SDL_Texture *s_ArrowTexture; // texture of arrow showing where are the enemies out of camera
 	// vector of attackers targeting this specific enemy
 	std::vector<Attacker*> m_Attackers;

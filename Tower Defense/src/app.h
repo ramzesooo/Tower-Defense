@@ -1,4 +1,5 @@
 #pragma once
+#include "menu.h"
 #include "entity/label.h"
 #include "entity/entity.h"
 #include "entity/tile.h"
@@ -15,6 +16,7 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
+#include <string>
 #include <memory>
 #include <random>
 #include <vector>
@@ -51,6 +53,7 @@ public:
 enum class UIState
 {
 	none = 0, // none means game is running by default
+	mainMenu,
 	building
 };
 
@@ -74,6 +77,8 @@ class App
 public:
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
+
+	static MainMenu s_MainMenu;
 
 	static TextureManager s_Textures;
 	static Logger s_Logger;
@@ -134,6 +139,7 @@ public:
 
 		switch (state)
 		{
+		case UIState::mainMenu:
 		case UIState::building:
 			return true;
 		case UIState::none:
@@ -153,16 +159,25 @@ public:
 		m_PreviousUIState = s_UIState;
 		s_UIState = state;
 
+		std::string_view UIStateString;
+
 		switch (state)
 		{
+		case UIState::mainMenu:
+			UIStateString = "mainMenu";
+			[[fallthrough]];
 		case UIState::none:
+			UIStateString = "none";
 			m_PauseLabel->m_Drawable = false;
-			return;
+			break;
 		case UIState::building:
+			UIStateString = "building";
 			m_PauseLabel->m_Drawable = true;
 			ManageBuildingState();
-			return;
+			break;
 		}
+
+		s_Logger.AddLog("UI State modified to: " + std::string(UIStateString));
 	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	void LoadLevel(uint32_t baseX, uint32_t baseY);
@@ -279,6 +294,7 @@ public:
 
 private:
 	bool m_IsRunning = false;
+	bool m_MainMenu = true;
 	bool m_IsFullscreen = false;
 
 	SDL_Window *m_Window = nullptr;

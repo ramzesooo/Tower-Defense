@@ -4,7 +4,6 @@
 
 #include <unordered_map>
 #include <string>
-#include <filesystem>
 
 struct proxy_hash {
 	using is_transparent = void;

@@ -9,6 +9,8 @@ constexpr uint16_t levelsToLoad = 1;
 int32_t App::WINDOW_WIDTH = 800;
 int32_t App::WINDOW_HEIGHT = 600;
 
+MainMenu App::s_MainMenu;
+
 TextureManager App::s_Textures;
 Logger App::s_Logger;
 Manager App::s_Manager;
@@ -23,7 +25,7 @@ uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 
-UIState App::s_UIState = UIState::none;
+UIState App::s_UIState = UIState::mainMenu;
 
 int32_t App::s_MouseX = 0;
 int32_t App::s_MouseY = 0;
@@ -84,7 +86,6 @@ App::App()
 #else
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
 #endif
-	//App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!App::s_Renderer)
 	{
 		App::s_Logger.AddLog(SDL_GetError());
@@ -92,13 +93,16 @@ App::App()
 	}
 
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
-	SDL_SetRenderDrawColor(App::s_Renderer, 50, 50, 200, 255);
+	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
 
-	s_CameraMovement.rangeW = WINDOW_WIDTH / 5;
-	s_CameraMovement.rangeH = WINDOW_HEIGHT / 5;
+	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
+	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
 
 	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
 
+	App::s_Textures.AddTexture("szpaku", "assets\\szpaku.jpg");
+	App::s_Textures.AddTexture("buttonUI", "assets\\ui\\ui_button.png");
+	App::s_Textures.AddTexture("hoveredButtonUI", "assets\\ui\\ui_button_hovered.png");
 	App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
 	App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
 	App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
@@ -127,6 +131,9 @@ App::App()
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
 	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);
+
+	Button::s_DefaultButton = App::s_Textures.GetTexture("buttonUI");
+	Button::s_HoveredButton = App::s_Textures.GetTexture("hoveredButtonUI");
 
 	s_GreenTex = App::s_Textures.GetTexture("green");
 	s_Square = App::s_Textures.GetTexture("square");
@@ -367,9 +374,16 @@ void App::Render()
 {
 	SDL_RenderClear(App::s_Renderer);
 
-	App::s_CurrentLevel->Render();
+	if (s_UIState == UIState::mainMenu)
+	{
+		s_MainMenu.Render();
+	}
+	else
+	{
+		App::s_CurrentLevel->Render();
 
-	DrawUI();
+		DrawUI();
+	}
 
 	SDL_RenderPresent(App::s_Renderer);
 }
@@ -512,15 +526,6 @@ void App::ManageBuildingState()
 			return;
 		}
 	}
-
-	// 0: 0, 0
-	// x: 0 % 2 y: 0 / 2
-	// 1: 1, 0,5
-	// x: 1 % 2 y: 1 / 2
-	// 2: 0, 1
-	// x: 2 % 2 y: 2 / 2
-	// 3: 1, 1,5
-	// x: 3 % 2 y: 3 / 2
 
 	for (auto i = 0; i < 4; i++)
 	{

@@ -81,6 +81,7 @@ private:
 	const uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 	Tower* m_OccupiedTower;
 	AttackerType m_Type;
+	ProjectileType m_ProjectileType = ProjectileType::arrow;
 	SDL_Texture* m_Texture = nullptr;
 	uint16_t m_Scale = 1;
 

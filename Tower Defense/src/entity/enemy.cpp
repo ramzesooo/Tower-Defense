@@ -5,9 +5,6 @@
 
 #include <cmath>
 
-constexpr int32_t enemyWidth = 32;
-constexpr int32_t enemyHeight = 32;
-
 extern std::vector<Entity*> &g_Towers;
 #ifdef DEBUG
 extern std::vector<Entity*> &g_Enemies;
@@ -19,8 +16,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
 {
-	destRect.w = enemyWidth * m_Scale;
-	destRect.h = enemyHeight * m_Scale;
+	destRect.w = Enemy::s_EnemyWidth * m_Scale;
+	destRect.h = Enemy::s_EnemyHeight * m_Scale;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
@@ -58,9 +55,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	//m_RectHP.labelHP = App::s_Manager.NewEntity<Label>(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
-	//m_RectHP.labelHP->AddGroup(EntityGroup::label);
-
 	m_RectHP.labelHP = App::s_Manager.NewLabel(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
 
 	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
@@ -89,12 +83,6 @@ void Enemy::Destroy()
 {
 	m_IsActive = false;
 
-	/*if (m_RectHP.labelHP)
-	{
-		m_RectHP.labelHP->m_AttachedTo = nullptr;
-		m_RectHP.labelHP->Destroy();
-	}*/
-
 	if (m_OccupiedTile)
 	{
 		m_OccupiedTile->SetOccupyingEntity(nullptr);
@@ -122,7 +110,7 @@ void Enemy::Update()
 	UpdateMovement();
 
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
-	srcRect.y = m_CurrentAnim.index * enemyHeight;
+	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 
 	Attacker* attacker = nullptr;
 	for (const auto &tower : g_Towers)
@@ -292,8 +280,6 @@ void Enemy::UpdateMovement()
 	}
 
 	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
-	/*m_Pos.x += m_Velocity.x * App::s_ElapsedTime;
-	m_Pos.y += m_Velocity.y * App::s_ElapsedTime;*/
 
 	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.x = 0.0f;
@@ -335,11 +321,9 @@ void Enemy::UpdateHealthBar()
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
 
-	//m_RectHP.barRect = m_RectHP.squareRect;
 	m_RectHP.barRect.x = m_RectHP.squareRect.x;
 	m_RectHP.barRect.y = m_RectHP.squareRect.y;
 	m_RectHP.barRect.w = std::fabs(onePercent * (-m_HPPercent));
-	//m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
@@ -383,12 +367,11 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	int32_t enemyX = (int32_t)m_Pos.x;
 	int32_t enemyY = (int32_t)m_Pos.y;
 
-	int x, y;
 	// Tower's position is based on left-upper tile occupied by the tower
 	for (auto i = 0; i < 4; i++)
 	{
-		x = i % 2;
-		y = i / 2;
+		auto x = i % 2;
+		auto y = i / 2;
 
 		if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
 			&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
