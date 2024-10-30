@@ -38,12 +38,12 @@ class MainMenu
 {
 public:
 	static MenuState s_State;
-	// [0] = Play, [1] = Options, [2] = Exit
 
 	MainMenu();
 	~MainMenu() = default;
 
 	void Render();
 
+	// [0] = Play, [1] = Options, [2] = Exit
 	std::array<Button, 3> m_PrimaryButtons;
 };

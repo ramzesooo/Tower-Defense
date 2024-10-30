@@ -25,7 +25,11 @@ uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 
+#ifdef DEBUG
 UIState App::s_UIState = UIState::mainMenu;
+#else
+UIState App::s_UIState = UIState::none;
+#endif
 
 int32_t App::s_MouseX = 0;
 int32_t App::s_MouseY = 0;
@@ -203,6 +207,34 @@ App::App()
 #ifdef DEBUG
 	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
 #endif
+
+	// MAIN MENU
+	Button *btn = nullptr;
+	// Button "Play"
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(0);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Play", App::s_Textures.GetFont("default"));
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+	}
+
+	// Button "Options"
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(1);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Options", App::s_Textures.GetFont("default"));
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+	}
+
+	// Button "Exit"
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(2);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Exit", App::s_Textures.GetFont("default"));
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+	}
+
+	// MAIN MENU
 
 	UpdateCamera();
 

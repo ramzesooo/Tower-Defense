@@ -14,10 +14,11 @@ MainMenu::MainMenu()
 	// TODO: Recalculate destination rectangle after changing resolution and whatsoever
 	for (auto i = 0; i < m_PrimaryButtons.size(); ++i)
 	{
-		m_PrimaryButtons.at(i).destRect.w = App::WINDOW_WIDTH / 7;
-		m_PrimaryButtons.at(i).destRect.h = App::WINDOW_HEIGHT / 14;
-		m_PrimaryButtons.at(i).destRect.x = centerX - m_PrimaryButtons.at(i).destRect.w / 2;
-		m_PrimaryButtons.at(i).destRect.y = centerY - m_PrimaryButtons.at(i).destRect.h / 2 + (i - 1) * (m_PrimaryButtons.at(i).destRect.h + m_PrimaryButtons.at(i).destRect.h / 4);
+		Button *btn = &m_PrimaryButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (i - 1) * (btn->destRect.h + btn->destRect.h / 4);
 	}
 }
 
