@@ -284,8 +284,8 @@ void Level::AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy*
 
 void Level::HandleMouseButtonEvent()
 {
-	if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)
-	{
+	//if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)
+	//{
 		if (App::s_UIState == UIState::building)
 		{
 			if (App::s_Building.canBuild)
@@ -304,11 +304,11 @@ void Level::HandleMouseButtonEvent()
 				return;
 			}
 		}
-	}
-	else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
-	{
+	//}
+	//else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
+	//{
 
-	}
+	//}
 }
 
 void Level::InitWave()

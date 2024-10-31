@@ -58,9 +58,10 @@ public:
 
 	Vector2D GetPos() const { return { (float)destRect.x, (float)destRect.y }; }
 	SDL_Rect GetRect() const { return destRect; }
+	const std::string &GetText() const { return m_Text; }
 private:
 	bool m_OnStack = false; // false if it's unique pointer in Manager's vector
-	std::string_view m_Text = "";
+	std::string m_Text = "";
 	TTF_Font *m_Font = nullptr;
 	SDL_Texture *m_Texture = nullptr;
 	SDL_Rect destRect { 0, 0, 0, 0 };

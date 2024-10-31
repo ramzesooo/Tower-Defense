@@ -75,6 +75,8 @@ struct BuildingState
 class App
 {
 public:
+	static bool s_IsRunning;
+
 	static int32_t WINDOW_WIDTH;
 	static int32_t WINDOW_HEIGHT;
 
@@ -129,7 +131,7 @@ public:
 
 	void OnResolutionChange();
 
-	bool IsRunning() const { return m_IsRunning; }
+	bool IsRunning() const { return s_IsRunning; }
 
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
@@ -293,7 +295,6 @@ public:
 	}
 
 private:
-	bool m_IsRunning = false;
 	bool m_MainMenu = true;
 	bool m_IsFullscreen = false;
 

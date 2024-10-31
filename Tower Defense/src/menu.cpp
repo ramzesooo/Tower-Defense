@@ -32,9 +32,72 @@ void MainMenu::Render()
 		case MenuState::primary:
 			for (auto i = 0; i < m_PrimaryButtons.size(); ++i)
 				m_PrimaryButtons.at(i).Draw();
-
 			return;
 		default:
 			return;
+	}
+}
+
+void MainMenu::HandleMouseButtonEvent()
+{
+	if (!m_HoveredButton)
+		return;
+
+	App::s_Logger.AddLog("Pressed button " + m_HoveredButton->m_Label.GetText());
+
+	switch (s_State)
+	{
+	case MenuState::primary:
+		if (m_HoveredButton == &m_PrimaryButtons.at(0))
+		{
+
+		}
+		else if (m_HoveredButton == &m_PrimaryButtons.at(1))
+		{
+
+		}
+		else if (m_HoveredButton == &m_PrimaryButtons.at(2))
+		{
+			m_HoveredButton = nullptr;
+			App::s_IsRunning = false;
+		}
+		return;
+	}
+}
+
+void MainMenu::OnCursorMove()
+{
+	if (m_HoveredButton)
+	{
+		const SDL_Rect &destRect = m_HoveredButton->destRect;
+
+		if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
+			&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
+		{
+			return;
+		}
+		else
+		{
+			m_HoveredButton->m_IsHovered = false;
+			m_HoveredButton = nullptr;
+		}
+	}
+
+	switch (s_State)
+	{
+	case MenuState::primary:
+		for (auto i = 0; i < m_PrimaryButtons.size(); ++i)
+		{
+			const SDL_Rect &destRect = m_PrimaryButtons.at(i).destRect;
+
+			if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
+				&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
+			{
+				m_PrimaryButtons.at(i).m_IsHovered = true;
+				m_HoveredButton = &m_PrimaryButtons.at(i);
+				return;
+			}
+		}
+		return;
 	}
 }

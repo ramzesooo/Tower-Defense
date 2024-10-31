@@ -44,6 +44,10 @@ public:
 
 	void Render();
 
+	void HandleMouseButtonEvent();
+	void OnCursorMove();
+
+	Button *m_HoveredButton = nullptr;
 	// [0] = Play, [1] = Options, [2] = Exit
 	std::array<Button, 3> m_PrimaryButtons;
 };

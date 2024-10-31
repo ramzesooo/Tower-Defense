@@ -6,6 +6,8 @@
 constexpr uint16_t levelsToLoad = 1;
 
 // class App STATIC VARIABLES
+bool App::s_IsRunning = false;
+
 int32_t App::WINDOW_WIDTH = 800;
 int32_t App::WINDOW_HEIGHT = 600;
 
@@ -213,32 +215,32 @@ App::App()
 	// Button "Play"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Play", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", App::s_Textures.GetFont("default"));
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
 
 	// Button "Options"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(1);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Options", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", App::s_Textures.GetFont("default"));
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
 
 	// Button "Exit"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(2);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 2, "Exit", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", App::s_Textures.GetFont("default"));
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y - labelRect.h / 2);
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
 
 	// MAIN MENU
 
 	UpdateCamera();
 
-	m_IsRunning = initialized;
+	App::s_IsRunning = initialized;
 }
 
 App::~App()
@@ -296,10 +298,19 @@ void App::EventHandler()
 			return;
 		}
 
+		if (s_UIState == UIState::mainMenu)
+		{
+			s_MainMenu.OnCursorMove();
+			return;
+		}
+
 		return;
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
-		App::s_CurrentLevel->HandleMouseButtonEvent();
+		if (s_UIState == UIState::mainMenu)
+			s_MainMenu.HandleMouseButtonEvent();
+		else
+			App::s_CurrentLevel->HandleMouseButtonEvent();
 		return;
 	// END OF MOUSE EVENTS
 
@@ -370,13 +381,13 @@ void App::EventHandler()
 			return;
 		// End of function keys
 		case SDLK_ESCAPE:
-			m_IsRunning = false;
+			s_IsRunning = false;
 			return;
 		}
 		return;
 	// END OF KEYBOARD EVENTS
 	case SDL_QUIT:
-		m_IsRunning = false;
+		s_IsRunning = false;
 		return;
 	default:
 		return;
