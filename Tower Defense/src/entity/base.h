@@ -13,9 +13,6 @@ public:
 	SDL_Rect destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos{ 0, 0 };
 	SDL_Texture *m_Texture = nullptr;
-#ifdef DEBUG
-	Label *m_AttachedLabel = nullptr;
-#endif
 	Tile *m_Tile = nullptr;
 
 	uint16_t m_Lifes = 0;
@@ -23,6 +20,6 @@ public:
 
 	const SDL_Rect& GetRect() const { return destRect; }
 
-	void Draw();
+	void Draw() const;
 	void AdjustToView();
 };

@@ -2,12 +2,8 @@
 #include "../app.h"
 #include "../textureManager.h"
 
-void Base::Draw()
+void Base::Draw() const
 {
-#ifdef DEBUG
-	m_AttachedLabel->Draw();
-#endif
-
 	if (!m_IsActive)
 		return;
 

@@ -50,7 +50,10 @@ void MainMenu::HandleMouseButtonEvent()
 	case MenuState::primary:
 		if (m_HoveredButton == &m_PrimaryButtons.at(0))
 		{
-
+			App::LoadLevel();
+			App::Instance().SetUIState(UIState::none);
+			App::Instance().UpdateCamera();
+			App::UpdateLifes();
 		}
 		else if (m_HoveredButton == &m_PrimaryButtons.at(1))
 		{

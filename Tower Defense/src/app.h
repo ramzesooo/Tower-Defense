@@ -121,6 +121,8 @@ public:
 	App();
 	~App();
 
+	static App &Instance() { return *s_Instance; }
+
 	void EventHandler();
 	void Update();
 	void Render();
@@ -182,7 +184,7 @@ public:
 		s_Logger.AddLog("UI State modified to: " + std::string(UIStateString));
 	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
-	void LoadLevel(uint32_t baseX, uint32_t baseY);
+	static void LoadLevel();
 
 	void SwitchBuildingState();
 	void ManageBuildingState();
@@ -291,10 +293,17 @@ public:
 			s_CurrentLevel->GetBase()->m_Lifes -= lifes;
 		}
 
+		UpdateLifes();
+	}
+
+	static inline void UpdateLifes()
+	{
 		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 private:
+	static App *s_Instance;
+
 	bool m_MainMenu = true;
 	bool m_IsFullscreen = false;
 

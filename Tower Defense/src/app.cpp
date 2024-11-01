@@ -6,6 +6,8 @@
 constexpr uint16_t levelsToLoad = 1;
 
 // class App STATIC VARIABLES
+App *App::s_Instance = nullptr;
+
 bool App::s_IsRunning = false;
 
 int32_t App::WINDOW_WIDTH = 800;
@@ -74,6 +76,8 @@ auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 App::App()
 {
+	App::s_Instance = this;
+
 	bool initialized = true;
 
 	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
@@ -166,16 +170,7 @@ App::App()
 	}
 	else
 	{
-		LoadLevel((uint32_t)App::s_CurrentLevel->m_BasePos.x, (uint32_t)App::s_CurrentLevel->m_BasePos.y);
-
-#ifdef DEBUG
-		auto newLabel = App::s_Manager.NewLabel(4, 2, "pos", App::s_Textures.GetFont("default"));
-
-		Base* base = App::s_CurrentLevel->GetBase();
-
-		base->m_AttachedLabel = newLabel;
-		newLabel->UpdateText("(" + std::to_string(base->m_Pos.x) + ", " + std::to_string(base->m_Pos.y) + ")");
-#endif
+		//LoadLevel();
 
 		// UI ELEMENTS
 		s_UIWaves.destRect = { (int32_t)App::s_Camera.w / 30, (int32_t)App::s_Camera.h / 30, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
@@ -238,7 +233,7 @@ App::App()
 
 	// MAIN MENU
 
-	UpdateCamera();
+	//UpdateCamera();
 
 	App::s_IsRunning = initialized;
 }
@@ -497,7 +492,7 @@ void App::OnResolutionChange()
 	UpdateCamera();
 }
 
-void App::LoadLevel(uint32_t baseX, uint32_t baseY)
+void App::LoadLevel()
 {
 	std::string path;
 	std::ifstream mapFile;
@@ -509,7 +504,7 @@ void App::LoadLevel(uint32_t baseX, uint32_t baseY)
 		s_CurrentLevel->Setup(mapFile, i);
 	}
 
-	s_CurrentLevel->SetupBase(baseX, baseY);
+	s_CurrentLevel->SetupBase((uint32_t)s_CurrentLevel->m_BasePos.x, (uint32_t)s_CurrentLevel->m_BasePos.y);
 
 	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 
