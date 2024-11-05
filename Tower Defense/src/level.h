@@ -37,6 +37,9 @@ class Level
 public:
 	constexpr static uint16_t s_LayersAmount = 3;
 	constexpr static uint16_t s_TileSize = 24;
+
+	static SDL_Texture *s_Texture; // map tiles
+
 	std::array<uint16_t, 5> m_MapData{}; // 0 = width (tiles amount), 1 = height (tiles amount), 2 = scale, 3 = width in pixels, 4 = height in pixels
 	uint16_t m_ScaledTileSize = 0;
 
@@ -47,8 +50,10 @@ public:
 
 	void Setup(std::ifstream& mapFile, uint16_t layerID);
 
-	// Base is signed as regular tile
+	// Base is signed as a regular tile
 	void SetupBase(uint32_t posX, uint32_t posY);
+
+	void Clean();
 
 	// All methods adding entities (such as tower, attacker and enemy) call AddGroup inside of them
 
@@ -73,18 +78,19 @@ public:
 
 	uint16_t GetID() const { return m_LevelID; }
 
-	bool DidLoadingFail() const { return m_FailedLoading; }
+	bool HasLoadingFailed() const { return m_FailedLoading; }
 
 	Base* GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
 	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
-	inline Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
+	Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();
 
-	inline std::size_t GetWavesAmount() const { return m_Waves.size(); }
+	std::size_t GetWavesAmount() const { return m_Waves.size(); }
+	std::size_t GetCurrentWave() const { return m_CurrentWave; }
 
 	// NOTE: It's not used anywhere and probably it's not needed anymore.
 	// Chunk can contain nullptr as a tile which means it's out of a map
@@ -92,12 +98,11 @@ public:
 	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
 private:
 	bool m_FailedLoading = false;
-	SDL_Texture* m_Texture = nullptr; // map tiles
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0;
-	std::array<Layer, s_LayersAmount> layers;
-	std::vector<Tile*> spawners;
+	std::array<Layer, s_LayersAmount> m_Layers;
+	std::vector<Tile*> m_Spawners;
 
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
 	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{};
@@ -109,4 +114,6 @@ private:
 	std::size_t m_CurrentWave = 0;
 	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
 	uint32_t m_WaveCooldown = 0;
+
+	std::vector<Tile*> m_PathTiles;
 };

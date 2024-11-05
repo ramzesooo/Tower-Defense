@@ -29,11 +29,7 @@ uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 
-#ifdef DEBUG
 UIState App::s_UIState = UIState::mainMenu;
-#else
-UIState App::s_UIState = UIState::none;
-#endif
 
 int32_t App::s_MouseX = 0;
 int32_t App::s_MouseY = 0;
@@ -142,15 +138,17 @@ App::App()
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
 	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);
 
+	App::s_GreenTex = App::s_Textures.GetTexture("green");
+	App::s_Square = App::s_Textures.GetTexture("square");
+
 	Button::s_DefaultButton = App::s_Textures.GetTexture("buttonUI");
 	Button::s_HoveredButton = App::s_Textures.GetTexture("hoveredButtonUI");
-
-	s_GreenTex = App::s_Textures.GetTexture("green");
-	s_Square = App::s_Textures.GetTexture("square");
 
 	UIElement::s_BgTexture = App::s_Textures.GetTexture("elementUI");
 	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
 	UIElement::s_HeartTexture = App::s_Textures.GetTexture("heartUI");
+
+	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
 	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
 
@@ -163,18 +161,16 @@ App::App()
 
 	App::s_CurrentLevel = m_Levels.at(0).get();
 
-	if (!App::s_CurrentLevel || App::s_CurrentLevel->DidLoadingFail())
+	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
 	{
 		App::s_Logger.AddLog("First level couldn't be loaded properly.");
 		initialized = false;
 	}
-	else
-	{
-		//LoadLevel();
 
+	{
 		// UI ELEMENTS
 		s_UIWaves.destRect = { (int32_t)App::s_Camera.w / 30, (int32_t)App::s_Camera.h / 30, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
-		s_UIWaves.m_Label = Label(s_UIWaves.destRect.x, s_UIWaves.destRect.y, "Wave: 1/" + std::to_string(s_CurrentLevel->GetWavesAmount()), App::s_Textures.GetFont("default"));
+		s_UIWaves.m_Label = Label(s_UIWaves.destRect.x, s_UIWaves.destRect.y, "Wave: 1/1", App::s_Textures.GetFont("default"));
 		SDL_Rect labelRect = s_UIWaves.m_Label.GetRect();
 		s_UIWaves.m_Label.UpdatePos(labelRect.x + (s_UIWaves.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UIWaves.destRect.h / 2 - labelRect.h / 2));
 
@@ -185,7 +181,7 @@ App::App()
 		UIElement::coinDestRect = { s_UICoins.destRect.x + UIElement::coinRect.w, s_UICoins.destRect.y + s_UICoins.destRect.h / 4, UIElement::coinRect.w * 3, s_UICoins.destRect.h / 2 };
 
 		s_UILifes.destRect = { (int32_t)App::s_Camera.w / 30, s_UICoins.destRect.y + s_UICoins.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
-		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, std::to_string(s_CurrentLevel->GetBase()->m_Lifes), App::s_Textures.GetFont("default"));
+		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, "-", App::s_Textures.GetFont("default"));
 		labelRect = s_UILifes.m_Label.GetRect();
 		s_UILifes.m_Label.UpdatePos(labelRect.x + (s_UILifes.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UILifes.destRect.h / 2 - labelRect.h / 2));
 		UIElement::heartDestRect = { s_UILifes.destRect.x, s_UILifes.destRect.y + s_UILifes.destRect.h / 4, UIElement::heartRect.w, s_UILifes.destRect.h - UIElement::heartRect.h / 2 };
@@ -198,7 +194,7 @@ App::App()
 	m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
 	m_PauseLabel->m_Drawable = false;
 
-	SDL_Rect pauseLabelRect = m_PauseLabel->GetRect();
+	const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 #ifdef DEBUG

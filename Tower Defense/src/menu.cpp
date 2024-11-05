@@ -53,8 +53,10 @@ void MainMenu::HandleMouseButtonEvent()
 			App::LoadLevel();
 			App::Instance().SetUIState(UIState::none);
 			App::Instance().UpdateCamera();
+			App::UpdateWaves();
 			App::UpdateLifes();
-		}
+			App::s_CurrentLevel->GetBase()->m_IsActive = true;
+ 		}
 		else if (m_HoveredButton == &m_PrimaryButtons.at(1))
 		{
 

@@ -6,6 +6,9 @@
 #include <sstream>
 #include <cmath>
 
+SDL_Texture *Level::s_Texture = nullptr;
+
+constexpr uint16_t pathID = 1026;
 constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
 
@@ -19,7 +22,7 @@ extern std::vector<Entity*> &g_Enemies;
 extern std::default_random_engine g_Rng;
 
 Level::Level(uint16_t levelID)
-	: m_LevelID(levelID), m_Texture(App::s_Textures.GetTexture("mapSheet"))
+	: m_LevelID(levelID)
 {
 	// LOAD CONFIG
 	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\" + configName);
@@ -106,7 +109,7 @@ Level::Level(uint16_t levelID)
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
-	if (layerID < 0 || layerID >= layers.size())
+	if (layerID < 0 || layerID >= m_Layers.size())
 	{
 		App::s_Logger.AddLog("Failed to load level " + std::to_string(m_LevelID + 1));
 		App::s_Logger.AddLog("Layer " + std::to_string(layerID) + " is less than 0 or higher than expected amount of layers");
@@ -160,41 +163,75 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 		break;
 	}*/
 
-	Layer* newLayer = &layers.at(layerID);
+	Layer* newLayer = &m_Layers.at(layerID);
 	newLayer->tiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
 
 	Tile* tile = nullptr;
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
-	for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
+	if (layerID < 2)
 	{
-		x = i % m_MapData.at(0);
-		y = i / m_MapData.at(1);
-		tileCode = mapData.at(y).at(x);
-		srcX = tileCode % 10;
-		srcY = tileCode / 10;
-		//tile = App::s_Manager.NewEntity<Tile>(srcX * m_TileSize, srcY * m_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, m_TileSize, m_MapScale, m_Texture, tileType);
-		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData[2], m_Texture, tileType);
-
-		if (tile)
+		for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
 		{
-			//tile->AddGroup(EntityGroup::tile);
+			x = i % m_MapData.at(0);
+			y = i / m_MapData.at(1);
+			tileCode = mapData.at(y).at(x);
+			srcX = tileCode % 10;
+			srcY = tileCode / 10;
+			tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
 
-			if (tileCode == spawnerID)
+			if (!tile)
 			{
-				spawners.push_back(tile);
+				m_FailedLoading = true;
+				App::s_Logger.AddLog("Couldn't load a tile (", false);
+				App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
+				App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
 			}
+
+			newLayer->tiles.emplace_back(tile);
 		}
-		else
+	}
+	else
+	{
+		for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
 		{
-			m_FailedLoading = true;
-			App::s_Logger.AddLog("Couldn't load a tile (", false);
-			App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
-			App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
+			x = i % m_MapData.at(0);
+			y = i / m_MapData.at(1);
+			tileCode = mapData.at(y).at(x);
+			srcX = tileCode % 10;
+			srcY = tileCode / 10;
+			tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
+
+			if (tile)
+			{
+				if (tileCode == spawnerID)
+				{
+					m_Spawners.emplace_back(tile);
+				}
+				else if (tileCode == pathID)
+				{
+					m_PathTiles.emplace_back(tile);
+				}
+			}
+			else
+			{
+				m_FailedLoading = true;
+				App::s_Logger.AddLog("Couldn't load a tile (", false);
+				App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
+				App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
+			}
+
+			newLayer->tiles.emplace_back(tile);
 		}
 
-		newLayer->tiles.emplace_back(tile);
+		m_PathTiles.resize(m_PathTiles.size());
+		m_PathTiles.shrink_to_fit();
+
+#ifdef DEBUG
+		App::s_Logger.AddLog("Added " + std::to_string(m_Spawners.size()) + " spawners");
+		App::s_Logger.AddLog("Added " + std::to_string(m_PathTiles.size()) + " path tiles");
+#endif
 	}
 
 	mapFile.close();
@@ -205,13 +242,30 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	int32_t scaledPosX = posX * m_ScaledTileSize;
 	int32_t scaledPosY = posY * m_ScaledTileSize;
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
-	m_Base.destRect = { scaledPosX, scaledPosY, m_Base.destRect.w * 2, m_Base.destRect.h * 2 };
+	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
 	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
 
 	App::s_Logger.AddLog("Created base (", false);
 	App::s_Logger.AddLog(std::to_string(scaledPosX) + ", " + std::to_string(scaledPosY) + ")");
+}
+
+void Level::Clean()
+{
+	App::s_Manager.DestroyAllEntities();
+
+	for (auto &layer : m_Layers)
+	{
+		layer.tiles.clear();
+	}
+	m_PathTiles.clear();
+	m_Spawners.clear();
+	App::s_Manager.DestroyAllTiles();
+
+	m_CurrentWave = 0;
+	m_WaveProgress = WaveProgress::OnCooldown;
+	m_SpecificEnemiesAmount = {};
 }
 
 Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
@@ -313,22 +367,22 @@ void Level::HandleMouseButtonEvent()
 
 void Level::InitWave()
 {
-	if (spawners.empty())
+	if (m_Spawners.empty())
 	{
 		App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to missing spawners\n");
 		return;
 	}
 
-	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, spawners.size() - 1);
+	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
-	Tile* spawner = spawners.at(spawnerDistr(g_Rng));
+	Tile* spawner = m_Spawners.at(spawnerDistr(g_Rng));
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
 	Vector2D moveVector;
 
 	EnemyType type = EnemyType::elf;
-	for (std::size_t i = 0u; i < (std::size_t)EnemyType::size; ++i)
+	for (std::size_t i = 0; i < (std::size_t)EnemyType::size; ++i)
 	{
 		if (m_SpecificEnemiesAmount[i] == m_Waves.at(m_CurrentWave)[i])
 			continue;
@@ -362,7 +416,7 @@ void Level::ManageWaves()
 
 			InitWave();
 
-			App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(m_CurrentWave + 1) + "/" + std::to_string(GetWavesAmount()));
+			App::UpdateWaves();
 
 			m_WaveProgress = WaveProgress::Initializing;
 		}
@@ -371,18 +425,13 @@ void Level::ManageWaves()
 		InitWave();
 		return;
 	case WaveProgress::InProgress:
-		if (g_Enemies.size() == 0)
+		if (!m_Base.m_IsActive)
 		{
-			m_WaveProgress = WaveProgress::Finished;
-			m_SpecificEnemiesAmount = {};
+			Clean();
+			App::Instance().SetUIState(UIState::mainMenu);
 		}
-		else if (!m_Base.m_IsActive)
+		else if (g_Enemies.size() == 0)
 		{
-			for (const auto &e : g_Enemies)
-			{
-				e->Destroy();
-			}
-
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = {};
 		}
@@ -400,9 +449,9 @@ void Level::ManageWaves()
 
 void Level::Render()
 {
-	for (auto i = 0u; i < layers.size(); ++i)
+	for (std::size_t i = 0; i < m_Layers.size(); ++i)
 	{
-		for (const auto &tile : layers.at(i).tiles)
+		for (const auto &tile : m_Layers.at(i).tiles)
 		{
 			// Might be necessary, but the game isn't supposed to create nullptr tiles, if it does, then it's probably an issue with level
 			//if (!tile)
@@ -433,7 +482,7 @@ void Level::Render()
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 {
-	if (layer < 0 || layer >= layers.size())
+	if (layer < 0 || layer >= m_Layers.size())
 	{
 		App::s_Logger.AddLog("Requested a tile from " + std::to_string(posX) + ", " + std::to_string(posY), false);
 		App::s_Logger.AddLog(", but layer " + std::to_string(layer) + " doesn't exist");
@@ -443,14 +492,14 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
 		return nullptr;
 
-	return layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
+	return m_Layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
 }
 
 void Level::OnUpdateCamera()
 {
-	for (auto i = 0u; i < layers.size(); ++i)
+	for (std::size_t i = 0; i < m_Layers.size(); ++i)
 	{
-		for (const auto &tile : layers.at(i).tiles)
+		for (const auto &tile : m_Layers.at(i).tiles)
 		{
 			//if (!tile)
 				//continue;

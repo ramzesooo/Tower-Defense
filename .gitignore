@@ -392,3 +392,5 @@ FodyWeavers.xsd
 /Tower Defense/assets/ui/tile_Upgrade.png
 /Tower Defense/assets/ui/tile_Upgrade.pyxel
 /Tower Defense/assets/grayArrow_32x32.pyxel
+/Tower Defense/levels/1/map.pyxel
+/Tower Defense/levels/0/map.pyxel

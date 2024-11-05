@@ -105,6 +105,11 @@ public:
 
 		entities.clear();
 	}
+
+	inline void DestroyAllTiles()
+	{
+		tiles.clear();
+	}
 private:
 	std::vector<std::unique_ptr<Tile>> tiles;
 	std::vector<std::unique_ptr<Label>> labels;

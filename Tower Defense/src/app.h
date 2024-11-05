@@ -160,28 +160,29 @@ public:
 		if (s_UIState == state)
 			return;
 
+		std::string_view newState;
+
 		m_PreviousUIState = s_UIState;
 		s_UIState = state;
-
-		std::string_view UIStateString;
 
 		switch (state)
 		{
 		case UIState::mainMenu:
-			UIStateString = "mainMenu";
-			[[fallthrough]];
+			newState = "mainMenu";
+			m_PauseLabel->m_Drawable = false;
+			break;
 		case UIState::none:
-			UIStateString = "none";
+			newState = "none";
 			m_PauseLabel->m_Drawable = false;
 			break;
 		case UIState::building:
-			UIStateString = "building";
+			newState = "building";
 			m_PauseLabel->m_Drawable = true;
 			ManageBuildingState();
 			break;
 		}
 
-		s_Logger.AddLog("UI State modified to: " + std::string(UIStateString));
+		s_Logger.AddLog("App::SetUIState: " + std::string(newState));
 	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
@@ -294,6 +295,12 @@ public:
 		}
 
 		UpdateLifes();
+	}
+
+	// Updates waves amount in UI
+	static inline void UpdateWaves()
+	{
+		App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(s_CurrentLevel->GetCurrentWave() + 1) + "/" + std::to_string(s_CurrentLevel->GetWavesAmount()));
 	}
 
 	static inline void UpdateLifes()
