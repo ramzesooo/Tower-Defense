@@ -288,6 +288,7 @@ public:
 		{
 			s_CurrentLevel->GetBase()->m_Lifes = 0;
 			s_CurrentLevel->GetBase()->m_IsActive = false;
+			App::Instance().SetUIState(UIState::none);
 		}
 		else
 		{

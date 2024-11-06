@@ -19,6 +19,10 @@ public:
 	static SDL_Texture *s_DefaultButton;
 	static SDL_Texture *s_HoveredButton;
 
+	Label m_Label;
+	bool m_IsHovered = false;
+	SDL_Rect destRect{ 0, 0, 0, 0 };
+
 	inline void Draw()
 	{
 		if (m_IsHovered)
@@ -28,10 +32,6 @@ public:
 
 		m_Label.Draw();
 	}
-
-	Label m_Label;
-	bool m_IsHovered = false;
-	SDL_Rect destRect{ 0, 0, 0, 0 };
 };
 
 class MainMenu
@@ -46,6 +46,7 @@ public:
 
 	void HandleMouseButtonEvent();
 	void OnCursorMove();
+	void OnResolutionChange(bool init = false);
 
 	Button *m_HoveredButton = nullptr;
 	// [0] = Play, [1] = Options, [2] = Exit

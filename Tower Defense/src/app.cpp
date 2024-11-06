@@ -72,9 +72,12 @@ auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 App::App()
 {
-	App::s_Instance = this;
-
 	bool initialized = true;
+
+	if (!App::s_Instance)
+		App::s_Instance = this;
+	else
+		initialized = false;
 
 	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if (!m_Window)
@@ -228,8 +231,6 @@ App::App()
 	}
 
 	// MAIN MENU
-
-	//UpdateCamera();
 
 	App::s_IsRunning = initialized;
 }
@@ -484,6 +485,8 @@ void App::OnResolutionChange()
 		s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 		s_Camera.y = basePos.y - s_Camera.h / 2.0f;
 	}
+
+	s_MainMenu.OnResolutionChange();
 
 	UpdateCamera();
 }

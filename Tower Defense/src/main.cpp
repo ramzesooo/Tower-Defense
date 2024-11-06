@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
+#include <format>
 #include <chrono>
 
 // SDL2 2.30.8
@@ -10,7 +11,6 @@
 // SDL2_ttf 2.22.0
 
 constexpr uint32_t logsCooldown = 1000;
-uint32_t frames = 1;
 
 int main(int argc, char** arg)
 {
@@ -20,9 +20,19 @@ int main(int argc, char** arg)
 	{
 		App::s_Logger.AddLog("Arg: " + std::to_string(i) + ": " + arg[i]);
 	}
+
+	{
+		SDL_version SDLVersion{};
+
+		SDL_VERSION(&SDLVersion); // compiled version
+		App::s_Logger.AddLog(std::format("\nSDL version:\nCompiled: {}.{}.{}", SDLVersion.major, SDLVersion.minor, SDLVersion.patch));
+
+		SDL_GetVersion(&SDLVersion); // linked version
+		App::s_Logger.AddLog(std::format("Linked: {}.{}.{}\n", SDLVersion.major, SDLVersion.minor, SDLVersion.patch));
+	}
 #endif
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || TTF_Init() != 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0 || TTF_Init() != 0)
 	{
 		App::s_Logger.AddLog(SDL_GetError());
 	}
@@ -44,25 +54,22 @@ int main(int argc, char** arg)
 	std::chrono::duration<float> elapsedTime = tp2 - tp1;
 	tp1 = tp2;
 
+#ifdef DEBUG
+	uint32_t frames = 0;
+#endif
+
 	while (app.IsRunning())
 	{
-		++frames;
-
 #ifdef DEBUG
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
+		frames++;
+
+		if (SDL_GetTicks() > logsTime)
 		{
 			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
+			logsTime = SDL_GetTicks() + logsCooldown;
+			frames = 0;
 			App::s_Logger.PrintQueuedLogs();
 			App::s_Logger.ClearLogs();
-			logsTime = SDL_GetTicks() + logsCooldown;
-			frames = 0;
-		}
-#else
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), logsTime))
-		{
-			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
-			logsTime = SDL_GetTicks() + logsCooldown;
-			frames = 0;
 		}
 #endif
 
