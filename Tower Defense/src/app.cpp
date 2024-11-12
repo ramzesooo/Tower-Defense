@@ -170,26 +170,33 @@ App::App()
 		initialized = false;
 	}
 
+	// UI ELEMENTS
 	{
-		// UI ELEMENTS
 		s_UIWaves.destRect = { (int32_t)App::s_Camera.w / 30, (int32_t)App::s_Camera.h / 30, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
 		s_UIWaves.m_Label = Label(s_UIWaves.destRect.x, s_UIWaves.destRect.y, "Wave: 1/1", App::s_Textures.GetFont("default"));
-		SDL_Rect labelRect = s_UIWaves.m_Label.GetRect();
+		
+		const SDL_Rect &labelRect = s_UIWaves.m_Label.GetRect();
 		s_UIWaves.m_Label.UpdatePos(labelRect.x + (s_UIWaves.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UIWaves.destRect.h / 2 - labelRect.h / 2));
+	}
 
+	{
 		s_UICoins.destRect = { (int32_t)App::s_Camera.w / 30, s_UIWaves.destRect.y + s_UIWaves.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
 		s_UICoins.m_Label = Label(s_UICoins.destRect.x, s_UICoins.destRect.y, std::to_string(m_Coins), App::s_Textures.GetFont("default"));
-		labelRect = s_UICoins.m_Label.GetRect();
+		
+		const SDL_Rect &labelRect = s_UICoins.m_Label.GetRect();
 		s_UICoins.m_Label.UpdatePos(labelRect.x + (s_UICoins.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UICoins.destRect.h / 2 - labelRect.h / 2));
 		UIElement::coinDestRect = { s_UICoins.destRect.x + UIElement::coinRect.w, s_UICoins.destRect.y + s_UICoins.destRect.h / 4, UIElement::coinRect.w * 3, s_UICoins.destRect.h / 2 };
+	}
 
+	{
 		s_UILifes.destRect = { (int32_t)App::s_Camera.w / 30, s_UICoins.destRect.y + s_UICoins.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
 		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, "-", App::s_Textures.GetFont("default"));
-		labelRect = s_UILifes.m_Label.GetRect();
+		
+		const SDL_Rect &labelRect = s_UILifes.m_Label.GetRect();
 		s_UILifes.m_Label.UpdatePos(labelRect.x + (s_UILifes.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UILifes.destRect.h / 2 - labelRect.h / 2));
 		UIElement::heartDestRect = { s_UILifes.destRect.x, s_UILifes.destRect.y + s_UILifes.destRect.h / 4, UIElement::heartRect.w, s_UILifes.destRect.h - UIElement::heartRect.h / 2 };
-		// UI ELEMENTS
 	}
+	// UI ELEMENTS
 
 	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
@@ -204,8 +211,21 @@ App::App()
 	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
 #endif
 
+	int32_t centerX = App::WINDOW_WIDTH / 2;
+	int32_t centerY = App::WINDOW_HEIGHT / 2;
+
 	// MAIN MENU
 	Button *btn = nullptr;
+
+	for (std::size_t i = 0; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + ((int32_t)i - 1) * (btn->destRect.h + btn->destRect.h / 4);
+	}
+
 	// Button "Play"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(0);
@@ -331,17 +351,14 @@ void App::EventHandler()
 			SDL_SetWindowSize(m_Window, 800, 600);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F2: // resolution 1024x768
-			SDL_SetWindowSize(m_Window, 1024, 768);
-			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			return;
-		case SDLK_F3: // resolution 1280x720
+		case SDLK_F2: // resolution 1280x720
 			SDL_SetWindowSize(m_Window, 1280, 720);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F4: // resolution 1920x1080
+		case SDLK_F3: // resolution 1920x1080
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+			//SDL_MaximizeWindow(m_Window);
 			return;
 		case SDLK_F5: // Add life
 			AddLifes();

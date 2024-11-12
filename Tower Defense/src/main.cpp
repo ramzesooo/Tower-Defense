@@ -10,7 +10,7 @@
 // SDL2_image 2.8.2
 // SDL2_ttf 2.22.0
 
-constexpr uint32_t logsCooldown = 1000;
+static constexpr uint32_t logsCooldown = 1000;
 
 int main(int argc, char** arg)
 {
@@ -60,19 +60,6 @@ int main(int argc, char** arg)
 
 	while (app.IsRunning())
 	{
-#ifdef DEBUG
-		frames++;
-
-		if (SDL_GetTicks() > logsTime)
-		{
-			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
-			logsTime = SDL_GetTicks() + logsCooldown;
-			frames = 0;
-			App::s_Logger.PrintQueuedLogs();
-			App::s_Logger.ClearLogs();
-		}
-#endif
-
 		tp2 = std::chrono::system_clock::now();
 		elapsedTime = tp2 - tp1;
 		tp1 = tp2;
@@ -82,6 +69,18 @@ int main(int argc, char** arg)
 		app.EventHandler();
 		app.Update();
 		app.Render();
+
+#ifdef DEBUG
+		frames++;
+		if (SDL_GetTicks() > logsTime)
+		{
+			SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
+			logsTime = SDL_GetTicks() + logsCooldown;
+			frames = 0;
+			App::s_Logger.PrintQueuedLogs();
+			App::s_Logger.ClearLogs();
+		}
+#endif
 	}
 
 	return 0;

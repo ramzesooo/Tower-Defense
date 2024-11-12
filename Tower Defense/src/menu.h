@@ -39,14 +39,11 @@ class MainMenu
 public:
 	static MenuState s_State;
 
-	MainMenu();
-	~MainMenu() = default;
-
 	void Render();
 
 	void HandleMouseButtonEvent();
 	void OnCursorMove();
-	void OnResolutionChange(bool init = false);
+	void OnResolutionChange();
 
 	Button *m_HoveredButton = nullptr;
 	// [0] = Play, [1] = Options, [2] = Exit
