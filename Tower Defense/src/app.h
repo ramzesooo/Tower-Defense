@@ -117,6 +117,10 @@ public:
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
+#ifdef DEBUG
+	static bool s_Speedy;
+#endif
+
 public:
 	App();
 	~App();

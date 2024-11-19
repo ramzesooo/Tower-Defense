@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <cmath>
+#include <format>
 
 constexpr uint16_t levelsToLoad = 1;
 
@@ -61,6 +62,10 @@ Label *App::s_EnemiesAmountLabel = nullptr;
 bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
+
+#ifdef DEBUG
+bool App::s_Speedy = false;
+#endif
 // END
 
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -360,6 +365,18 @@ void App::EventHandler()
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			//SDL_MaximizeWindow(m_Window);
 			return;
+#ifdef DEBUG
+		case SDLK_F4: // Speed up enemies' movement speed
+			s_Speedy = !s_Speedy;
+
+			for (const auto &e : g_Enemies)
+			{
+				static_cast<Enemy*>(e)->SpeedUp();
+			}
+
+			s_Logger.AddLog(std::format("Enemies' speed up: {}", s_Speedy));
+			return;
+#endif
 		case SDLK_F5: // Add life
 			AddLifes();
 			return;
@@ -521,6 +538,8 @@ void App::LoadLevel()
 	}
 
 	s_CurrentLevel->SetupBase((uint32_t)s_CurrentLevel->m_BasePos.x, (uint32_t)s_CurrentLevel->m_BasePos.y);
+
+	App::Instance().m_Coins = 5;
 
 	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 

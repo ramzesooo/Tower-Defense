@@ -102,7 +102,14 @@ public:
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
 
 	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
+
+#ifdef DEBUG
+	void SpeedUp();
+#endif
 private:
+#ifdef DEBUG
+	bool m_Speedy = false;
+#endif
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
@@ -122,6 +129,8 @@ private:
 	uint16_t m_HP = 0;
 	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
+
+	uint16_t m_Coins = 1; // coins granted for killing the enemy
 
 	Animation m_CurrentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;

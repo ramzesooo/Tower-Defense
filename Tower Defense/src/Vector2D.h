@@ -96,6 +96,24 @@ public:
 		return *this;
 	}
 
+	template<typename T>
+	inline Vector2D& operator*=(const T& i)
+	{
+		this->x *= i;
+		this->y *= i;
+
+		return *this;
+	}
+
+	template <typename T>
+	inline Vector2D& operator/=(const T& i)
+	{
+		this->x /= i;
+		this->y /= i;
+
+		return *this;
+	}
+
 	inline Vector2D& Zero()
 	{
 		this->x = 0.0f;

@@ -4,6 +4,7 @@
 #include "../level.h"
 
 #include <cmath>
+#include <format>
 
 extern std::vector<Entity*> &g_Towers;
 #ifdef DEBUG
@@ -38,20 +39,32 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	case EnemyType::elf:
 		m_HP = m_MaxHP = 50;
 		m_MovementSpeed = 1.5f;
+		m_Coins = 1;
 		break;
 	case EnemyType::goblinWarrior:
 		m_HP = m_MaxHP = 85;
 		m_MovementSpeed = 1.35f;
+		m_Coins = 1;
 		break;
 	case EnemyType::dwarfSoldier:
 		m_HP = m_MaxHP = 120;
 		m_MovementSpeed = 1.3f;
+		m_Coins = 2;
 		break;
 	case EnemyType::dwarfKing:
 		m_HP = m_MaxHP = 130;
 		m_MovementSpeed = 1.4f;
+		m_Coins = 4;
 		break;
 	}
+
+#ifdef DEBUG
+	if (App::s_Speedy)
+	{
+		m_MovementSpeed *= 2.0f;
+		m_Speedy = true;
+	}
+#endif
 
 	PlayAnim("Idle");
 
@@ -346,6 +359,9 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	}
 	else
 	{
+		App::s_Logger.AddLog(std::format("Added {} coins for killing an enemy", m_Coins));
+		App::Instance().AddCoins(m_Coins);
+
 		m_HP = 0;
 		Destroy();
 		return;
@@ -382,3 +398,21 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 
 	return false;
 }
+
+#ifdef DEBUG
+void Enemy::SpeedUp()
+{
+	if (App::s_Speedy)
+	{
+		m_MovementSpeed *= 2.0f;
+		m_Velocity *= 2.0f;
+		m_Speedy = true;
+	}
+	else if (m_Speedy) // if turning off and the enemy is faster
+	{
+		m_MovementSpeed /= 2.0f;
+		m_Velocity /= 2.0f;
+		m_Speedy = false;
+	}
+}
+#endif
