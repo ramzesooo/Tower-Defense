@@ -54,6 +54,7 @@ SDL_Rect UIElement::heartDestRect;
 UIElement App::s_UICoins;
 UIElement App::s_UIWaves;
 UIElement App::s_UILifes;
+Label App::s_UICoinsNotification(2000);
 
 #ifdef DEBUG
 Label *App::s_EnemiesAmountLabel = nullptr;
@@ -186,16 +187,19 @@ App::App()
 
 	{
 		s_UICoins.destRect = { (int32_t)App::s_Camera.w / 30, s_UIWaves.destRect.y + s_UIWaves.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
-		s_UICoins.m_Label = Label(s_UICoins.destRect.x, s_UICoins.destRect.y, std::to_string(m_Coins), App::s_Textures.GetFont("default"));
+		s_UICoins.m_Label = Label(s_UICoins.destRect.x, s_UICoins.destRect.y, "100", App::s_Textures.GetFont("default"));
 		
 		const SDL_Rect &labelRect = s_UICoins.m_Label.GetRect();
 		s_UICoins.m_Label.UpdatePos(labelRect.x + (s_UICoins.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UICoins.destRect.h / 2 - labelRect.h / 2));
 		UIElement::coinDestRect = { s_UICoins.destRect.x + UIElement::coinRect.w, s_UICoins.destRect.y + s_UICoins.destRect.h / 4, UIElement::coinRect.w * 3, s_UICoins.destRect.h / 2 };
+	
+		s_UICoinsNotification = Label(labelRect.x + labelRect.w + labelRect.w / 2, labelRect.y, "+0", App::s_Textures.GetFont("default"));
+		s_UICoinsNotification.SetAlpha(0);
 	}
 
 	{
 		s_UILifes.destRect = { (int32_t)App::s_Camera.w / 30, s_UICoins.destRect.y + s_UICoins.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
-		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, "-", App::s_Textures.GetFont("default"));
+		s_UILifes.m_Label = Label(s_UILifes.destRect.x, s_UILifes.destRect.y, "100", App::s_Textures.GetFont("default"));
 		
 		const SDL_Rect &labelRect = s_UILifes.m_Label.GetRect();
 		s_UILifes.m_Label.UpdatePos(labelRect.x + (s_UILifes.destRect.w / 2 - labelRect.w / 2), labelRect.y + (s_UILifes.destRect.h / 2 - labelRect.h / 2));
@@ -468,6 +472,8 @@ void App::DrawUI()
 
 	s_UICoins.Draw();
 	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);
+
+	s_UICoinsNotification.Draw();
 	
 	s_UILifes.Draw();
 	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
@@ -539,7 +545,7 @@ void App::LoadLevel()
 
 	s_CurrentLevel->SetupBase((uint32_t)s_CurrentLevel->m_BasePos.x, (uint32_t)s_CurrentLevel->m_BasePos.y);
 
-	App::Instance().m_Coins = 5;
+	App::Instance().SetCoins(5);
 
 	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 

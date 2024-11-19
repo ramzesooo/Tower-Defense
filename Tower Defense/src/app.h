@@ -20,6 +20,7 @@
 #include <memory>
 #include <random>
 #include <vector>
+#include <format>
 
 struct CameraMovement
 {
@@ -109,6 +110,7 @@ public:
 	static UIElement s_UIWaves;
 	static UIElement s_UICoins;
 	static UIElement s_UILifes;
+	static Label s_UICoinsNotification;
 
 #ifdef DEBUG
 	static Label *s_EnemiesAmountLabel;
@@ -244,7 +246,20 @@ public:
 
 	static uint16_t GetDamageOf(ProjectileType type);
 
-	inline void SetCoins(uint16_t coins) { m_Coins = coins; }
+	inline void SetCoins(uint16_t coins, bool notify = false)
+	{
+		m_Coins = coins;
+
+		if (notify)
+		{
+			App::s_UICoinsNotification.UpdateText(std::format("={}", coins));
+			UpdateCoins();
+		}
+		else
+		{
+			App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+		}
+	}
 
 	// Arg is not required, adds 1 by default
 	inline void AddCoins(uint16_t coins = 1)
@@ -253,7 +268,8 @@ public:
 			return;
 
 		m_Coins += coins;
-		App::s_UICoins.m_Label.UpdateText(std::to_string(m_Coins));
+		App::s_UICoinsNotification.UpdateText(std::format("+{}", coins));
+		UpdateCoins();
 	}
 
 	// Arg is not required, takes 1 by default
@@ -267,7 +283,8 @@ public:
 		else
 			m_Coins -= coins;
 
-		App::s_UICoins.m_Label.UpdateText(std::to_string(m_Coins));
+		App::s_UICoinsNotification.UpdateText(std::format("-{}", coins));
+		UpdateCoins();
 	}
 
 	static inline void SetLifes(uint16_t lifes) { s_CurrentLevel->GetBase()->m_Lifes = lifes; }
@@ -311,6 +328,12 @@ public:
 	static inline void UpdateLifes()
 	{
 		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+	}
+
+	static inline void UpdateCoins()
+	{
+		App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+		App::s_UICoinsNotification.ResetAlpha();
 	}
 
 private:

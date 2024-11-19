@@ -49,8 +49,14 @@ void Label::Destroy()
 
 void Label::Draw()
 {
-	if (!m_Drawable || !m_Texture)
+	if (!m_Drawable || !m_Texture || m_Alpha <= 0)
 		return;
+
+	if (m_VanishDelay > 0 && (float)SDL_GetTicks() >= (float)m_Ticks + (float)m_VanishDelay / 255.0f)
+	{
+		m_Ticks = SDL_GetTicks();
+		SDL_SetTextureAlphaMod(m_Texture, m_Alpha--);
+	}
 
 	SDL_RenderCopy(App::s_Renderer, m_Texture, nullptr, &destRect);
 }

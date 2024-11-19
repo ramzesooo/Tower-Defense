@@ -5,15 +5,13 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-#include <string_view>
-
 class Label
 {
 public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_Drawable = true;
 
-	Label() : m_OnStack(true) {}
+	Label(uint32_t vanishable = NULL) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()) {}
 	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
 	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect),
 		m_Color(r.m_Color) {}
@@ -56,11 +54,22 @@ public:
 		destRect.y = posY;
 	}
 
+	inline void ResetAlpha()
+	{
+		m_Alpha = 255;
+		m_Ticks = SDL_GetTicks();
+	}
+
+	void SetAlpha(uint8_t alpha) { m_Alpha = alpha; }
+
 	Vector2D GetPos() const { return { (float)destRect.x, (float)destRect.y }; }
 	const SDL_Rect &GetRect() const { return destRect; }
 	const std::string &GetText() const { return m_Text; }
 private:
+	const uint32_t m_VanishDelay = NULL;
 	bool m_OnStack = false; // false if it's unique pointer in Manager's vector
+	uint32_t m_Ticks = NULL;
+	uint8_t m_Alpha = 255;
 	std::string m_Text = "";
 	TTF_Font *m_Font = nullptr;
 	SDL_Texture *m_Texture = nullptr;
