@@ -92,7 +92,7 @@ public:
 	static SDL_FRect s_Camera;
 
 	static Level *s_CurrentLevel;
-	static uint16_t s_TowerRange;
+	static constexpr uint16_t s_TowerRange = 3;
 	static float s_ElapsedTime;
 	static UIState s_UIState;
 	static int32_t s_MouseX;
@@ -319,17 +319,19 @@ public:
 		UpdateLifes();
 	}
 
-	// Updates waves amount in UI
+	// Updates waves displayed in UI
 	static inline void UpdateWaves()
 	{
 		App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(s_CurrentLevel->GetCurrentWave() + 1) + "/" + std::to_string(s_CurrentLevel->GetWavesAmount()));
 	}
 
+	// Updates lifes displayed in UI
 	static inline void UpdateLifes()
 	{
 		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
+	// Updates coins displayed in UI + resets alpha of amount of took or added coins
 	static inline void UpdateCoins()
 	{
 		App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));

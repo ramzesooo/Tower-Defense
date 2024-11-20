@@ -52,7 +52,7 @@ void Label::Draw()
 	if (!m_Drawable || !m_Texture || m_Alpha <= 0)
 		return;
 
-	if (m_VanishDelay > 0 && (float)SDL_GetTicks() >= (float)m_Ticks + (float)m_VanishDelay / 255.0f)
+	if (m_VanishDelay > 0 && (double)SDL_GetTicks() >= (double)m_Ticks + m_DelayPerAlphaUnit)
 	{
 		m_Ticks = SDL_GetTicks();
 		SDL_SetTextureAlphaMod(m_Texture, m_Alpha--);

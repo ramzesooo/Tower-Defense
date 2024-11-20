@@ -125,7 +125,7 @@ void Enemy::Update()
 	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 
-	Attacker* attacker = nullptr;
+	/*Attacker* attacker = nullptr;
 	for (const auto &tower : g_Towers)
 	{
 		attacker = static_cast<Tower*>(tower)->GetAttacker();
@@ -142,7 +142,7 @@ void Enemy::Update()
 		{
 			attacker->InitAttack(this);
 		}
-	}
+	}*/
 }
 
 void Enemy::Draw()
@@ -290,6 +290,25 @@ void Enemy::UpdateMovement()
 		m_OccupiedTile->SetOccupyingEntity(nullptr);
 		m_OccupiedTile = nextTile;
 		m_OccupiedTile->SetOccupyingEntity(this);
+
+		Attacker *attacker = nullptr;
+		for (const auto &tower : g_Towers)
+		{
+			attacker = static_cast<Tower*>(tower)->GetAttacker();
+
+			if (!attacker)
+				continue;
+
+			if (attacker->GetTarget() == this)
+			{
+				if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+					attacker->StopAttacking();
+			}
+			else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange((Tower*)tower, App::s_TowerRange))
+			{
+				attacker->InitAttack(this);
+			}
+		}
 	}
 
 	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;

@@ -26,7 +26,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 
 Level *App::s_CurrentLevel = nullptr;
 
-uint16_t App::s_TowerRange = 3;
+//uint16_t App::s_TowerRange = 3;
 
 float App::s_ElapsedTime = NULL;
 

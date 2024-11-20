@@ -11,7 +11,7 @@ public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_Drawable = true;
 
-	Label(uint32_t vanishable = NULL) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()) {}
+	Label(uint32_t vanishable = NULL) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(vanishable / 255.0) {}
 	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
 	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect),
 		m_Color(r.m_Color) {}
@@ -67,6 +67,7 @@ public:
 	const std::string &GetText() const { return m_Text; }
 private:
 	const uint32_t m_VanishDelay = NULL;
+	const double m_DelayPerAlphaUnit = NULL;
 	bool m_OnStack = false; // false if it's unique pointer in Manager's vector
 	uint32_t m_Ticks = NULL;
 	uint8_t m_Alpha = 255;
