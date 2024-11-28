@@ -58,6 +58,7 @@ Label App::s_UICoinsNotification(2000);
 
 #ifdef DEBUG
 Label *App::s_EnemiesAmountLabel = nullptr;
+Label *App::s_PointedPosition = nullptr;
 #endif
 
 bool App::s_IsCameraLocked = true;
@@ -218,6 +219,7 @@ App::App()
 
 #ifdef DEBUG
 	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
+	s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));
 #endif
 
 	int32_t centerX = App::WINDOW_WIDTH / 2;
@@ -306,6 +308,15 @@ void App::EventHandler()
 	case SDL_MOUSEMOTION:
 		s_MouseX = s_Event.motion.x;
 		s_MouseY = s_Event.motion.y;
+
+#ifdef DEBUG
+		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})", 
+			s_MouseX,
+			s_MouseY,
+			std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
+			std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+		)	);
+#endif
 
 		if (s_UIState == UIState::building)
 		{
@@ -458,6 +469,10 @@ void App::Render()
 		DrawUI();
 	}
 
+#ifdef DEBUG
+	s_PointedPosition->Draw();
+#endif
+
 	SDL_RenderPresent(App::s_Renderer);
 }
 
@@ -466,6 +481,7 @@ void App::DrawUI()
 #ifdef DEBUG
 	s_EnemiesAmountLabel->Draw();
 #endif
+
 	m_PauseLabel->Draw();
 
 	s_UIWaves.Draw();

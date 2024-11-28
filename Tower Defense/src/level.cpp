@@ -1,6 +1,7 @@
 #include "level.h"
 #include "app.h"
 #include "entity/label.h"
+#include "findPath.h"
 
 #include <fstream>
 #include <sstream>
@@ -85,6 +86,20 @@ Level::Level(uint16_t levelID)
 				m_BasePos.y = (float)std::stoi(value);
 			}
 
+			continue;
+		}
+		else if (lineNumber == 3)
+		{
+			if (!std::getline(ss, value, ','))
+			{
+				App::s_Logger.AddLog("Couldn't reach out movement speed rate from config file!");
+				break;
+			}
+
+			m_MovementSpeedRate = (uint16_t)std::stoi(value);
+#ifdef DEBUG
+			App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));
+#endif
 			continue;
 		}
 
@@ -201,20 +216,22 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			tileCode = mapData.at(y).at(x);
 			srcX = tileCode % 10;
 			srcY = tileCode / 10;
-			tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
 
-			if (tile)
+			if (tileCode == pathID)
 			{
+				tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType, true);
+			}
+			else
+			{
+				tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType, false);
+
 				if (tileCode == spawnerID)
 				{
 					m_Spawners.emplace_back(tile);
 				}
-				else if (tileCode == pathID)
-				{
-					m_PathTiles.emplace_back(tile);
-				}
 			}
-			else
+
+			if (!tile)
 			{
 				m_FailedLoading = true;
 				App::s_Logger.AddLog("Couldn't load a tile (", false);
@@ -225,12 +242,8 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			newLayer->tiles.emplace_back(tile);
 		}
 
-		m_PathTiles.resize(m_PathTiles.size());
-		m_PathTiles.shrink_to_fit();
-
 #ifdef DEBUG
 		App::s_Logger.AddLog("Added " + std::to_string(m_Spawners.size()) + " spawners");
-		App::s_Logger.AddLog("Added " + std::to_string(m_PathTiles.size()) + " path tiles");
 #endif
 	}
 
@@ -259,7 +272,6 @@ void Level::Clean()
 	{
 		layer.tiles.clear();
 	}
-	m_PathTiles.clear();
 	m_Spawners.clear();
 	App::s_Manager.DestroyAllTiles();
 
@@ -367,9 +379,9 @@ void Level::HandleMouseButtonEvent()
 
 void Level::InitWave()
 {
-	if (m_Spawners.empty())
+	if (m_SpawnedEnemies >= m_ExpectedEnemiesAmount)
 	{
-		App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to missing spawners\n");
+		m_WaveProgress = WaveProgress::InProgress;
 		return;
 	}
 
@@ -379,7 +391,6 @@ void Level::InitWave()
 
 	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
 	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
-	Vector2D moveVector;
 
 	EnemyType type = EnemyType::elf;
 	for (std::size_t i = 0; i < (std::size_t)EnemyType::size; ++i)
@@ -392,15 +403,19 @@ void Level::InitWave()
 
 	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
 	m_SpecificEnemiesAmount[(std::size_t)type]++;
-	//++m_Wave.spawnedSpecificEnemies[(std::size_t)type];
 
-	moveVector.x = dest.x - spawnPos.x;
-	moveVector.y = dest.y - spawnPos.y;
+	enemy->m_Movement = findPath(spawnPos, dest);
 
-	enemy->Move(moveVector);
+	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown;
+	m_SpawnedEnemies++;
 
-	if (g_Enemies.size() == m_ExpectedEnemiesAmount)
-		m_WaveProgress = WaveProgress::InProgress;
+	/*std::size_t i = 0;
+	std::vector<Vector2D> testVector = findPath(spawnPos, dest);
+	for (const auto &pos : testVector)
+	{
+		printf("#%zd: (%.1f, %.1f)\n", ++i, pos.x, pos.y);
+	}
+	printf("(%.1f, %.1f)\n", dest.x, dest.y);*/
 }
 
 void Level::ManageWaves()
@@ -410,6 +425,13 @@ void Level::ManageWaves()
 	case WaveProgress::OnCooldown:
 		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
 		{
+			if (m_Spawners.empty())
+			{
+				App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to missing spawners\n");
+				return;
+			}
+
+			m_SpawnedEnemies = 0;
 			m_ExpectedEnemiesAmount = 0;
 			for (const auto &i : m_Waves.at(m_CurrentWave))
 				m_ExpectedEnemiesAmount += i;
@@ -422,7 +444,8 @@ void Level::ManageWaves()
 		}
 		return;
 	case WaveProgress::Initializing:
-		InitWave();
+		if (SDL_GetTicks() > m_NextSpawn)
+			InitWave();
 		return;
 	case WaveProgress::InProgress:
 		if (!m_Base.m_IsActive)

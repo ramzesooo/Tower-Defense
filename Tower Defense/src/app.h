@@ -114,6 +114,7 @@ public:
 
 #ifdef DEBUG
 	static Label *s_EnemiesAmountLabel;
+	static Label *s_PointedPosition;
 #endif
 
 	static bool s_IsCameraLocked;

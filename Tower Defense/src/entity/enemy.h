@@ -11,6 +11,8 @@
 
 #include "SDL.h"
 
+#include <vector>
+
 enum class EnemyType
 {
 	elf = 0,
@@ -32,13 +34,15 @@ public:
 	// vector of attackers targeting this specific enemy
 	std::vector<Attacker*> m_Attackers;
 
+	std::vector<Vector2D> m_Movement;
+public:
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
-	Enemy(const Enemy& r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile),
+	Enemy(const Enemy &r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile),
 		m_MovementSpeed(r.m_MovementSpeed), m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), animations(r.animations), m_Type(r.m_Type),
 		m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
 	~Enemy();
 
-	inline Enemy& operator=(const Enemy& r)
+	inline Enemy& operator=(const Enemy &r)
 	{
 		if (this == &r)
 		{
@@ -76,6 +80,7 @@ public:
 	void PlayAnim(std::string_view animID);
 
 	Vector2D GetPos() const override { return m_Pos; }
+	Vector2D GetScaledPos() const { return m_ScaledPos; }
 
 	// Vector2D destination is a difference between current position
 	// For example it should be x: 1.0f, y: -1.0f to move one tile left and 1 tile up
@@ -83,10 +88,11 @@ public:
 	// And rendering is properly calculated to tiles' size
 	// So for example its position will be like Vector2D(1.0f, 1.0f)
 	// And it will be rendered on x * tile size, y * tile size
-	void Move(Vector2D destination);
-	void Move(float destinationX, float destinationY);
+	/*void Move(Vector2D destination);
+	void Move(float destinationX, float destinationY);*/
 	bool IsMoving() const { return m_Velocity.x != 0.0f || m_Velocity.y != 0.0f; }
 	void UpdateMovement();
+	void Move();
 	
 	void UpdateHealthBar();
 	void AdjustToView() override;
@@ -122,8 +128,9 @@ private:
 	Vector2D m_Destination{ 0.0f, 0.0f };
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 	uint16_t m_Scale = 1;
+	std::size_t m_MoveCount = 0;
 
-	Tile* m_OccupiedTile = nullptr;
+	Tile *m_OccupiedTile = nullptr;
 
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;

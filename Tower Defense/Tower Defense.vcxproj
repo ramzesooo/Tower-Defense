@@ -290,6 +290,7 @@
     <ClInclude Include="src\entity\enemy.h" />
     <ClInclude Include="src\entity\entity.h" />
     <ClInclude Include="src\entity\label.h" />
+    <ClInclude Include="src\findPath.h" />
     <ClInclude Include="src\level.h" />
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\menu.h" />

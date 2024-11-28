@@ -11,10 +11,12 @@ public:
 
 	Vector2D() = default;
 	Vector2D(float setX, float setY) : x(setX), y(setY) {}
-	Vector2D(const Vector2D& r) : x(r.x), y(r.y) {}
+	Vector2D(const Vector2D &r) : x(r.x), y(r.y) {}
 	~Vector2D() = default;
 
-	Vector2D& operator=(const Vector2D& r)
+	auto operator<=>(const Vector2D&) const = default;
+
+	Vector2D &operator=(const Vector2D &r)
 	{
 		if (this == &r)
 		{
@@ -27,67 +29,67 @@ public:
 		return *this;
 	}
 
-	inline Vector2D& Add(const Vector2D& vec)
+	inline Vector2D &Add(const Vector2D& vec)
 	{ 
 		this->x += vec.x;
 		this->y += vec.y;
 		return *this;
 	}
-	inline Vector2D& Subtract(const Vector2D& vec)
+	inline Vector2D &Subtract(const Vector2D& vec)
 	{
 		this->x -= vec.x;
 		this->y -= vec.y;
 		return *this;
 	}
-	inline Vector2D& Multiply(const Vector2D& vec)
+	inline Vector2D &Multiply(const Vector2D& vec)
 	{
 		this->x *= vec.x;
 		this->y *= vec.y;
 		return *this;
 	}
-	inline Vector2D& Divide(const Vector2D& vec)
+	inline Vector2D &Divide(const Vector2D& vec)
 	{
 		this->x /= vec.x;
 		this->y /= vec.y;
 		return *this;
 	}
 
-	friend inline Vector2D& operator+(Vector2D& v1, const Vector2D& v2)
+	friend inline Vector2D &operator+(Vector2D& v1, const Vector2D& v2)
 	{
 		return v1.Add(v2);
 	}
-	friend inline Vector2D& operator-(Vector2D& v1, const Vector2D& v2)
+	friend inline Vector2D &operator-(Vector2D& v1, const Vector2D& v2)
 	{
 		return v1.Subtract(v2);
 	}
-	friend inline Vector2D& operator*(Vector2D& v1, const Vector2D& v2)
+	friend inline Vector2D &operator*(Vector2D& v1, const Vector2D& v2)
 	{
 		return v1.Multiply(v2);
 	}
-	friend inline Vector2D& operator/(Vector2D& v1, const Vector2D& v2)
+	friend inline Vector2D &operator/(Vector2D& v1, const Vector2D& v2)
 	{
 		return v1.Divide(v2);
 	}
 
-	inline Vector2D& operator+=(const Vector2D& vec)
+	inline Vector2D &operator+=(const Vector2D& vec)
 	{
 		return this->Add(vec);
 	}
-	inline Vector2D& operator-=(const Vector2D& vec)
+	inline Vector2D &operator-=(const Vector2D& vec)
 	{
 		return this->Subtract(vec);
 	}
-	inline Vector2D& operator*=(const Vector2D& vec)
+	inline Vector2D &operator*=(const Vector2D& vec)
 	{
 		return this->Multiply(vec);
 	}
-	inline Vector2D& operator/=(const Vector2D& vec)
+	inline Vector2D &operator/=(const Vector2D& vec)
 	{
 		return this->Divide(vec);
 	}
 
 	template<typename T>
-	inline Vector2D& operator*(const T& i)
+	inline Vector2D &operator*(const T& i)
 	//Vector2D& operator*(const int& i)
 	{
 		this->x *= i;
@@ -97,7 +99,7 @@ public:
 	}
 
 	template<typename T>
-	inline Vector2D& operator*=(const T& i)
+	inline Vector2D &operator*=(const T& i)
 	{
 		this->x *= i;
 		this->y *= i;
@@ -106,7 +108,7 @@ public:
 	}
 
 	template <typename T>
-	inline Vector2D& operator/=(const T& i)
+	inline Vector2D &operator/=(const T& i)
 	{
 		this->x /= i;
 		this->y /= i;
@@ -114,18 +116,23 @@ public:
 		return *this;
 	}
 
-	inline Vector2D& Zero()
+	inline Vector2D &Zero()
 	{
 		this->x = 0.0f;
 		this->y = 0.0f;
 		return *this;
 	}
 
-	inline Vector2D& Roundf()
+	inline Vector2D &Roundf()
 	{
 		this->x = std::roundf(this->x);
 		this->y = std::roundf(this->y);
 		return *this;
+	}
+
+	inline bool IsEqualZero() const
+	{
+		return x == 0.0f && y == 0.0f ? true : false;
 	}
 
 	friend inline std::ostream& operator<<(std::ostream& stream, const Vector2D& vec)

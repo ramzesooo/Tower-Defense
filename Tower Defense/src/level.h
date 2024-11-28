@@ -35,8 +35,9 @@ enum class WaveProgress
 class Level
 {
 public:
-	constexpr static uint16_t s_LayersAmount = 3;
-	constexpr static uint16_t s_TileSize = 24;
+	static constexpr uint16_t s_LayersAmount = 3;
+	static constexpr uint16_t s_TileSize = 24;
+	static constexpr uint16_t s_SpawnCooldown = 200; // how much time has to pass before spawning next enemy
 
 	static SDL_Texture *s_Texture; // map tiles
 
@@ -44,7 +45,8 @@ public:
 	uint16_t m_ScaledTileSize = 0;
 
 	Vector2D m_BasePos;
-
+	uint16_t m_MovementSpeedRate = 1;
+public:
 	Level(uint16_t levelID);
 	~Level() = default;
 
@@ -96,6 +98,16 @@ public:
 	// Chunk can contain nullptr as a tile which means it's out of a map
 	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
 	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
+
+	// The method takes origin of tile, for example 1, 1 instead of 48, 48
+	inline bool IsTileWalkable(Vector2D pos) const
+	{
+		const Tile *tile = m_Layers.at(2).GetTileFrom((std::size_t)pos.x, (std::size_t)pos.y, m_MapData.at(0));
+		if (tile && tile->IsWalkable())
+			return true;
+
+		return false;
+	}
 private:
 	bool m_FailedLoading = false;
 	std::string_view m_BaseTextureID = "base";
@@ -111,9 +123,9 @@ private:
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
 	std::vector<std::array<uint16_t, (std::size_t)EnemyType::size>> m_Waves;
 	std::size_t m_ExpectedEnemiesAmount = 0;
+	std::size_t m_SpawnedEnemies = 0;
 	std::size_t m_CurrentWave = 0;
 	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
 	uint32_t m_WaveCooldown = 0;
-
-	std::vector<Tile*> m_PathTiles;
+	uint32_t m_NextSpawn = 0;
 };
