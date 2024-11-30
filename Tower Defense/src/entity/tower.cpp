@@ -1,4 +1,5 @@
 #include "tower.h"
+#include "attacker.h"
 #include "../textureManager.h"
 #include "../app.h"
 

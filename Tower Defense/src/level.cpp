@@ -1,11 +1,15 @@
 #include "level.h"
 #include "app.h"
 #include "entity/label.h"
-#include "findPath.h"
+//#include "findPath.h"
 
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <format>
+#include <map>
+#include <queue>
+
 
 SDL_Texture *Level::s_Texture = nullptr;
 
@@ -21,6 +25,92 @@ extern std::vector<Entity*> &g_Attackers;
 extern std::vector<Entity*> &g_Enemies;
 
 extern std::default_random_engine g_Rng;
+
+static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goal)
+{
+	const Level &currentLevel = *App::s_CurrentLevel;
+	std::vector<Vector2D> result;
+
+	// Visited positions onto the origins from which they have been visited
+	//std::unordered_map<Vector2D, Vector2D> visited;
+	std::map<Vector2D, Vector2D> visited;
+
+	struct Node
+	{
+		uint32_t totalDistance;
+		Vector2D pos;
+
+		// Defines a three-way comparison to let std::priority_queue comparing nodes
+		auto operator<=>(const Node &other) const
+		{
+			return totalDistance <=> other.totalDistance;
+		}
+
+		std::array<Node, 4> GetNeighbours() const
+		{
+			// TODO: it's pretty pointless to use Dijkstra if the distance/cost of traversal
+			// is always 1 everywhere, so maybe some tiles should be more expensive
+			uint32_t dx = totalDistance + 2; // tileSize (=24) * scale (=2) * 2
+			uint32_t dy = totalDistance + 1; // tileSize (=24) * scale (=2)
+			return { {
+				{ dx, Vector2D{ pos.x - 1, pos.y } },
+				{ dy, Vector2D{ pos.x, pos.y - 1 } },
+				{ dx, Vector2D{ pos.x + 1, pos.y } },
+				{ dy, Vector2D{ pos.x, pos.y + 1 } },
+			} };
+		}
+	};
+
+
+	// we use std::greater because by default, queue.top() returns the greatest element,
+	// and by using std::greater instead of std::less (the default) we flip this,
+	// and make the queue give us the lowest element
+	std::priority_queue<Node, std::vector<Node>, std::greater<Node>> queue;
+
+	queue.push(Node{ 0, start });
+	// putting (start, start) there is clever for debugging because the start nodes is the only node
+	// which is "visited from itself"
+	visited.emplace(start, start); // dummy value for the origin from which start has been visited
+
+	while (!queue.empty())
+	{
+		Node next = queue.top();
+		queue.pop();
+
+		if (next.pos == goal)
+		{
+			Vector2D origin = goal;
+			for (; origin != start; origin = visited.at(origin))
+			{
+				result.emplace_back(origin);
+			}
+			result.emplace_back(start);
+			// because we push_back'd starting from the end node and continuing to the start node,
+			// the result would be in reverse order, and this feels really weird,
+			// so we reverse it before returning
+			std::ranges::reverse(result);
+			return result;
+		}
+
+		// A - B - C
+		for (const Node &neighbor : next.GetNeighbours())
+		{
+			if (!currentLevel.IsTileWalkable(neighbor.pos))
+				continue;
+
+			// std::unordered_map::emplace will not insert a new element into the set if one already exists
+			// in that case, success is false, but we always get an iterator to the
+			// new/already existing element in the set
+			auto [iterator, success] = visited.emplace(neighbor.pos, next.pos);
+
+			if (success)
+				queue.push(neighbor);
+		}
+	}
+
+	// :/ no path found
+	return result;
+}
 
 Level::Level(uint16_t levelID)
 	: m_LevelID(levelID)
@@ -93,13 +183,15 @@ Level::Level(uint16_t levelID)
 			if (!std::getline(ss, value, ','))
 			{
 				App::s_Logger.AddLog("Couldn't reach out movement speed rate from config file!");
-				break;
+				m_MovementSpeedRate = 1u;
+				continue;
 			}
 
 			m_MovementSpeedRate = (uint16_t)std::stoi(value);
-#ifdef DEBUG
-			App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));
-#endif
+//#ifdef DEBUG
+//			App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));
+//#endif
+			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));)
 			continue;
 		}
 
@@ -335,6 +427,9 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 #ifdef DEBUG
 	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));
 #endif
+
+	enemy->SetPath(findPath({ posX, posY }, m_BasePos));
+
 	return enemy;
 }
 
@@ -387,25 +482,35 @@ void Level::InitWave()
 
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
-	Tile* spawner = m_Spawners.at(spawnerDistr(g_Rng));
+	const Tile* spawner = m_Spawners.at(spawnerDistr(g_Rng));
 
-	Vector2D spawnPos((spawner->GetPos().x / m_ScaledTileSize), spawner->GetPos().y / m_ScaledTileSize);
-	Vector2D dest = Vector2D(m_BasePos.x, m_BasePos.y);
+	const Vector2D spawnPos(spawner->GetPos().x / m_ScaledTileSize, spawner->GetPos().y / m_ScaledTileSize);
 
 	EnemyType type = EnemyType::elf;
-	for (std::size_t i = 0; i < (std::size_t)EnemyType::size; ++i)
+	// It might be as well casual variable defined in for loop, but maybe it's better to store it here
+	// and use it after the for loop instead of casting the type to std::size_t
+	std::size_t enemyTypeIterator = 0u;
+	// for each enemy type
+	for (; enemyTypeIterator < (std::size_t)EnemyType::size; ++enemyTypeIterator)
 	{
-		if (m_SpecificEnemiesAmount[i] == m_Waves.at(m_CurrentWave)[i])
-			continue;
-
-		type = (EnemyType)i;
+		// if currently iterated enemy type didn't reach still the expected amount of spawned enemies
+		if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave)[enemyTypeIterator])
+		{
+			type = (EnemyType)enemyTypeIterator;
+			m_SpecificEnemiesAmount[enemyTypeIterator]++;
+			break;
+		}
 	}
 
 	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
-	m_SpecificEnemiesAmount[(std::size_t)type]++;
 
-	enemy->m_Movement = findPath(spawnPos, dest);
-
+	if (!enemy)
+	{
+		App::s_Logger.AddLog(std::format("Failed spawning enemy #{} (type: {})", m_SpawnedEnemies, enemyTypeIterator));
+		m_SpecificEnemiesAmount[enemyTypeIterator]--;
+		return;
+	}
+	
 	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown;
 	m_SpawnedEnemies++;
 
@@ -499,16 +604,13 @@ void Level::Render()
 
 	for (const auto &projectile : g_Projectiles)
 		projectile->Draw();
-
-	//m_Base.m_HealthBar.Draw();
 }
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 {
 	if (layer < 0 || layer >= m_Layers.size())
 	{
-		App::s_Logger.AddLog("Requested a tile from " + std::to_string(posX) + ", " + std::to_string(posY), false);
-		App::s_Logger.AddLog(", but layer " + std::to_string(layer) + " doesn't exist");
+		App::s_Logger.AddLog(std::format("Requested a tile ({}, {}), but layer {} doesn't exist", posX, posY, layer));
 		return nullptr;
 	}
 
@@ -540,7 +642,7 @@ void Level::OnUpdateCamera()
 
 	for (const auto &t : g_Towers)
 	{
-		// Towers trigger method AdjustToView() for attackers by themselves
+		// Tower::AdjustToView() triggers also Attacker::AdjustToView()
 		t->AdjustToView();
 	}
 

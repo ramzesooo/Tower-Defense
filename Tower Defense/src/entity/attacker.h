@@ -1,4 +1,5 @@
 #pragma once
+#include "typesEnums.h"
 #include "entity.h"
 #include "enemy.h"
 #include "projectile.h"
@@ -9,14 +10,6 @@
 #include "SDL.h"
 
 #include <unordered_map>
-
-enum class AttackerType
-{
-	archer = 0,
-	hunter,
-	musketeer,
-	size
-};
 
 class Tower;
 

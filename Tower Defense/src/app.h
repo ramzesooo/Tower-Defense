@@ -1,4 +1,8 @@
 #pragma once
+#include "common.h"
+#include "UI.h"
+#include "entity/typesEnums.h"
+
 #include "menu.h"
 #include "entity/label.h"
 #include "entity/entity.h"
@@ -28,34 +32,6 @@ struct CameraMovement
 	int32_t rangeH = 600 / 6;
 	float moveX = 0;
 	float moveY = 0;
-};
-
-class UIElement
-{
-public:
-	static constexpr SDL_Rect srcRect{ 0, 0, 38, 12 }; // background rectangle
-	static constexpr SDL_Rect coinRect{ 0, 0, 5, 6 }; // coin rectangle
-	static constexpr SDL_Rect heartRect{ 0, 0, 32, 29 };
-	static SDL_Rect coinDestRect;
-	static SDL_Rect heartDestRect;
-	static SDL_Texture *s_BgTexture;
-	static SDL_Texture *s_CoinTexture;
-	static SDL_Texture *s_HeartTexture;
-	SDL_Rect destRect{ 0, 0, 0, 0 };
-	Label m_Label;
-
-	inline void Draw()
-	{
-		TextureManager::DrawTexture(UIElement::s_BgTexture, UIElement::srcRect, this->destRect);
-		this->m_Label.Draw();
-	}
-};
-
-enum class UIState
-{
-	none = 0, // none means game is running by default
-	mainMenu,
-	building
 };
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
@@ -112,17 +88,20 @@ public:
 	static UIElement s_UILifes;
 	static Label s_UICoinsNotification;
 
-#ifdef DEBUG
-	static Label *s_EnemiesAmountLabel;
-	static Label *s_PointedPosition;
-#endif
+	IF_DEBUG(static Label *s_EnemiesAmountLabel;)
+	IF_DEBUG(static Label *s_PointedPosition;;)
+//#ifdef DEBUG
+//	static Label *s_EnemiesAmountLabel;
+//	static Label *s_PointedPosition;
+//#endif
 
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
-#ifdef DEBUG
-	static bool s_Speedy;
-#endif
+//#ifdef DEBUG
+//	static bool s_Speedy;
+//#endif
+	IF_DEBUG(static bool s_Speedy;)
 
 public:
 	App();

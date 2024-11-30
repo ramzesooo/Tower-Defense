@@ -4,7 +4,7 @@
 #include <cmath>
 #include <format>
 
-constexpr uint16_t levelsToLoad = 1;
+static constexpr uint16_t levelsToLoad = 1;
 
 // class App STATIC VARIABLES
 App *App::s_Instance = nullptr;
@@ -56,18 +56,22 @@ UIElement App::s_UIWaves;
 UIElement App::s_UILifes;
 Label App::s_UICoinsNotification(2000);
 
-#ifdef DEBUG
-Label *App::s_EnemiesAmountLabel = nullptr;
-Label *App::s_PointedPosition = nullptr;
-#endif
+//#ifdef DEBUG
+//Label *App::s_EnemiesAmountLabel = nullptr;
+//Label *App::s_PointedPosition = nullptr;
+//#endif
+
+IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;)
+IF_DEBUG(Label *App::s_PointedPosition = nullptr;)
 
 bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
 
-#ifdef DEBUG
-bool App::s_Speedy = false;
-#endif
+//#ifdef DEBUG
+//bool App::s_Speedy = false;
+//#endif
+IF_DEBUG(bool App::s_Speedy = false;;)
 // END
 
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -217,10 +221,12 @@ App::App()
 	const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
-#ifdef DEBUG
-	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
-	s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));
-#endif
+//#ifdef DEBUG
+//	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
+//	s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));
+//#endif
+	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));)
+	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));)
 
 	int32_t centerX = App::WINDOW_WIDTH / 2;
 	int32_t centerY = App::WINDOW_HEIGHT / 2;
@@ -309,14 +315,22 @@ void App::EventHandler()
 		s_MouseX = s_Event.motion.x;
 		s_MouseY = s_Event.motion.y;
 
-#ifdef DEBUG
-		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})", 
-			s_MouseX,
-			s_MouseY,
-			std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
-			std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
-		)	);
-#endif
+//#ifdef DEBUG
+//		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})", 
+//			s_MouseX,
+//			s_MouseY,
+//			std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
+//			std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+//		)	);
+//#endif
+		IF_DEBUG(
+			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+				s_MouseX,
+				s_MouseY,
+				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
+				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+			));
+		)
 
 		if (s_UIState == UIState::building)
 		{
@@ -378,7 +392,6 @@ void App::EventHandler()
 		case SDLK_F3: // resolution 1920x1080
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			//SDL_MaximizeWindow(m_Window);
 			return;
 #ifdef DEBUG
 		case SDLK_F4: // Speed up enemies' movement speed
@@ -440,11 +453,6 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	App::s_CurrentLevel->ManageWaves();
-
-	App::s_Manager.Refresh();
-	App::s_Manager.Update();
-
 	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f))
 	{
 		s_Camera.x += s_CameraMovement.moveX;
@@ -452,6 +460,12 @@ void App::Update()
 
 		UpdateCamera();
 	}
+
+	App::s_CurrentLevel->ManageWaves();
+
+	App::s_Manager.Refresh();
+	App::s_Manager.Update();
+
 }
 
 void App::Render()
@@ -469,18 +483,20 @@ void App::Render()
 		DrawUI();
 	}
 
-#ifdef DEBUG
-	s_PointedPosition->Draw();
-#endif
+//#ifdef DEBUG
+//	s_PointedPosition->Draw();
+//#endif
+	IF_DEBUG(s_PointedPosition->Draw();)
 
 	SDL_RenderPresent(App::s_Renderer);
 }
 
 void App::DrawUI()
 {
-#ifdef DEBUG
-	s_EnemiesAmountLabel->Draw();
-#endif
+//#ifdef DEBUG
+//	s_EnemiesAmountLabel->Draw();
+//#endif
+	IF_DEBUG(s_EnemiesAmountLabel->Draw();)
 
 	m_PauseLabel->Draw();
 
@@ -526,25 +542,30 @@ void App::OnResolutionChange()
 {
 	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
-	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
-
-	s_Camera.w = (float)App::WINDOW_WIDTH;
-	s_Camera.h = (float)App::WINDOW_HEIGHT;
-
-	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
-	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
-
-	if (s_IsCameraLocked || (s_CameraMovement.moveX == 0.0f && s_CameraMovement.moveY == 0.0f))
+	if (s_UIState != UIState::mainMenu)
 	{
-		const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+		m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
 
-		s_Camera.x = basePos.x - s_Camera.w / 2.0f;
-		s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+		s_Camera.w = (float)App::WINDOW_WIDTH;
+		s_Camera.h = (float)App::WINDOW_HEIGHT;
+
+		s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
+		s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
+
+		if (s_IsCameraLocked || (s_CameraMovement.moveX == 0.0f && s_CameraMovement.moveY == 0.0f))
+		{
+			const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+
+			s_Camera.x = basePos.x - s_Camera.w / 2.0f;
+			s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+		}
+
+		UpdateCamera();
 	}
-
-	s_MainMenu.OnResolutionChange();
-
-	UpdateCamera();
+	else
+	{
+		s_MainMenu.OnResolutionChange();
+	}
 }
 
 void App::LoadLevel()

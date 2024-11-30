@@ -1,4 +1,7 @@
 #pragma once
+#include "../common.h"
+#include "typesEnums.h"
+
 #include "entity.h"
 #include "attacker.h"
 #include "projectile.h"
@@ -13,15 +16,6 @@
 
 #include <vector>
 
-enum class EnemyType
-{
-	elf = 0,
-	goblinWarrior,
-	dwarfSoldier,
-	dwarfKing,
-	size
-};
-
 class Tower;
 
 class Enemy : public Entity
@@ -33,8 +27,6 @@ public:
 	static SDL_Texture *s_ArrowTexture; // texture of arrow showing where are the enemies out of camera
 	// vector of attackers targeting this specific enemy
 	std::vector<Attacker*> m_Attackers;
-
-	std::vector<Vector2D> m_Movement;
 public:
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
 	Enemy(const Enemy &r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile),
@@ -109,13 +101,17 @@ public:
 
 	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 
-#ifdef DEBUG
-	void SpeedUp();
-#endif
+//#ifdef DEBUG
+//	void SpeedUp();
+//#endif
+	IF_DEBUG(void SpeedUp();)
+
+	void SetPath(const std::vector<Vector2D> &pathVector) { m_Path = pathVector; }
 private:
-#ifdef DEBUG
-	bool m_Speedy = false;
-#endif
+//#ifdef DEBUG
+//	bool m_Speedy = false;
+//#endif
+	IF_DEBUG(bool m_Speedy = false;)
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
@@ -126,9 +122,12 @@ private:
 	Vector2D m_ScaledPos;
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
+
+	std::vector<Vector2D> m_Path;
+	std::size_t m_MoveCount = 0;
+
 	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 	uint16_t m_Scale = 1;
-	std::size_t m_MoveCount = 0;
 
 	Tile *m_OccupiedTile = nullptr;
 

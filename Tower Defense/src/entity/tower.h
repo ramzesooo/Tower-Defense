@@ -1,11 +1,13 @@
 #pragma once
 #include "entity.h"
-#include "attacker.h"
+//#include "attacker.h"
 #include "tile.h"
 #include "../level.h"
 #include "../Vector2D.h"
 
 #include "SDL.h"
+
+class Attacker;
 
 class Tower : public Entity
 {

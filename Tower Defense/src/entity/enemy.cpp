@@ -7,9 +7,10 @@
 #include <format>
 
 extern std::vector<Entity*> &g_Towers;
-#ifdef DEBUG
-extern std::vector<Entity*> &g_Enemies;
-#endif
+//#ifdef DEBUG
+//extern std::vector<Entity*> &g_Enemies;
+//#endif
+IF_DEBUG(extern std::vector<Entity*> &g_Enemies;)
 
 SDL_Texture *Enemy::s_ArrowTexture = nullptr;
 
@@ -60,13 +61,20 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_MovementSpeed *= App::s_CurrentLevel->m_MovementSpeedRate;
 
-#ifdef DEBUG
-	if (App::s_Speedy)
-	{
-		m_MovementSpeed *= 2.0f;
-		m_Speedy = true;
-	}
-#endif
+//#ifdef DEBUG
+//	if (App::s_Speedy)
+//	{
+//		m_MovementSpeed *= 2.0f;
+//		m_Speedy = true;
+//	}
+//#endif
+	IF_DEBUG(
+		if (App::s_Speedy)
+		{
+			m_MovementSpeed *= 2.0f;
+			m_Speedy = true;
+		}
+	)
 
 	PlayAnim("Idle");
 
@@ -115,16 +123,19 @@ void Enemy::Destroy()
 			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 
-#ifdef DEBUG
-	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
-#endif
+//#ifdef DEBUG
+//	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
+//#endif
+	IF_DEBUG(
+		App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
+	)
 }
 
 void Enemy::Update()
 {
 	if (m_Velocity.IsEqualZero())
 	{
-		m_Destination = m_Movement.at(m_MoveCount);
+		m_Destination = m_Path.at(m_MoveCount);
 		Move();
 	}
 
@@ -297,10 +308,10 @@ void Enemy::UpdateMovement()
 	if (m_Velocity.IsEqualZero())
 	{
 		PlayAnim("Idle");
-		if (++m_MoveCount >= m_Movement.size())
+		if (++m_MoveCount >= m_Path.size())
 		{
 			App::s_Logger.AddLog("Enemy have reached last movement and still tries to move!");
-			m_MoveCount = m_Movement.size();
+			m_MoveCount = m_Path.size();
 		}
 		return;
 	}
@@ -526,7 +537,25 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	return false;
 }
 
-#ifdef DEBUG
+//#ifdef DEBUG
+//void Enemy::SpeedUp()
+//{
+//	if (App::s_Speedy)
+//	{
+//		m_MovementSpeed *= 2.0f;
+//		m_Velocity *= 2.0f;
+//		m_Speedy = true;
+//	}
+//	else if (m_Speedy) // if turning off and the enemy is faster
+//	{
+//		m_MovementSpeed /= 2.0f;
+//		m_Velocity /= 2.0f;
+//		m_Speedy = false;
+//	}
+//}
+//#endif
+
+IF_DEBUG(
 void Enemy::SpeedUp()
 {
 	if (App::s_Speedy)
@@ -541,5 +570,4 @@ void Enemy::SpeedUp()
 		m_Velocity /= 2.0f;
 		m_Speedy = false;
 	}
-}
-#endif
+})

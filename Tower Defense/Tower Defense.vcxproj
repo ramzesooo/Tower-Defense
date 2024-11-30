@@ -282,6 +282,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app.h" />
+    <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\entity\typesEnums.h" />
     <ClInclude Include="src\entity\anim.h" />
     <ClInclude Include="src\entity\base.h" />
     <ClInclude Include="src\entity\health.h" />
@@ -297,6 +299,7 @@
     <ClInclude Include="src\textureManager.h" />
     <ClInclude Include="src\entity\tile.h" />
     <ClInclude Include="src\entity\tower.h" />
+    <ClInclude Include="src\UI.h" />
     <ClInclude Include="src\Vector2D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

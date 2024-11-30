@@ -1,14 +1,10 @@
 #pragma once
+#include "typesEnums.h"
+
 #include "entity.h"
 #include "../Vector2D.h"
 
 #include "SDL.h"
-
-enum class ProjectileType
-{
-	arrow = 0,
-	size
-};
 
 class Attacker;
 class Enemy;

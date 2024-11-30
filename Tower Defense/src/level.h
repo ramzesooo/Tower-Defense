@@ -37,7 +37,7 @@ class Level
 public:
 	static constexpr uint16_t s_LayersAmount = 3;
 	static constexpr uint16_t s_TileSize = 24;
-	static constexpr uint16_t s_SpawnCooldown = 200; // how much time has to pass before spawning next enemy
+	static constexpr uint16_t s_SpawnCooldown = 150; // how much time has to pass before spawning next enemy
 
 	static SDL_Texture *s_Texture; // map tiles
 
@@ -85,8 +85,8 @@ public:
 	Base* GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
-	Tile* GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
-	Tile* GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
+	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
+	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom((uint32_t)posX, (uint32_t)posY, layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();

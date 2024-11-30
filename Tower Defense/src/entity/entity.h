@@ -17,8 +17,6 @@ enum class EntityGroup
 	tower,
 	attacker,
 	projectile,
-	//label,
-	//tile,
 	size
 };
 

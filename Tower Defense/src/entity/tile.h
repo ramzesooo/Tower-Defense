@@ -1,21 +1,10 @@
 #pragma once
+#include "typesEnums.h"
+
 #include "entity.h"
 #include "../Vector2D.h"
 
 #include "SDL.h"
-
-// This enum is adjusted to layers
-// 0 suits to all tiles placed at first place
-// 1 suits to all additional stuff, but without collision
-// 2 suits to layer with collisions (e.g. trees) including spawners
-// special is an exception
-enum class TileType
-{
-	regular = 0,
-	additional,
-	spawner,
-	special
-};
 
 class Tower;
 
