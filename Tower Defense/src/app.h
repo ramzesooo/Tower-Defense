@@ -90,17 +90,10 @@ public:
 
 	IF_DEBUG(static Label *s_EnemiesAmountLabel;)
 	IF_DEBUG(static Label *s_PointedPosition;;)
-//#ifdef DEBUG
-//	static Label *s_EnemiesAmountLabel;
-//	static Label *s_PointedPosition;
-//#endif
 
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
-//#ifdef DEBUG
-//	static bool s_Speedy;
-//#endif
 	IF_DEBUG(static bool s_Speedy;)
 
 public:
@@ -156,6 +149,7 @@ public:
 		case UIState::mainMenu:
 			newState = "mainMenu";
 			m_PauseLabel->m_Drawable = false;
+			App::Instance().OnResolutionChange();
 			break;
 		case UIState::none:
 			newState = "none";
@@ -168,7 +162,7 @@ public:
 			break;
 		}
 
-		s_Logger.AddLog("App::SetUIState: " + std::string(newState));
+		s_Logger.AddLog(std::format("App::SetUIState: {}", newState));
 	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
@@ -184,7 +178,7 @@ public:
 
 	void ManageCamera();
 
-	static inline std::string TextureOf(AttackerType type)
+	static constexpr inline std::string_view TextureOf(AttackerType type)
 	{
 		switch (type)
 		{
@@ -198,7 +192,7 @@ public:
 		return "";
 	}
 
-	static inline std::string TextureOf(EnemyType type)
+	static constexpr inline std::string_view TextureOf(EnemyType type)
 	{
 		switch (type)
 		{
@@ -214,7 +208,7 @@ public:
 		return "";
 	}
 
-	static inline std::string TextureOf(ProjectileType type)
+	static constexpr inline std::string_view TextureOf(ProjectileType type)
 	{
 		switch (type)
 		{
@@ -289,7 +283,8 @@ public:
 		{
 			s_CurrentLevel->GetBase()->m_Lifes = 0;
 			s_CurrentLevel->GetBase()->m_IsActive = false;
-			App::Instance().SetUIState(UIState::none);
+			s_CurrentLevel->Clean();
+			App::Instance().SetUIState(UIState::mainMenu);
 		}
 		else
 		{
@@ -334,3 +329,70 @@ private:
 
 	uint16_t m_Coins = 0;
 };
+
+struct TextureData
+{
+	std::string_view id, path;
+};
+
+static constexpr TextureData textures[]
+{
+	{ "mapSheet", "assets/tileset.png" },
+	{ "szpaku", "assets/szpaku.jpg" },
+	{ "buttonUI", "assets/ui/ui_button.png" },
+	{ "hoveredButtonUI", "assets/ui/ui_button_hovered.png" },
+	{ "canBuild", "assets/ui/tile_CanBuild.png" },
+	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
+	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
+	{ "elementUI", "assets/ui/ui_element.png" },
+	{ "coinUI", "assets/ui/coin.png" },
+	{ "heartUI", "assets/ui/heart.png" },
+
+	{ "base", "assets/base.png" },
+	{ "tower", "assets/towers/tower.png" },
+	{ "square", "assets/square_32x32.png" },
+	{ "green", "assets/green_32x32.png" },
+	{ "transparent", "assets/transparent.png" },
+	{ "grayArrow", "assets/grayArrow_32x32.png" },
+
+	{ App::TextureOf(ProjectileType::arrow), "assets/arrow_16x16.png" },
+	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
+	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
+	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
+	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
+	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
+	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },
+	{ App::TextureOf(EnemyType::dwarfKing), "assets/entities/enemy/enemyDwarfKing.png" }
+};
+
+/*
+App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
+
+App::s_Textures.AddTexture("szpaku", "assets\\szpaku.jpg");
+App::s_Textures.AddTexture("buttonUI", "assets\\ui\\ui_button.png");
+App::s_Textures.AddTexture("hoveredButtonUI", "assets\\ui\\ui_button_hovered.png");
+App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
+App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
+App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
+//App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
+//App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
+App::s_Textures.AddTexture("elementUI", "assets\\ui\\ui_element.png");
+App::s_Textures.AddTexture("coinUI", "assets\\ui\\coin.png");
+App::s_Textures.AddTexture("heartUI", "assets\\ui\\heart.png");
+
+App::s_Textures.AddTexture("base", "assets\\base.png");
+App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
+App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
+App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
+App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
+App::s_Textures.AddTexture("grayArrow", "assets\\grayArrow_32x32.png");
+
+App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
+App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
+App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
+App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
+App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
+App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
+App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
+App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
+*/

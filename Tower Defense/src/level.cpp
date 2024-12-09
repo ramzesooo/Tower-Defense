@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include "level.h"
 #include "app.h"
 #include "entity/label.h"
@@ -9,7 +11,6 @@
 #include <format>
 #include <map>
 #include <queue>
-
 
 SDL_Texture *Level::s_Texture = nullptr;
 
@@ -50,7 +51,7 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 		{
 			// TODO: it's pretty pointless to use Dijkstra if the distance/cost of traversal
 			// is always 1 everywhere, so maybe some tiles should be more expensive
-			uint32_t dx = totalDistance + 2; // tileSize (=24) * scale (=2) * 2
+			uint32_t dx = totalDistance + 1; // tileSize (=24) * scale (=2) * 2
 			uint32_t dy = totalDistance + 1; // tileSize (=24) * scale (=2)
 			return { {
 				{ dx, Vector2D{ pos.x - 1, pos.y } },
@@ -137,7 +138,7 @@ Level::Level(uint16_t levelID)
 		// Map data
 		if (lineNumber == 1)
 		{
-			// first line of config must contain map width, height and scale
+			// first line of config must contain map's width, height and scale
 			// for example: 70,70,2
 			for (auto i = 0u; i < 3; ++i)
 			{
@@ -182,15 +183,12 @@ Level::Level(uint16_t levelID)
 		{
 			if (!std::getline(ss, value, ','))
 			{
-				App::s_Logger.AddLog("Couldn't reach out movement speed rate from config file!");
+				App::s_Logger.AddLog(std::string_view("Couldn't reach out movement speed rate from config file!"));
 				m_MovementSpeedRate = 1u;
 				continue;
 			}
 
 			m_MovementSpeedRate = (uint16_t)std::stoi(value);
-//#ifdef DEBUG
-//			App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));
-//#endif
 			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));)
 			continue;
 		}
@@ -291,9 +289,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			if (!tile)
 			{
 				m_FailedLoading = true;
-				App::s_Logger.AddLog("Couldn't load a tile (", false);
-				App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
-				App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
+				App::s_Logger.AddLog(std::format("Couldn't load a tile ({}, {})", x * m_ScaledTileSize, y * m_ScaledTileSize));
 			}
 
 			newLayer->tiles.emplace_back(tile);
@@ -326,17 +322,13 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			if (!tile)
 			{
 				m_FailedLoading = true;
-				App::s_Logger.AddLog("Couldn't load a tile (", false);
-				App::s_Logger.AddLog(std::to_string(x * m_ScaledTileSize) + ", ", false);
-				App::s_Logger.AddLog(std::to_string(y * m_ScaledTileSize) + ")");
+				App::s_Logger.AddLog(std::format("Couldn't load a tile ({}, {})", x * m_ScaledTileSize, y * m_ScaledTileSize));
 			}
 
 			newLayer->tiles.emplace_back(tile);
 		}
 
-#ifdef DEBUG
-		App::s_Logger.AddLog("Added " + std::to_string(m_Spawners.size()) + " spawners");
-#endif
+		IF_DEBUG(App::s_Logger.AddLog(std::format("Added {} spawners", m_Spawners.size()));)
 	}
 
 	mapFile.close();
@@ -352,8 +344,7 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
 
-	App::s_Logger.AddLog("Created base (", false);
-	App::s_Logger.AddLog(std::to_string(scaledPosX) + ", " + std::to_string(scaledPosY) + ")");
+	App::s_Logger.AddLog(std::format("Created base ({}, {})", scaledPosX, scaledPosY));
 }
 
 void Level::Clean()
@@ -364,7 +355,9 @@ void Level::Clean()
 	{
 		layer.tiles.clear();
 	}
+
 	m_Spawners.clear();
+
 	App::s_Manager.DestroyAllTiles();
 
 	m_CurrentWave = 0;
@@ -376,7 +369,7 @@ Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16
 {
 	if (!towerTexture)
 	{
-		App::s_Logger.AddLog("Level::AddTower: Tower's texture doesn't exist!");
+		App::s_Logger.AddLog(std::string_view("Level::AddTower: Tower's texture doesn't exist!"));
 		return nullptr;
 	}
 
@@ -391,7 +384,7 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 {
 	if (!assignedTower || assignedTower->GetAttacker())
 	{
-		App::s_Logger.AddLog("Tried to add attacker to not existing tower or an attacker for the specific tower already exists.");
+		App::s_Logger.AddLog(std::string_view("Tried to add attacker to not existing tower or an attacker for the specific tower already exists."));
 		return;
 	}
 	
@@ -419,14 +412,12 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	assignedTower->AssignAttacker(attacker);
 }
 
-Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
+Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale) const
 {
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
 
-#ifdef DEBUG
-	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));
-#endif
+	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));)
 
 	enemy->SetPath(findPath({ posX, posY }, m_BasePos));
 
@@ -532,7 +523,7 @@ void Level::ManageWaves()
 		{
 			if (m_Spawners.empty())
 			{
-				App::s_Logger.AddLog("Level::InitWave: Initializing wave failed, due to missing spawners\n");
+				App::s_Logger.AddLog(std::string_view("Level::InitWave: Initializing wave failed, due to missing spawners\n"));
 				return;
 			}
 
@@ -553,12 +544,7 @@ void Level::ManageWaves()
 			InitWave();
 		return;
 	case WaveProgress::InProgress:
-		if (!m_Base.m_IsActive)
-		{
-			Clean();
-			App::Instance().SetUIState(UIState::mainMenu);
-		}
-		else if (g_Enemies.size() == 0)
+		if (g_Enemies.size() == 0)
 		{
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = {};

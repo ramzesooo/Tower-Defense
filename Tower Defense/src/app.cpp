@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <cmath>
-#include <format>
 
 static constexpr uint16_t levelsToLoad = 1;
 
@@ -56,11 +55,6 @@ UIElement App::s_UIWaves;
 UIElement App::s_UILifes;
 Label App::s_UICoinsNotification(2000);
 
-//#ifdef DEBUG
-//Label *App::s_EnemiesAmountLabel = nullptr;
-//Label *App::s_PointedPosition = nullptr;
-//#endif
-
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;)
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;)
 
@@ -68,11 +62,8 @@ bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
 
-//#ifdef DEBUG
-//bool App::s_Speedy = false;
-//#endif
-IF_DEBUG(bool App::s_Speedy = false;;)
-// END
+IF_DEBUG(bool App::s_Speedy = false;)
+// class App STATIC VARIABLES
 
 std::default_random_engine g_Rng(App::s_Rnd());
 
@@ -93,7 +84,7 @@ App::App()
 	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if (!m_Window)
 	{
-		App::s_Logger.AddLog(SDL_GetError());
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
 		initialized = false;
 	}
 
@@ -108,7 +99,7 @@ App::App()
 #endif
 	if (!App::s_Renderer)
 	{
-		App::s_Logger.AddLog(SDL_GetError());
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
 		initialized = false;
 	}
 
@@ -118,35 +109,10 @@ App::App()
 	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
 	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
 
-	App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
-
-	App::s_Textures.AddTexture("szpaku", "assets\\szpaku.jpg");
-	App::s_Textures.AddTexture("buttonUI", "assets\\ui\\ui_button.png");
-	App::s_Textures.AddTexture("hoveredButtonUI", "assets\\ui\\ui_button_hovered.png");
-	App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
-	App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
-	App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
-	//App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
-	//App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
-	App::s_Textures.AddTexture("elementUI", "assets\\ui\\ui_element.png");
-	App::s_Textures.AddTexture("coinUI", "assets\\ui\\coin.png");
-	App::s_Textures.AddTexture("heartUI", "assets\\ui\\heart.png");
-
-	App::s_Textures.AddTexture("base", "assets\\base.png");
-	App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
-	App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
-	App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
-	App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
-	App::s_Textures.AddTexture("grayArrow", "assets\\grayArrow_32x32.png");
-
-	App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
-	App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
-	App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
-	App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
-	App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
-	App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
-	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
-	App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
+	for (const auto &[id, path] : textures)
+	{
+		App::s_Textures.AddTexture(std::string(id), std::string(path).c_str());
+	}
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
@@ -177,7 +143,7 @@ App::App()
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
 	{
-		App::s_Logger.AddLog("First level couldn't be loaded properly.");
+		App::s_Logger.AddLog(std::string_view("First level couldn't be loaded properly."));
 		initialized = false;
 	}
 
@@ -221,10 +187,6 @@ App::App()
 	const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
-//#ifdef DEBUG
-//	s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));
-//	s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));
-//#endif
 	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));)
 	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));)
 
@@ -315,14 +277,6 @@ void App::EventHandler()
 		s_MouseX = s_Event.motion.x;
 		s_MouseY = s_Event.motion.y;
 
-//#ifdef DEBUG
-//		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})", 
-//			s_MouseX,
-//			s_MouseY,
-//			std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
-//			std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
-//		)	);
-//#endif
 		IF_DEBUG(
 			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
 				s_MouseX,
@@ -332,21 +286,21 @@ void App::EventHandler()
 			));
 		)
 
-		if (s_UIState == UIState::building)
+		switch (s_UIState)
 		{
+		case UIState::mainMenu:
+			s_MainMenu.OnCursorMove();
+			return;
+		case UIState::building:
 			ManageBuildingState();
 			return;
+		default:
+			break;
 		}
 
 		if (!s_IsCameraLocked)
 		{
 			ManageCamera();
-			return;
-		}
-
-		if (s_UIState == UIState::mainMenu)
-		{
-			s_MainMenu.OnCursorMove();
 			return;
 		}
 
@@ -483,9 +437,6 @@ void App::Render()
 		DrawUI();
 	}
 
-//#ifdef DEBUG
-//	s_PointedPosition->Draw();
-//#endif
 	IF_DEBUG(s_PointedPosition->Draw();)
 
 	SDL_RenderPresent(App::s_Renderer);
@@ -493,9 +444,6 @@ void App::Render()
 
 void App::DrawUI()
 {
-//#ifdef DEBUG
-//	s_EnemiesAmountLabel->Draw();
-//#endif
 	IF_DEBUG(s_EnemiesAmountLabel->Draw();)
 
 	m_PauseLabel->Draw();
@@ -542,30 +490,31 @@ void App::OnResolutionChange()
 {
 	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
-	if (s_UIState != UIState::mainMenu)
-	{
-		m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
-
-		s_Camera.w = (float)App::WINDOW_WIDTH;
-		s_Camera.h = (float)App::WINDOW_HEIGHT;
-
-		s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
-		s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
-
-		if (s_IsCameraLocked || (s_CameraMovement.moveX == 0.0f && s_CameraMovement.moveY == 0.0f))
-		{
-			const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
-
-			s_Camera.x = basePos.x - s_Camera.w / 2.0f;
-			s_Camera.y = basePos.y - s_Camera.h / 2.0f;
-		}
-
-		UpdateCamera();
-	}
-	else
+	if (s_UIState == UIState::mainMenu)
 	{
 		s_MainMenu.OnResolutionChange();
+		return;
 	}
+
+	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
+
+	if ((float)App::WINDOW_WIDTH > s_Camera.w)
+		s_Camera.x -= (float)App::WINDOW_WIDTH - s_Camera.w;
+	else if ((float)App::WINDOW_WIDTH < s_Camera.w)
+		s_Camera.x += s_Camera.w - (float)App::WINDOW_WIDTH;
+
+	if ((float)App::WINDOW_HEIGHT > s_Camera.h)
+		s_Camera.y -= (float)App::WINDOW_HEIGHT - s_Camera.h;
+	else if ((float)App::WINDOW_HEIGHT < s_Camera.h)
+		s_Camera.y += s_Camera.h - (float)App::WINDOW_HEIGHT;
+
+	s_Camera.w = (float)App::WINDOW_WIDTH;
+	s_Camera.h = (float)App::WINDOW_HEIGHT;
+
+	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
+	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
+
+	UpdateCamera();
 }
 
 void App::LoadLevel()
@@ -589,7 +538,7 @@ void App::LoadLevel()
 	s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 	s_Camera.y = basePos.y - s_Camera.h / 2.0f;
 
-	s_Logger.AddLog("Loaded level " + std::to_string(s_CurrentLevel->GetID() + 1));
+	s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
 }
 
 void App::SwitchBuildingState()
@@ -643,7 +592,7 @@ void App::ManageBuildingState()
 		}
 	}
 
-	for (auto i = 0; i < 4; i++)
+	for (auto i = 0u; i < 4u; i++)
 	{
 		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
 		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)

@@ -17,12 +17,27 @@ void Logger::AddLog(std::string_view newLog, bool endLine)
 
 	if (endLine)
 	{
-		logFile << std::endl;
+		logFile << "\n";
 		logs.emplace_back(std::string(newLog) + "\n");
 	}
 	else
 	{
 		logs.emplace_back(std::string(newLog));
+	}
+}
+
+void Logger::AddLog(const std::string &newLog, bool endLine)
+{
+	logFile << newLog;
+
+	if (endLine)
+	{
+		logFile << "\n";
+		logs.emplace_back(newLog + "\n");
+	}
+	else
+	{
+		logs.emplace_back(newLog);
 	}
 }
 
@@ -44,6 +59,14 @@ void Logger::AddLog(std::string_view newLog, bool endLine)
 	logFile << newLog;
 
 	if (endLine)
-		logFile << std::endl;
+		logFile << "\n";
+}
+
+void Logger::AddLog(const std::string &newLog, bool endLine)
+{
+	logFile << newLog;
+
+	if (endLine)
+		logFile << "\n";
 }
 #endif

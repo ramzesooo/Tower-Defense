@@ -3,6 +3,9 @@
 #include "../app.h"
 #include "../logger.h"
 
+#include <string_view>
+#include <format>
+
 Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
 	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)
 {
@@ -12,16 +15,16 @@ Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font
 	SDL_Surface* surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
 	{
-		App::s_Logger.AddLog("Failed to create a surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateText"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	m_Texture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!m_Texture)
 	{
-		App::s_Logger.AddLog("Failed to create texture from surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateText"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}
@@ -66,16 +69,16 @@ void Label::UpdateText(const std::string& text)
 	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
 	{
-		App::s_Logger.AddLog("Failed to create a surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateText"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	SDL_Texture *newTexture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!newTexture)
 	{
-		App::s_Logger.AddLog("Failed to create texture from surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateText"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}
@@ -96,16 +99,16 @@ void Label::UpdateColor(SDL_Color newColor)
 	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, std::string(m_Text).c_str(), m_Color);
 	if (!surface)
 	{
-		App::s_Logger.AddLog("Failed to create a surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateColor"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	SDL_Texture *newTexture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!newTexture)
 	{
-		App::s_Logger.AddLog("Failed to create texture from surface in Label::UpdateText");
-		App::s_Logger.AddLog("Last SDL Error: " + std::string(SDL_GetError()));
+		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateColor"));
+		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}

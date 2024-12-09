@@ -101,16 +101,10 @@ public:
 
 	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 
-//#ifdef DEBUG
-//	void SpeedUp();
-//#endif
 	IF_DEBUG(void SpeedUp();)
 
 	void SetPath(const std::vector<Vector2D> &pathVector) { m_Path = pathVector; }
 private:
-//#ifdef DEBUG
-//	bool m_Speedy = false;
-//#endif
 	IF_DEBUG(bool m_Speedy = false;)
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture* m_Texture = nullptr;

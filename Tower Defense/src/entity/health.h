@@ -2,7 +2,7 @@
 #include "entity.h"
 #include "label.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
 
 struct RectHP
 {

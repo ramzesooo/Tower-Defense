@@ -5,11 +5,9 @@
 
 #include <cmath>
 #include <format>
+#include <string_view>
 
 extern std::vector<Entity*> &g_Towers;
-//#ifdef DEBUG
-//extern std::vector<Entity*> &g_Enemies;
-//#endif
 IF_DEBUG(extern std::vector<Entity*> &g_Enemies;)
 
 SDL_Texture *Enemy::s_ArrowTexture = nullptr;
@@ -61,13 +59,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	m_MovementSpeed *= App::s_CurrentLevel->m_MovementSpeedRate;
 
-//#ifdef DEBUG
-//	if (App::s_Speedy)
-//	{
-//		m_MovementSpeed *= 2.0f;
-//		m_Speedy = true;
-//	}
-//#endif
 	IF_DEBUG(
 		if (App::s_Speedy)
 		{
@@ -123,20 +114,29 @@ void Enemy::Destroy()
 			static_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 
-//#ifdef DEBUG
-//	App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
-//#endif
 	IF_DEBUG(
-		App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size() - 1));
+		App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size() - 1));
 	)
+
+	m_MoveCount = 0;
+	m_Path.clear();
+
+	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
 void Enemy::Update()
 {
 	if (m_Velocity.IsEqualZero())
 	{
-		m_Destination = m_Path.at(m_MoveCount);
+		if (m_MoveCount == m_Path.size())
+		{
+			App::TakeLifes();
+			Destroy();
+			return;
+		}
+
 		Move();
+		m_MoveCount++;
 	}
 
 	UpdateMovement();
@@ -222,7 +222,7 @@ void Enemy::UpdateMovement()
 	{
 		if (!nextTile)
 		{
-			App::s_Logger.AddLog("Enemy tried to walk into a non-exising tile, enemy has been destroyed!");
+			App::s_Logger.AddLog(std::string_view("Enemy tried to walk into a non-exising tile, enemy has been destroyed!"));
 			Destroy();
 			return;
 		}
@@ -276,15 +276,6 @@ void Enemy::UpdateMovement()
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
-	const SDL_Rect &rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
-	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
-		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
-	{
-		App::TakeLifes();
-		Destroy();
-		return;
-	}
-
 	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.x = 0.0f;
 
@@ -301,24 +292,24 @@ void Enemy::UpdateMovement()
 	else if (m_Velocity.y < 0.0f)
 		PlayAnim("WalkUp");
 
-	//printf("POS: (%.f, %.f), DEST: (%.f, %.f)\n", m_Pos.x, m_Pos.y, m_Destination.x, m_Destination.y);
-
 	UpdateHealthBar();
 
-	if (m_Velocity.IsEqualZero())
-	{
-		PlayAnim("Idle");
-		if (++m_MoveCount >= m_Path.size())
-		{
-			App::s_Logger.AddLog("Enemy have reached last movement and still tries to move!");
-			m_MoveCount = m_Path.size();
-		}
-		return;
-	}
+	//if (m_Velocity.IsEqualZero())
+	//{
+	//	PlayAnim("Idle");
+	//	if (++m_MoveCount >= m_Path.size())
+	//	{
+	//		App::s_Logger.AddLog(std::string_view("Enemy have reached last movement and still tries to move!"));
+	//		m_MoveCount = m_Path.size();
+	//	}
+	//	return;
+	//}
 }
 
 void Enemy::Move()
 {
+	m_Destination = m_Path.at(m_MoveCount);
+
 	if (m_Destination.x > m_Pos.x)
 		m_Velocity.x = m_MovementSpeed;
 	else if (m_Destination.x < m_Pos.x)
@@ -333,137 +324,6 @@ void Enemy::Move()
 	else
 		m_Velocity.y = 0.0f;
 }
-
-//void Enemy::Move(Vector2D destination)
-//{
-//	if (IsMoving())
-//		return;
-//
-//	// destination should be rounded in case it will get some digits after a comma
-//	// to avoid improper rendering like between of 2 tiles
-//	destination.Roundf();
-//	
-//	m_Destination = Vector2D(m_Pos).Add(destination);
-//	/*m_Destination.x = m_Pos.x + destination.x;
-//	m_Destination.y = m_Pos.y + destination.y;*/
-//
-//	// block moving outside of map
-//	if (m_Destination.x < 0.0f)
-//	{
-//		m_Destination.x = 0.0f;
-//		destination.x = 0.0f;
-//	}
-//	if (m_Destination.y < 0.0f)
-//	{
-//		m_Destination.y = 0.0f;
-//		destination.y = 0.0f;
-//	}
-//
-//	if (destination.x < 0.0f)
-//	{
-//		m_Velocity.x = -m_MovementSpeed;
-//	}
-//	else if (destination.x > 0.0f)
-//	{
-//		m_Velocity.x = m_MovementSpeed;
-//	}
-//	else
-//	{
-//		m_Velocity.x = 0.0f;
-//	}
-//
-//	if (destination.y < 0.0f)
-//	{
-//		m_Velocity.y = -m_MovementSpeed;
-//	}
-//	else if (destination.y > 0.0f)
-//	{
-//		m_Velocity.y = m_MovementSpeed;
-//	}
-//	else
-//	{
-//		m_Velocity.y = 0.0f;
-//	}
-//}
-//
-//void Enemy::Move(float destinationX, float destinationY)
-//{
-//	Move(Vector2D(destinationX, destinationY));
-//}
-//
-//void Enemy::UpdateMovement()
-//{
-//	Tile *nextTile = App::s_CurrentLevel->GetTileFrom(uint32_t(m_Pos.x + (m_Velocity.x * App::s_ElapsedTime)), uint32_t(m_Pos.y + (m_Velocity.y * App::s_ElapsedTime)));
-//
-//	if (!nextTile)
-//	{
-//		App::s_Logger.AddLog("Enemy tried to walk into a non-exising tile, enemy has been destroyed!\n");
-//		Destroy();
-//		return;
-//	}
-//	else if (nextTile != m_OccupiedTile)
-//	{
-//		if (nextTile->GetOccupyingEntity() && nextTile->GetOccupyingEntity() != this)
-//			return;
-//
-//		m_OccupiedTile->SetOccupyingEntity(nullptr);
-//		m_OccupiedTile = nextTile;
-//		m_OccupiedTile->SetOccupyingEntity(this);
-//
-//		Attacker *attacker = nullptr;
-//		for (const auto &tower : g_Towers)
-//		{
-//			attacker = static_cast<Tower*>(tower)->GetAttacker();
-//
-//			if (!attacker)
-//				continue;
-//
-//			if (attacker->GetTarget() == this)
-//			{
-//				if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
-//					attacker->StopAttacking();
-//			}
-//			else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange((Tower*)tower, App::s_TowerRange))
-//			{
-//				attacker->InitAttack(this);
-//			}
-//		}
-//	}
-//
-//	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
-//
-//	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
-//		m_Velocity.x = 0.0f;
-//
-//	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
-//		m_Velocity.y = 0.0f;
-//
-//	// The direction of walk animation doesn't really matter in the game, so it can be done in the easiest possible way
-//	if (m_Velocity.x > 0)
-//		PlayAnim("WalkRight");
-//	else if (m_Velocity.x < 0)
-//		PlayAnim("WalkLeft");
-//	else if (m_Velocity.y > 0)
-//		PlayAnim("Walk");
-//	else if (m_Velocity.y < 0)
-//		PlayAnim("WalkUp");
-//
-//	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
-//
-//	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
-//	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
-//
-//	const SDL_Rect &rectOfBase = App::s_CurrentLevel->GetBase()->GetRect();
-//	if (destRect.x + destRect.w / 2 >= rectOfBase.x && destRect.x - destRect.w / 2 <= rectOfBase.x
-//		&& destRect.y + destRect.h / 2 >= rectOfBase.y && destRect.y - destRect.h / 2 <= rectOfBase.y)
-//	{
-//		App::TakeLifes();
-//		Destroy();
-//		return;
-//	}
-//
-//	UpdateHealthBar();
-//}
 
 void Enemy::UpdateHealthBar()
 {
@@ -497,7 +357,6 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	}
 	else
 	{
-		App::s_Logger.AddLog(std::format("Added {} coins for killing an enemy", m_Coins));
 		App::Instance().AddCoins(m_Coins);
 
 		m_HP = 0;
@@ -507,7 +366,8 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 
 	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
 	
-	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+	//m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+	m_RectHP.labelHP->UpdateText(std::format("{}%", std::roundf(m_HPPercent)));
 
 	UpdateHealthBar();
 
@@ -536,24 +396,6 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 
 	return false;
 }
-
-//#ifdef DEBUG
-//void Enemy::SpeedUp()
-//{
-//	if (App::s_Speedy)
-//	{
-//		m_MovementSpeed *= 2.0f;
-//		m_Velocity *= 2.0f;
-//		m_Speedy = true;
-//	}
-//	else if (m_Speedy) // if turning off and the enemy is faster
-//	{
-//		m_MovementSpeed /= 2.0f;
-//		m_Velocity /= 2.0f;
-//		m_Speedy = false;
-//	}
-//}
-//#endif
 
 IF_DEBUG(
 void Enemy::SpeedUp()

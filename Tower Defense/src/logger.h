@@ -10,6 +10,7 @@ public:
 	~Logger();
 
 	void AddLog(std::string_view newLog, bool endLine = true);
+	void AddLog(const std::string &newLog, bool endLine = true);
 #ifdef DEBUG
 	void PrintQueuedLogs();
 	void ClearLogs();

@@ -68,7 +68,7 @@ public:
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
-	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2);
+	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2) const;
 	void AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target);
 
 	void HandleMouseButtonEvent();

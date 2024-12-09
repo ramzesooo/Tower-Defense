@@ -1,8 +1,11 @@
+#include "common.h"
 #include "textureManager.h"
 #include "app.h"
 #include "logger.h"
 
 #include "SDL_image.h"
+
+#include <format>
 
 TextureManager::~TextureManager()
 {
@@ -24,15 +27,20 @@ void TextureManager::AddTexture(const std::string &textureID, const char* path)
 	SDL_Surface* tempSurface = IMG_Load(path);
 	if (!tempSurface)
 	{
-		App::s_Logger.AddLog(SDL_GetError());
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		return;
 	}
 
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(App::s_Renderer, tempSurface);
 	if (!texture)
 	{
-		App::s_Logger.AddLog(SDL_GetError());
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		SDL_FreeSurface(tempSurface);
+		return;
 	}
 	SDL_FreeSurface(tempSurface);
+
+	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded texture \"{}\" from \"{}\"", textureID, path));)
 
 	textures.emplace(textureID, texture);
 }
@@ -52,7 +60,7 @@ SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
 	auto it = textures.find(textureID);
 	if (it == textures.end())
 	{
-		App::s_Logger.AddLog("TextureManager::GetTexture: Missing texture ", false);
+		App::s_Logger.AddLog(std::string_view("TextureManager::GetTexture: Missing texture "), false);
 		App::s_Logger.AddLog(textureID);
 		return nullptr;
 	}
@@ -66,8 +74,7 @@ void TextureManager::AddFont(std::string_view fontID, const char* path, uint16_t
 
 	if (!font)
 	{
-		App::s_Logger.AddLog("TextureManager::GetFont: Couldn't open font ", false);
-		App::s_Logger.AddLog(path);
+		App::s_Logger.AddLog(std::format("TextureManager::GetFont: Couldn't open font {}", path));
 		return;
 	}
 
@@ -79,7 +86,7 @@ TTF_Font* TextureManager::GetFont(std::string_view fontID) const
 	auto it = fonts.find(fontID);
 	if (it == fonts.end())
 	{
-		App::s_Logger.AddLog("TextureManager::GetFont: Missing font ", false);
+		App::s_Logger.AddLog(std::string_view("TextureManager::GetFont: Missing font "), false);
 		App::s_Logger.AddLog(fontID);
 		return nullptr;
 	}

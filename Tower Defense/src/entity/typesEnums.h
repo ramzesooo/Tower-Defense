@@ -1,4 +1,9 @@
 #pragma once
+enum class TowerType
+{
+
+};
+
 enum class ProjectileType
 {
 	arrow = 0,

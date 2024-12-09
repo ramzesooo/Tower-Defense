@@ -41,6 +41,8 @@ void Attacker::Destroy()
 		p->SetTarget(nullptr);
 		p->Destroy();
 	}
+
+	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
 void Attacker::Update()

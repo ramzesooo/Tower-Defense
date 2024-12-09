@@ -110,4 +110,6 @@ void Projectile::Destroy()
 			return;
 		}
 	}
+
+	App::s_Manager.m_EntitiesToDestroy = true;
 }
