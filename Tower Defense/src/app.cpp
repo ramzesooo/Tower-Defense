@@ -25,9 +25,7 @@ SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WIND
 
 Level *App::s_CurrentLevel = nullptr;
 
-//uint16_t App::s_TowerRange = 3;
-
-float App::s_ElapsedTime = NULL;
+float App::s_ElapsedTime = 0.0f;
 
 UIState App::s_UIState = UIState::mainMenu;
 
@@ -53,7 +51,7 @@ SDL_Rect UIElement::heartDestRect;
 UIElement App::s_UICoins;
 UIElement App::s_UIWaves;
 UIElement App::s_UILifes;
-Label App::s_UICoinsNotification(2000);
+Label App::s_UICoinsNotification(1000);
 
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;)
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;)
@@ -64,6 +62,8 @@ CameraMovement App::s_CameraMovement;
 
 IF_DEBUG(bool App::s_Speedy = false;)
 // class App STATIC VARIABLES
+
+SDL_Texture *BuildingState::originalTexture = nullptr;
 
 std::default_random_engine g_Rng(App::s_Rnd());
 
@@ -178,7 +178,8 @@ App::App()
 	}
 	// UI ELEMENTS
 
-	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
+	//s_Building.originalTexture = s_Textures.GetTexture("canBuild");
+	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
 
 	m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
@@ -277,32 +278,7 @@ void App::EventHandler()
 		s_MouseX = s_Event.motion.x;
 		s_MouseY = s_Event.motion.y;
 
-		IF_DEBUG(
-			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
-				s_MouseX,
-				s_MouseY,
-				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
-				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
-			));
-		)
-
-		switch (s_UIState)
-		{
-		case UIState::mainMenu:
-			s_MainMenu.OnCursorMove();
-			return;
-		case UIState::building:
-			ManageBuildingState();
-			return;
-		default:
-			break;
-		}
-
-		if (!s_IsCameraLocked)
-		{
-			ManageCamera();
-			return;
-		}
+		OnCursorMove();
 
 		return;
 	//case SDL_MOUSEBUTTONUP:
@@ -347,13 +323,17 @@ void App::EventHandler()
 			SDL_SetWindowSize(m_Window, 1920, 1080);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
+		/*case SDLK_F3:
+			SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+			return;*/
 #ifdef DEBUG
 		case SDLK_F4: // Speed up enemies' movement speed
 			s_Speedy = !s_Speedy;
 
 			for (const auto &e : g_Enemies)
 			{
-				static_cast<Enemy*>(e)->SpeedUp();
+				dynamic_cast<Enemy*>(e)->SpeedUp();
 			}
 
 			s_Logger.AddLog(std::format("Enemies' speed up: {}", s_Speedy));
@@ -409,10 +389,19 @@ void App::Update()
 
 	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f))
 	{
-		s_Camera.x += s_CameraMovement.moveX;
-		s_Camera.y += s_CameraMovement.moveY;
+		s_Camera.x += (s_CameraMovement.moveX * App::s_ElapsedTime);
+		s_Camera.y += (s_CameraMovement.moveY * App::s_ElapsedTime);
 
 		UpdateCamera();
+
+		IF_DEBUG(
+			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+				s_MouseX,
+				s_MouseY,
+				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
+				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+			));
+		)
 	}
 
 	App::s_CurrentLevel->ManageWaves();
@@ -496,20 +485,20 @@ void App::OnResolutionChange()
 		return;
 	}
 
-	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + ((float)App::WINDOW_WIDTH - s_Camera.w), 10 });
+	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
 
-	if ((float)App::WINDOW_WIDTH > s_Camera.w)
-		s_Camera.x -= (float)App::WINDOW_WIDTH - s_Camera.w;
-	else if ((float)App::WINDOW_WIDTH < s_Camera.w)
-		s_Camera.x += s_Camera.w - (float)App::WINDOW_WIDTH;
+	if (static_cast<float>(App::WINDOW_WIDTH) > s_Camera.w)
+		s_Camera.x -= static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w;
+	else if (static_cast<float>(App::WINDOW_WIDTH) < s_Camera.w)
+		s_Camera.x += s_Camera.w - static_cast<float>(App::WINDOW_WIDTH);
 
-	if ((float)App::WINDOW_HEIGHT > s_Camera.h)
-		s_Camera.y -= (float)App::WINDOW_HEIGHT - s_Camera.h;
-	else if ((float)App::WINDOW_HEIGHT < s_Camera.h)
-		s_Camera.y += s_Camera.h - (float)App::WINDOW_HEIGHT;
+	if (static_cast<float>(App::WINDOW_HEIGHT) > s_Camera.h)
+		s_Camera.y -= static_cast<float>(App::WINDOW_HEIGHT) - s_Camera.h;
+	else if (static_cast<float>(App::WINDOW_HEIGHT) < s_Camera.h)
+		s_Camera.y += s_Camera.h - static_cast<float>(App::WINDOW_HEIGHT);
 
-	s_Camera.w = (float)App::WINDOW_WIDTH;
-	s_Camera.h = (float)App::WINDOW_HEIGHT;
+	s_Camera.w = static_cast<float>(App::WINDOW_WIDTH);
+	s_Camera.h = static_cast<float>(App::WINDOW_HEIGHT);
 
 	s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
 	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;
@@ -523,13 +512,14 @@ void App::LoadLevel()
 	std::ifstream mapFile;
 	for (uint16_t i = 0; i < Level::s_LayersAmount; i++)
 	{
-		path = "levels\\" + std::to_string(s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
+		path = std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i);
+		//path = "levels\\" + std::to_string(s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(path);
 
 		s_CurrentLevel->Setup(mapFile, i);
 	}
 
-	s_CurrentLevel->SetupBase((uint32_t)s_CurrentLevel->m_BasePos.x, (uint32_t)s_CurrentLevel->m_BasePos.y);
+	s_CurrentLevel->SetupBase(static_cast<uint32_t>(s_CurrentLevel->m_BasePos.x), static_cast<uint32_t>(s_CurrentLevel->m_BasePos.y));
 
 	App::Instance().SetCoins(5);
 
@@ -543,14 +533,15 @@ void App::LoadLevel()
 
 void App::SwitchBuildingState()
 {
+	static SDL_Texture *transparentTexture = s_Textures.GetTexture("transparent");
 	if (s_UIState == UIState::building)
 	{
-		s_Building.buildingPlace->SetTexture(s_Textures.GetTexture("transparent"));
+		s_Building.buildingPlace->SetTexture(transparentTexture);
 		SetUIState(UIState::none);
 	}
 	else if (s_UIState == UIState::none)
 	{
-		s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+		s_Building.buildingPlace->SetTexture(BuildingState::originalTexture);
 		SetUIState(UIState::building);
 	}
 	else
@@ -568,9 +559,19 @@ void App::ManageBuildingState()
 	if (!s_Building.pointedTile)
 		return;
 
+	if (App::s_CurrentLevel->IsTileWalkable({ s_Building.coordinates.x, s_Building.coordinates.y }))
+	{
+		s_Building.buildingPlace->SetPos(s_Building.pointedTile->GetPos());
+		BuildingState::originalTexture = s_Textures.GetTexture("cantBuild");
+		s_Building.buildingPlace->SetTexture(BuildingState::originalTexture);
+		s_Building.canBuild = false;
+		s_Building.buildingPlace->AdjustToView();
+		return;
+	}
+
 	s_Building.buildingPlace->SetPos(s_Building.pointedTile->GetPos());
-	s_Building.originalTexture = s_Textures.GetTexture("canBuild");
-	s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
+	s_Building.buildingPlace->SetTexture(BuildingState::originalTexture);
 	s_Building.canBuild = true;
 	s_Building.towerToUpgrade = nullptr;
 	
@@ -584,8 +585,8 @@ void App::ManageBuildingState()
 		Tower *tower = pointedTile->GetTowerOccupying();
 		if (tower && tower->GetTier() < 3 && pointedTile == tower->GetOccupiedTile(0))
 		{
-			s_Building.originalTexture = s_Textures.GetTexture("upgradeTower");
-			s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+			BuildingState::originalTexture = s_Textures.GetTexture("upgradeTower");
+			s_Building.buildingPlace->SetTexture(BuildingState::originalTexture);
 			s_Building.canBuild = false;
 			s_Building.towerToUpgrade = tower;
 			return;
@@ -598,8 +599,8 @@ void App::ManageBuildingState()
 		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
 			continue;
 
-		s_Building.originalTexture = s_Textures.GetTexture("cantBuild");
-		s_Building.buildingPlace->SetTexture(s_Building.originalTexture);
+		BuildingState::originalTexture = s_Textures.GetTexture("cantBuild");
+		s_Building.buildingPlace->SetTexture(BuildingState::originalTexture);
 		s_Building.canBuild = false;
 		return;
 	}
@@ -609,11 +610,11 @@ void App::ManageCamera()
 {
 	if (s_MouseX <= int32_t(s_CameraMovement.rangeW))
 	{
-		s_CameraMovement.moveX = -330.0f * s_ElapsedTime;
+		s_CameraMovement.moveX = -360.0f;
 	}
 	else if (s_MouseX >= int32_t(s_Camera.w - s_CameraMovement.rangeW))
 	{
-		s_CameraMovement.moveX = 330.0f * s_ElapsedTime;
+		s_CameraMovement.moveX = 360.0f;
 	}
 	else
 	{
@@ -622,11 +623,11 @@ void App::ManageCamera()
 
 	if (s_MouseY <= int32_t(s_CameraMovement.rangeH))
 	{
-		s_CameraMovement.moveY = -330.0f * s_ElapsedTime;
+		s_CameraMovement.moveY = -360.0f;
 	}
 	else if (s_MouseY >= int32_t(s_Camera.h - s_CameraMovement.rangeH))
 	{
-		s_CameraMovement.moveY = 330.0f * s_ElapsedTime;
+		s_CameraMovement.moveY = 360.0f;
 	}
 	else
 	{

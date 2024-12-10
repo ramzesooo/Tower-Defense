@@ -7,6 +7,7 @@
 #include <format>
 #include <string_view>
 
+extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
 IF_DEBUG(extern std::vector<Entity*> &g_Enemies;)
 
@@ -36,12 +37,12 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	switch (type)
 	{
 	case EnemyType::elf:
-		m_HP = m_MaxHP = 50;
+		m_HP = m_MaxHP = 75;
 		m_MovementSpeed = 1.5f;
 		m_Coins = 1;
 		break;
 	case EnemyType::goblinWarrior:
-		m_HP = m_MaxHP = 85;
+		m_HP = m_MaxHP = 90;
 		m_MovementSpeed = 1.35f;
 		m_Coins = 1;
 		break;
@@ -108,10 +109,10 @@ void Enemy::Destroy()
 		a->StopAttacking(false);
 	}
 
-	for (const auto &p : App::s_Manager.GetGroup(EntityGroup::projectile))
+	for (const auto &p : g_Projectiles)
 	{
-		if (static_cast<Projectile*>(p)->GetTarget() == this)
-			static_cast<Projectile*>(p)->SetTarget(nullptr);
+		if (dynamic_cast<Projectile*>(p)->GetTarget() == this)
+			dynamic_cast<Projectile*>(p)->SetTarget(nullptr);
 	}
 
 	IF_DEBUG(
@@ -130,8 +131,8 @@ void Enemy::Update()
 	{
 		if (m_MoveCount == m_Path.size())
 		{
-			App::TakeLifes();
 			Destroy();
+			App::TakeLifes();
 			return;
 		}
 
@@ -141,7 +142,7 @@ void Enemy::Update()
 
 	UpdateMovement();
 
-	srcRect.x = srcRect.w * static_cast<int>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
+	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 }
 
@@ -170,7 +171,7 @@ void Enemy::Draw()
 	}
 	else if (destRect.x > App::s_Camera.w)
 	{
-		m_PointingArrowDest.x = (int32_t)App::s_Camera.w - m_PointingArrowDest.w;
+		m_PointingArrowDest.x = static_cast<int32_t>(App::s_Camera.w) - m_PointingArrowDest.w;
 
 		angle = 90;
 	}
@@ -187,7 +188,7 @@ void Enemy::Draw()
 	}
 	else if (destRect.y > App::s_Camera.h)
 	{
-		m_PointingArrowDest.y = (int32_t)App::s_Camera.h - m_PointingArrowDest.h;
+		m_PointingArrowDest.y = static_cast<int32_t>(App::s_Camera.h) - m_PointingArrowDest.h;
 
 		angle = 180;
 	}
@@ -204,7 +205,8 @@ void Enemy::PlayAnim(std::string_view animID)
 	auto it = animations.find(animID);
 	if (it == animations.end())
 	{
-		App::s_Logger.AddLog("Couldn't find animation called " + std::string(animID));
+		App::s_Logger.AddLog(std::string_view("Couldn't find animation called "));
+		App::s_Logger.AddLog(animID);
 		return;
 	}
 
@@ -228,7 +230,7 @@ void Enemy::UpdateMovement()
 		}
 
 		{
-			Enemy *occupyingEnemy = static_cast<Enemy *>(nextTile->GetOccupyingEntity());
+			Enemy *occupyingEnemy = dynamic_cast<Enemy*>(nextTile->GetOccupyingEntity());
 			if (occupyingEnemy && occupyingEnemy != this)
 			{
 				Vector2D scaledPos = occupyingEnemy->GetScaledPos();
@@ -250,19 +252,21 @@ void Enemy::UpdateMovement()
 		m_OccupiedTile->SetOccupyingEntity(this);
 
 		Attacker *attacker = nullptr;
-		for (const auto &tower : g_Towers)
+		Tower *tower = nullptr;
+		for (const auto &t : g_Towers)
 		{
-			attacker = static_cast<Tower*>(tower)->GetAttacker();
+			tower = dynamic_cast<Tower*>(t);
+			attacker = tower->GetAttacker();
 
 			if (!attacker)
 				continue;
 
 			if (attacker->GetTarget() == this)
 			{
-				if (!IsTowerInRange((Tower*)tower, App::s_TowerRange))
+				if (!IsTowerInRange(tower, App::s_TowerRange))
 					attacker->StopAttacking();
 			}
-			else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange((Tower*)tower, App::s_TowerRange))
+			else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange(tower, App::s_TowerRange))
 			{
 				attacker->InitAttack(this);
 			}
@@ -364,10 +368,9 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 		return;
 	}
 
-	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+	m_HPPercent = std::ceilf(float(m_HP) / float(m_MaxHP) * 100.0f);
 	
-	//m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
-	m_RectHP.labelHP->UpdateText(std::format("{}%", std::roundf(m_HPPercent)));
+	m_RectHP.labelHP->UpdateText(std::format("{}%", m_HPPercent));
 
 	UpdateHealthBar();
 

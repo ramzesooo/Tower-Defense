@@ -30,14 +30,16 @@ struct CameraMovement
 {
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
-	float moveX = 0;
-	float moveY = 0;
+	float moveX = 0.0f;
+	float moveY = 0.0f;
 };
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
 //It helps to avoid duplicating code
 struct BuildingState
 {
+	static SDL_Texture *originalTexture;
+
 	//TODO:
 	//Swap buildingPlace variable to stack memory
 	//Tile buildingPlace;
@@ -46,7 +48,6 @@ struct BuildingState
 	Vector2D coordinates{ 0.0f, 0.0f };
 	bool canBuild = false;
 	Tower *towerToUpgrade = nullptr;
-	SDL_Texture *originalTexture = nullptr;
 };
 
 class App
@@ -89,18 +90,18 @@ public:
 	static Label s_UICoinsNotification;
 
 	IF_DEBUG(static Label *s_EnemiesAmountLabel;)
-	IF_DEBUG(static Label *s_PointedPosition;;)
+	IF_DEBUG(static Label *s_PointedPosition;)
 
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
 	IF_DEBUG(static bool s_Speedy;)
-
 public:
 	App();
 	~App();
 
 	static App &Instance() { return *s_Instance; }
+	bool IsRunning() const { return s_IsRunning; }
 
 	void EventHandler();
 	void Update();
@@ -112,7 +113,35 @@ public:
 
 	void OnResolutionChange();
 
-	bool IsRunning() const { return s_IsRunning; }
+	inline void OnCursorMove()
+	{
+		IF_DEBUG(
+			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+				s_MouseX,
+				s_MouseY,
+				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
+				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+			));
+		)
+
+		switch (s_UIState)
+		{
+		case UIState::mainMenu:
+			s_MainMenu.OnCursorMove();
+			return;
+		case UIState::building:
+			ManageBuildingState();
+			return;
+		default:
+			break;
+		}
+
+		if (!s_IsCameraLocked)
+		{
+			ManageCamera();
+			return;
+		}
+	}
 
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
@@ -162,7 +191,9 @@ public:
 			break;
 		}
 
-		s_Logger.AddLog(std::format("App::SetUIState: {}", newState));
+		//s_Logger.AddLog(std::format("App::SetUIState: {}", newState));
+		App::s_Logger.AddLog(std::string_view("App::SetUIState: "), false);
+		App::s_Logger.AddLog(newState);
 	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
@@ -172,8 +203,8 @@ public:
 
 	inline void SwitchCameraMode() {
 		s_IsCameraLocked = !s_IsCameraLocked;
-		s_CameraMovement.moveX = 0;
-		s_CameraMovement.moveY = 0;
+		s_CameraMovement.moveX = 0.0f;
+		s_CameraMovement.moveY = 0.0f;
 	}
 
 	void ManageCamera();

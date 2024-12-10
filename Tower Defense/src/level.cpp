@@ -594,13 +594,17 @@ void Level::Render()
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 {
-	if (layer < 0 || layer >= m_Layers.size())
+	// Don't need to check if layer is less than 0, since it has to be unsigned
+	//if (layer < 0 || layer >= m_Layers.size())
+	if (layer >= m_Layers.size())
 	{
 		App::s_Logger.AddLog(std::format("Requested a tile ({}, {}), but layer {} doesn't exist", posX, posY, layer));
 		return nullptr;
 	}
 
-	if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
+	// Don't need to check if posX or posY is less than 0, since it has to be unsigned
+	//if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
+	if (posX >= m_MapData.at(0) || posY >= m_MapData.at(1))
 		return nullptr;
 
 	return m_Layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
@@ -608,7 +612,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 
 void Level::OnUpdateCamera()
 {
-	for (std::size_t i = 0; i < m_Layers.size(); ++i)
+	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
 		{

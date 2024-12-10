@@ -80,14 +80,14 @@ void Projectile::Update()
 	// To convert it to degrees it has to be multiplied by 180 and divided by PI
 	m_Angle = std::atan2(dy, dx) * 180.0f / M_PI;
 
-	destRect.x = (int32_t)m_Pos.x + scaledTileSize / 2 - (int32_t)App::s_Camera.x;
-	destRect.y = (int32_t)m_Pos.y + destRect.h / 2 - (int32_t)App::s_Camera.y;
+	destRect.x = static_cast<int32_t>(m_Pos.x) + scaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
 }
 
 void Projectile::AdjustToView()
 {
-	destRect.x = (int32_t)m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2 - (int32_t)App::s_Camera.x;
-	destRect.y = (int32_t)m_Pos.y + destRect.h / 2 - (int32_t)App::s_Camera.y;
+	destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y); 
 }
 
 void Projectile::Draw()

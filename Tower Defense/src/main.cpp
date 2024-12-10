@@ -1,3 +1,4 @@
+#include "common.h"
 #include "app.h"
 
 #include "SDL.h"
@@ -17,7 +18,7 @@ int main(int argc, char** arg)
 	IF_DEBUG(
 		App::s_Logger.AddLog(std::string_view("DEBUG MODE"));
 		for (int i = 0; i < argc; i++)
-			App::s_Logger.AddLog("Arg: " + std::to_string(i) + ": " + arg[i]);
+			App::s_Logger.AddLog(std::format("Arg: {}: {}", i, arg[i]));
 
 		{
 			SDL_version SDLVersion{};
@@ -41,12 +42,10 @@ int main(int argc, char** arg)
 	uint32_t logsTime = SDL_GetTicks() + logsCooldown;
 
 	auto tp1 = std::chrono::system_clock::now();
-	auto tp2 = std::chrono::system_clock::now();
-	//std::chrono::system_clock::time_point
 
 	App app;
 
-	tp2 = std::chrono::system_clock::now();
+	auto tp2 = std::chrono::system_clock::now();
 	std::chrono::duration<float> elapsedTime = tp2 - tp1;
 	tp1 = tp2;
 
@@ -68,7 +67,7 @@ int main(int argc, char** arg)
 			frames++;
 			if (SDL_GetTicks() > logsTime)
 			{
-				SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::string("Tower Defense (FPS: " + std::to_string(frames) + ")").c_str());
+				SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::format("Tower Defense (FPS: {})", frames).c_str());
 				logsTime = SDL_GetTicks() + logsCooldown;
 				frames = 0;
 				App::s_Logger.PrintQueuedLogs();

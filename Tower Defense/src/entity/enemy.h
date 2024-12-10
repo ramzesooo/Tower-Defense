@@ -12,7 +12,8 @@
 #include "../Vector2D.h"
 #include "../textureManager.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 
 #include <vector>
 

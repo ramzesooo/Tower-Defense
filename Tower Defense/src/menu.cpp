@@ -9,7 +9,8 @@ MenuState MainMenu::s_State = MenuState::primary;
 void MainMenu::Render()
 {
 	static constexpr SDL_Rect srcRect{ 0, 0, 1500, 1500 };
-	TextureManager::DrawTexture(App::s_Textures.GetTexture("szpaku"), srcRect, { 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT });
+	static SDL_Texture *background = App::s_Textures.GetTexture("szpaku");
+	TextureManager::DrawTexture(background, srcRect, { 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT });
 
 	switch (s_State)
 	{
@@ -98,7 +99,7 @@ void MainMenu::OnResolutionChange()
 	int32_t centerX = App::WINDOW_WIDTH / 2;
 	int32_t centerY = App::WINDOW_HEIGHT / 2;
 
-	for (std::size_t i = 0; i < m_PrimaryButtons.size(); ++i)
+	for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
 	{
 		Button *btn = &m_PrimaryButtons.at(i);
 		btn->destRect.x = centerX - btn->destRect.w / 2;

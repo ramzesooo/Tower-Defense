@@ -37,7 +37,7 @@ void Label::Destroy()
 {
 	if (m_AttachedTo && m_AttachedTo->HasGroup(EntityGroup::enemy))
 	{
-		static_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
+		dynamic_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
 	}
 
 	if (m_Texture)
@@ -52,7 +52,7 @@ void Label::Destroy()
 
 void Label::Draw()
 {
-	if (!m_Drawable || !m_Texture || m_Alpha <= 0)
+	if (!m_Drawable || !m_Texture || m_Alpha == 0)
 		return;
 
 	if (m_VanishDelay > 0 && (double)SDL_GetTicks() >= (double)m_Ticks + m_DelayPerAlphaUnit)

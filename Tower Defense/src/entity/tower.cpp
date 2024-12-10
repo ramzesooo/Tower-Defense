@@ -3,7 +3,7 @@
 #include "../textureManager.h"
 #include "../app.h"
 
-constexpr int32_t imageWidth = 144;
+static constexpr int32_t imageWidth = 144;
 
 Tower::Tower(float posX, float posY, SDL_Texture* texture, uint16_t tier)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize), m_Texture(texture)

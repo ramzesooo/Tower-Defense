@@ -4,7 +4,8 @@
 #include "entity.h"
 #include "../Vector2D.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 
 class Attacker;
 class Enemy;

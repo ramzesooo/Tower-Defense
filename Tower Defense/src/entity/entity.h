@@ -164,7 +164,8 @@ public:
 			e->Destroy();
 		}
 
-		/*for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i) {
+		/*for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i)
+		{
 			m_GroupedEntities[i].clear();
 		}
 
