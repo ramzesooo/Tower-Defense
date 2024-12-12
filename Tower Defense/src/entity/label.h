@@ -44,8 +44,8 @@ public:
 
 	inline void UpdatePos(Vector2D pos)
 	{
-		destRect.x = (int32_t)pos.x;
-		destRect.y = (int32_t)pos.y;
+		destRect.x = static_cast<int32_t>(pos.x);
+		destRect.y = static_cast<int32_t>(pos.y);
 	}
 
 	inline void UpdatePos(int32_t posX, int32_t posY)
@@ -62,7 +62,7 @@ public:
 
 	void SetAlpha(uint8_t alpha) { m_Alpha = alpha; }
 
-	Vector2D GetPos() const { return { (float)destRect.x, (float)destRect.y }; }
+	Vector2D GetPos() const { return { static_cast<float>(destRect.x), static_cast<float>(destRect.y) }; }
 	const SDL_Rect &GetRect() const { return destRect; }
 	const std::string &GetText() const { return m_Text; }
 private:

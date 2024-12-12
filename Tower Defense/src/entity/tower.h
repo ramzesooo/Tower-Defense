@@ -54,7 +54,9 @@ public:
 	// The array's size is 4, because the tower occupies just 4 tiles
 	inline Tile* GetOccupiedTile(uint16_t ID) const
 	{
-		if (ID < 0 || ID > m_OccupiedTiles.size())
+		// Probably don't need to check if ID is less than 0, since the type is unsigned
+		//if (ID < 0 || ID > m_OccupiedTiles.size())
+		if (ID >= m_OccupiedTiles.size())
 		{
 			return nullptr;
 		}
@@ -69,6 +71,6 @@ private:
 	Vector2D m_Pos;
 	SDL_Rect srcRect{ 0, 0, 144, 64 }, destRect{ 0, 0, 48, 21 };
 	std::array<Tile*, 4> m_OccupiedTiles;
-	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown in the top of tower
+	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown on the tower
 	uint16_t m_Tier = 1;
 };

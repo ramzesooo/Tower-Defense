@@ -444,7 +444,7 @@ void Level::HandleMouseButtonEvent()
 			{
 				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
 				App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
-				App::s_Building.buildingPlace->SetTexture(App::s_Building.originalTexture);
+				App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
 				App::s_Building.towerToUpgrade = tower;
 				App::s_Building.canBuild = false;
 				return;
@@ -586,7 +586,7 @@ void Level::Render()
 
 	m_Base.Draw();
 
-	App::s_Building.buildingPlace->Draw();
+	App::s_Building.buildingPlace.Draw();
 
 	for (const auto &projectile : g_Projectiles)
 		projectile->Draw();

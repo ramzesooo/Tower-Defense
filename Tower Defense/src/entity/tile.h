@@ -4,7 +4,8 @@
 #include "entity.h"
 #include "../Vector2D.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 
 class Tower;
 
@@ -15,6 +16,7 @@ class Tower;
 class Tile : public Entity
 {
 public:
+	Tile() = delete;
 	Tile(TileType type, int32_t tileScale);
 	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type = TileType::regular, bool isWalkable = false);
 	Tile(const Tile& r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type), m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile) {}

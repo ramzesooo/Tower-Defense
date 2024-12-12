@@ -22,8 +22,10 @@ public:
 	static SDL_Texture *s_BgTexture;
 	static SDL_Texture *s_CoinTexture;
 	static SDL_Texture *s_HeartTexture;
+
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 	Label m_Label;
+	std::string m_DefaultText = "";
 
 	inline void Draw()
 	{

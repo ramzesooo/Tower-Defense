@@ -100,7 +100,7 @@ public:
 	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
 
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
-	inline bool IsTileWalkable(Vector2D pos) const
+	inline bool IsTileWalkable(const Vector2D &pos) const
 	{
 		const Tile *tile = m_Layers.at(2).GetTileFrom((std::size_t)pos.x, (std::size_t)pos.y, m_MapData.at(0));
 		if (tile && tile->IsWalkable())

@@ -40,13 +40,10 @@ struct BuildingState
 {
 	static SDL_Texture *originalTexture;
 
-	//TODO:
-	//Swap buildingPlace variable to stack memory
-	//Tile buildingPlace;
-	std::unique_ptr<Tile> buildingPlace = std::make_unique<Tile>(TileType::special, 2); // tile shown in building state
+	bool canBuild = false;
+	Tile buildingPlace{ TileType::special, 2 };
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
 	Vector2D coordinates{ 0.0f, 0.0f };
-	bool canBuild = false;
 	Tower *towerToUpgrade = nullptr;
 };
 
@@ -84,9 +81,13 @@ public:
 	static SDL_Texture *s_Square;
 	static SDL_Texture *s_GreenTex;
 
-	static UIElement s_UIWaves;
+	/*static UIElement s_UIWaves;
 	static UIElement s_UICoins;
 	static UIElement s_UILifes;
+	static UIElement s_UITime;*/
+
+	// [0] = waves, [1] = coins, [2] = lifes, [3] = time
+	static std::array<UIElement, 4> s_UIElements;
 	static Label s_UICoinsNotification;
 
 	IF_DEBUG(static Label *s_EnemiesAmountLabel;)
@@ -99,6 +100,79 @@ public:
 public:
 	App();
 	~App();
+
+	inline void PrepareUI()
+	{
+		static TTF_Font *font = App::s_Textures.GetFont("default");
+		static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
+
+		s_UIElements.at(0).m_DefaultText = "Wave: 1/1";
+		s_UIElements.at(1).m_DefaultText = "100";
+		s_UIElements.at(2).m_DefaultText = "100";
+		s_UIElements.at(3).m_DefaultText = "0:00";
+
+		for (std::size_t i = 0u; i < s_UIElements.size(); i++)
+		{
+			UIElement &element = s_UIElements.at(i);
+			element.destRect = destRect;
+			element.m_Label = Label(destRect.x, destRect.y, element.m_DefaultText, font);
+			const SDL_Rect &labelRect = element.m_Label.GetRect();
+			element.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
+
+			switch (i)
+			{
+			case 1: // coins
+				UIElement::coinDestRect = { destRect.x + UIElement::coinRect.w, destRect.y + destRect.h / 4, UIElement::coinRect.w * 3, element.destRect.h / 2 };
+				s_UICoinsNotification = Label(labelRect.x + labelRect.w + labelRect.w / 2, labelRect.y, "+0", font);
+				s_UICoinsNotification.SetAlpha(0);
+				break;
+			case 2: // lifes
+				UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w, destRect.h - UIElement::heartRect.h / 2 };
+				break;
+			case 0:
+			case 3:
+			default:
+				break;
+			}
+
+			destRect.y += destRect.h;
+		}
+
+		/*
+		// Waves
+		s_UIWaves.destRect = destRect;
+		s_UIWaves.m_Label = Label(destRect.x, destRect.y, "Wave: 1/1", font);
+		labelRect = s_UIWaves.m_Label.GetRect();
+		s_UIWaves.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
+
+		// Coins
+		destRect.y += destRect.h;
+		s_UICoins.destRect = destRect;
+		//s_UICoins.destRect = { static_cast<int32_t>(App::s_Camera.w / 30.0f), s_UIWaves.destRect.y + s_UIWaves.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
+		s_UICoins.m_Label = Label(destRect.x, destRect.y, "100", font);
+		labelRect = s_UICoins.m_Label.GetRect();
+		s_UICoins.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
+		UIElement::coinDestRect = { destRect.x + UIElement::coinRect.w, destRect.y + destRect.h / 4, UIElement::coinRect.w * 3, s_UICoins.destRect.h / 2 };
+		s_UICoinsNotification = Label(labelRect.x + labelRect.w + labelRect.w / 2, labelRect.y, "+0", font);
+		s_UICoinsNotification.SetAlpha(0);
+
+		// Lifes
+		destRect.y += destRect.h;
+		s_UILifes.destRect = destRect;
+		//s_UILifes.destRect = { static_cast<int32_t>(App::s_Camera.w / 30.0f), s_UICoins.destRect.y + s_UICoins.destRect.h, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
+		s_UILifes.m_Label = Label(destRect.x, destRect.y, "100", font);
+		labelRect = s_UILifes.m_Label.GetRect();
+		s_UILifes.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
+		UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w, destRect.h - UIElement::heartRect.h / 2 };
+	
+		// Time
+		destRect.y += destRect.h;
+		s_UITime.destRect = destRect;
+		s_UITime.m_Label = Label(destRect.x, destRect.y, "0:00", font);
+		labelRect = s_UITime.m_Label.GetRect();
+		s_UITime.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
+		*/
+	}
 
 	static App &Instance() { return *s_Instance; }
 	bool IsRunning() const { return s_IsRunning; }
@@ -119,8 +193,8 @@ public:
 			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
 				s_MouseX,
 				s_MouseY,
-				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseX / s_CurrentLevel->m_ScaledTileSize),
-				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + (float)s_MouseY / s_CurrentLevel->m_ScaledTileSize)
+				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseX) / s_CurrentLevel->m_ScaledTileSize),
+				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseY) / s_CurrentLevel->m_ScaledTileSize)
 			));
 		)
 
@@ -262,7 +336,8 @@ public:
 		}
 		else
 		{
-			App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+			//App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+			App::s_UIElements.at(1).m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
 		}
 	}
 
@@ -301,7 +376,8 @@ public:
 			return;
 
 		s_CurrentLevel->GetBase()->m_Lifes += lifes;
-		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		//App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_UIElements.at(2).m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 	// Arg is not required, takes 1 by default
@@ -328,19 +404,22 @@ public:
 	// Updates waves displayed in UI
 	static inline void UpdateWaves()
 	{
-		App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(s_CurrentLevel->GetCurrentWave() + 1) + "/" + std::to_string(s_CurrentLevel->GetWavesAmount()));
+		//App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(s_CurrentLevel->GetCurrentWave() + 1) + "/" + std::to_string(s_CurrentLevel->GetWavesAmount()));
+		App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
 	}
 
 	// Updates lifes displayed in UI
 	static inline void UpdateLifes()
 	{
-		App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		//App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_UIElements.at(2).m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 	// Updates coins displayed in UI + resets alpha of amount of took or added coins
 	static inline void UpdateCoins()
 	{
-		App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+		//App::s_UICoins.m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+		App::s_UIElements.at(1).m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
 		App::s_UICoinsNotification.ResetAlpha();
 	}
 

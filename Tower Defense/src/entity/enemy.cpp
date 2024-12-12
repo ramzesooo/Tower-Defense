@@ -368,7 +368,7 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 		return;
 	}
 
-	m_HPPercent = std::ceilf(float(m_HP) / float(m_MaxHP) * 100.0f);
+	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 	
 	m_RectHP.labelHP->UpdateText(std::format("{}%", m_HPPercent));
 
@@ -381,8 +381,8 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 {
 	int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
-	int32_t enemyX = (int32_t)m_Pos.x;
-	int32_t enemyY = (int32_t)m_Pos.y;
+	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
+	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
 
 	// Tower's position is based on left-upper tile occupied by the tower
 	for (auto i = 0; i < 4; i++)

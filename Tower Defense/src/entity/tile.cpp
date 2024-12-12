@@ -10,7 +10,7 @@ Tile::Tile(TileType type, int32_t tileScale) : m_Type(type)
 }
 
 Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type, bool isWalkable)
-	: m_Pos((float)posX, (float)posY), m_Texture(texture), m_Type(type), m_IsWalkable(isWalkable)
+	: m_Pos(static_cast<float>(posX), static_cast<float>(posY)), m_Texture(texture), m_Type(type), m_IsWalkable(isWalkable)
 {
 	srcRect.x = srcX;
 	srcRect.y = srcY;
@@ -40,7 +40,7 @@ void Tile::Destroy()
 		}
 	}
 
-	App::s_Manager.m_EntitiesToDestroy = true;
+	//App::s_Manager.m_EntitiesToDestroy = true;
 }
 
 void Tile::AdjustToView()
