@@ -2,6 +2,7 @@
 
 #include "level.h"
 #include "app.h"
+#include "entity/enemy.h"
 #include "entity/label.h"
 //#include "findPath.h"
 
@@ -149,7 +150,7 @@ Level::Level(uint16_t levelID)
 					break;
 				}
 
-				m_MapData[i] = (uint16_t)std::stoi(value);
+				m_MapData[i] = static_cast<uint16_t>(std::stoi(value));
 			}
 
 			continue;
@@ -164,7 +165,7 @@ Level::Level(uint16_t levelID)
 			}
 			else
 			{
-				m_BasePos.x = (float)std::stoi(value);
+				m_BasePos.x = std::stof(value);
 			}
 
 			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
@@ -174,7 +175,7 @@ Level::Level(uint16_t levelID)
 			}
 			else
 			{
-				m_BasePos.y = (float)std::stoi(value);
+				m_BasePos.y = std::stof(value);
 			}
 
 			continue;
@@ -188,21 +189,27 @@ Level::Level(uint16_t levelID)
 				continue;
 			}
 
-			m_MovementSpeedRate = (uint16_t)std::stoi(value);
+			m_MovementSpeedRate = static_cast<uint16_t>(std::stoi(value));
 			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));)
 			continue;
 		}
 
 		m_Waves.reserve(1);
-		m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{});
-		auto &wave = m_Waves.back();
-		for (auto i = 0u; i < (std::size_t)EnemyType::size; ++i)
+		//m_Waves.emplace_back(WaveContainer{});
+		//m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{});
+		//auto &wave = m_Waves.back();
+
+		WaveContainer newWave{};
+
+		for (auto i = 0u; i < newWave.container.size(); ++i)
 		{
 			if (!std::getline(ss, value, ','))
 				break;
 
-			wave[i] = (uint16_t)std::stoi(value);
+			newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
 		}
+
+		m_Waves.emplace_back(std::move(newWave));
 	}
 	// LOAD CONFIG
 
@@ -214,38 +221,40 @@ Level::Level(uint16_t levelID)
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
-	if (layerID < 0 || layerID >= m_Layers.size())
+	// layerID has to be unsigned
+	//if (layerID < 0 || layerID >= m_Layers.size())
+	if (layerID >= m_Layers.size())
 	{
-		App::s_Logger.AddLog("Failed to load level " + std::to_string(m_LevelID + 1));
-		App::s_Logger.AddLog("Layer " + std::to_string(layerID) + " is less than 0 or higher than expected amount of layers");
+		App::s_Logger.AddLog(std::format("Failed to load level {}: Layer {} doesn't exist", m_LevelID + 1, layerID));
 		return;
 	}
 
 	if (mapFile.fail())
 	{
-		App::s_Logger.AddLog("Failed to load level " + std::to_string(m_LevelID + 1));
+		App::s_Logger.AddLog(std::format("Failed to load level {}", m_LevelID + 1));
 		return;
 	}
-	else
-	{
-		App::s_Logger.AddLog("Loading level " + std::to_string(m_LevelID + 1), false);
-		App::s_Logger.AddLog(" (Layer: " + std::to_string(layerID) + ")");
-	}
+
+	App::s_Logger.AddLog(std::format("Loading level {} (Layer: {})", m_LevelID + 1, layerID));
 
 	// This code can be improved
 	std::string line;
 	std::vector<std::vector<int>> mapData;
 
-	while (std::getline(mapFile, line)) {
+	while (std::getline(mapFile, line))
+	{
 		std::istringstream ss(line);
 		std::vector<int> row;
 		std::string value;
 
-		while (std::getline(ss, value, ',')) {
-			row.push_back(std::stoi(value));
+		while (std::getline(ss, value, ','))
+		{
+			//row.push_back(std::stoi(value));
+			row.emplace_back(std::move(std::stoi(value)));
 		}
 
-		mapData.push_back(row);
+		//mapData.push_back(row);
+		mapData.emplace_back(std::move(row));
 	}
 
 	int32_t tileCode;
@@ -275,9 +284,9 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
-	if (layerID < 2)
+	if (layerID < 2u)
 	{
-		for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
+		for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
 		{
 			x = i % m_MapData.at(0);
 			y = i / m_MapData.at(1);
@@ -297,7 +306,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	}
 	else
 	{
-		for (uint16_t i = 0; i < m_MapData.at(0) * m_MapData.at(1); i++)
+		for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
 		{
 			x = i % m_MapData.at(0);
 			y = i / m_MapData.at(1);
@@ -340,7 +349,7 @@ void Level::SetupBase(uint32_t posX, uint32_t posY)
 	int32_t scaledPosY = posY * m_ScaledTileSize;
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
 	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
-	m_Base.m_Pos = { (float)scaledPosX, (float)scaledPosY };
+	m_Base.m_Pos = { static_cast<float>(scaledPosX), static_cast<float>(scaledPosY) };
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
 	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
 
@@ -417,7 +426,7 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddGroup(EntityGroup::enemy);
 
-	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText("Enemies: " + std::to_string(g_Enemies.size()));)
+	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size()));)
 
 	enemy->SetPath(findPath({ posX, posY }, m_BasePos));
 
@@ -485,7 +494,7 @@ void Level::InitWave()
 	for (; enemyTypeIterator < (std::size_t)EnemyType::size; ++enemyTypeIterator)
 	{
 		// if currently iterated enemy type didn't reach still the expected amount of spawned enemies
-		if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave)[enemyTypeIterator])
+		if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave).container.at(enemyTypeIterator))
 		{
 			type = (EnemyType)enemyTypeIterator;
 			m_SpecificEnemiesAmount[enemyTypeIterator]++;
@@ -529,7 +538,7 @@ void Level::ManageWaves()
 
 			m_SpawnedEnemies = 0;
 			m_ExpectedEnemiesAmount = 0;
-			for (const auto &i : m_Waves.at(m_CurrentWave))
+			for (const auto &i : m_Waves.at(m_CurrentWave).container)
 				m_ExpectedEnemiesAmount += i;
 
 			InitWave();

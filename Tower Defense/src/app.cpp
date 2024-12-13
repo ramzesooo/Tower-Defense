@@ -140,7 +140,7 @@ App::App()
 
 	m_Levels.reserve(levelsToLoad);
 
-	for (uint16_t i = 0; i < levelsToLoad; i++)
+	for (uint16_t i = 0u; i < levelsToLoad; i++)
 	{
 		m_Levels.emplace_back(std::move(std::make_unique<Level>(i)));
 	}
@@ -205,7 +205,6 @@ App::App()
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
-
 	// MAIN MENU
 
 	App::s_IsRunning = initialized;
@@ -622,11 +621,11 @@ void App::ManageBuildingState()
 
 void App::ManageCamera()
 {
-	if (s_MouseX <= int32_t(s_CameraMovement.rangeW))
+	if (s_MouseX <= s_CameraMovement.rangeW)
 	{
 		s_CameraMovement.moveX = -360.0f;
 	}
-	else if (s_MouseX >= int32_t(s_Camera.w - s_CameraMovement.rangeW))
+	else if (s_MouseX >= static_cast<int32_t>(s_Camera.w) - s_CameraMovement.rangeW)
 	{
 		s_CameraMovement.moveX = 360.0f;
 	}
@@ -635,11 +634,11 @@ void App::ManageCamera()
 		s_CameraMovement.moveX = 0.0f;
 	}
 
-	if (s_MouseY <= int32_t(s_CameraMovement.rangeH))
+	if (s_MouseY <= s_CameraMovement.rangeH)
 	{
 		s_CameraMovement.moveY = -360.0f;
 	}
-	else if (s_MouseY >= int32_t(s_Camera.h - s_CameraMovement.rangeH))
+	else if (s_MouseY >= static_cast<int32_t>(s_Camera.h) - s_CameraMovement.rangeH)
 	{
 		s_CameraMovement.moveY = 360.0f;
 	}

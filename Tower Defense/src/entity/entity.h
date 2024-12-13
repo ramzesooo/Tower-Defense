@@ -124,21 +124,21 @@ public:
 	template<class T, class... Args>
 	inline T *NewEntity(Args&&... args)
 	{
-		m_Entities.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+		m_Entities.emplace_back(std::move(std::make_unique<T>(std::forward<Args>(args)...)));
 		return (T*)m_Entities.back().get();
 	}
 
 	template<class... Args>
 	inline Tile *NewTile(Args&&... args)
 	{
-		m_Tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
+		m_Tiles.emplace_back(std::move(std::make_unique<Tile>(std::forward<Args>(args)...)));
 		return m_Tiles.back().get();
 	}
 	
 	template<class... Args>
 	inline Label *NewLabel(Args&&... args)
 	{
-		m_Labels.emplace_back(std::make_unique<Label>(std::forward<Args>(args)...));
+		m_Labels.emplace_back(std::move(std::make_unique<Label>(std::forward<Args>(args)...)));
 		return m_Labels.back().get();
 	}
 

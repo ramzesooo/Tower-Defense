@@ -15,7 +15,7 @@ void MainMenu::Render()
 	switch (s_State)
 	{
 		case MenuState::primary:
-			for (std::size_t i = 0; i < m_PrimaryButtons.size(); ++i)
+			for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
 				m_PrimaryButtons.at(i).Draw();
 			return;
 		default:

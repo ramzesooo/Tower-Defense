@@ -1,13 +1,21 @@
 #pragma once
+#include "entity/typesEnums.h"
+
 #include "entity/tile.h"
 #include "entity/tower.h"
 #include "entity/attacker.h"
-#include "entity/enemy.h"
+//#include "entity/enemy.h"
 #include "entity/base.h"
 
 #include <vector>
 
 class App;
+class Enemy;
+
+struct WaveContainer
+{
+	std::array<uint16_t, (std::size_t)EnemyType::size> container{};
+};
 
 //Layer references to just map's layer
 struct Layer
@@ -121,7 +129,8 @@ private:
 
 	//Wave m_Wave;
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
-	std::vector<std::array<uint16_t, (std::size_t)EnemyType::size>> m_Waves;
+	//std::vector<std::array<uint16_t, (std::size_t)EnemyType::size>> m_Waves;
+	std::vector<WaveContainer> m_Waves;
 	std::size_t m_ExpectedEnemiesAmount = 0;
 	std::size_t m_SpawnedEnemies = 0;
 	std::size_t m_CurrentWave = 0;
