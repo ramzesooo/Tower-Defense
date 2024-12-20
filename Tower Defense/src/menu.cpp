@@ -41,8 +41,8 @@ void MainMenu::HandleMouseButtonEvent()
 			App::UpdateLifes();
 			App::s_CurrentLevel->GetBase()->m_IsActive = true;
 
-			//App::Instance().UpdateCamera();
 			App::Instance().OnResolutionChange();
+			App::Instance().UpdateCamera();
  		}
 		else if (m_HoveredButton == &m_PrimaryButtons.at(1))
 		{

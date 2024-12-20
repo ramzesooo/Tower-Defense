@@ -28,10 +28,13 @@
 
 struct CameraMovement
 {
+	static constexpr float velocity = 360.0f;
+
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
 	float moveX = 0.0f;
 	float moveY = 0.0f;
+	Vector2D border;
 };
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
@@ -43,7 +46,7 @@ struct BuildingState
 	bool canBuild = false;
 	Tile buildingPlace{ TileType::special, 2 };
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
-	Vector2D coordinates{ 0.0f, 0.0f };
+	Vector2D coordinates;
 	Tower *towerToUpgrade = nullptr;
 };
 
@@ -90,13 +93,14 @@ public:
 	static std::array<UIElement, 4> s_UIElements;
 	static Label s_UICoinsNotification;
 
-	IF_DEBUG(static Label *s_EnemiesAmountLabel;)
-	IF_DEBUG(static Label *s_PointedPosition;)
-
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
-	IF_DEBUG(static bool s_Speedy;)
+	IF_DEBUG(static Label *s_EnemiesAmountLabel;);
+	IF_DEBUG(static Label *s_PointedPosition;);
+	IF_DEBUG(static Label *s_FrameDelay;);
+
+	IF_DEBUG(static bool s_Speedy;);
 public:
 	App();
 	~App();
@@ -276,12 +280,85 @@ public:
 	void ManageBuildingState();
 
 	inline void SwitchCameraMode() {
-		s_IsCameraLocked = !s_IsCameraLocked;
+		if (s_IsCameraLocked)
+		{
+			s_IsCameraLocked = false;
+			ManageCamera();
+		}
+		else
+		{
+			s_IsCameraLocked = true;
+			s_CameraMovement.moveX = 0.0f;
+			s_CameraMovement.moveY = 0.0f;
+		}
+		/*s_IsCameraLocked = !s_IsCameraLocked;
 		s_CameraMovement.moveX = 0.0f;
-		s_CameraMovement.moveY = 0.0f;
+		s_CameraMovement.moveY = 0.0f;*/
 	}
 
-	void ManageCamera();
+	inline void MakeCameraCorrect()
+	{
+		if (s_Camera.x < 0.0f)
+		{
+			s_Camera.x = 0.0f;
+			s_CameraMovement.moveX = 0.0f;
+		}
+		else if (s_Camera.x > s_CameraMovement.border.x)
+		{
+			s_Camera.x = s_CameraMovement.border.x;
+			s_CameraMovement.moveX = 0.0f;
+		}
+
+		if (s_Camera.y < 0.0f)
+		{
+			s_Camera.y = 0.0f;
+			s_CameraMovement.moveY = 0.0f;
+		}
+		else if (s_Camera.y > s_CameraMovement.border.y)
+		{
+			s_Camera.y = s_CameraMovement.border.y;
+			s_CameraMovement.moveY = 0.0f;
+		}
+	}
+
+	inline void ManageCameraX()
+	{
+		if (s_Camera.x > 0.0f && s_MouseX <= s_CameraMovement.rangeW)
+		{
+			s_CameraMovement.moveX = -s_CameraMovement.velocity;
+			return;
+		}
+
+		if (s_Camera.x < s_CameraMovement.border.x && s_MouseX >= static_cast<int32_t>(s_Camera.w) - s_CameraMovement.rangeW)
+		{
+			s_CameraMovement.moveX = s_CameraMovement.velocity;
+			return;
+		}
+	}
+
+	inline void ManageCameraY()
+	{
+		if (s_Camera.y > 0.0f && s_MouseY <= s_CameraMovement.rangeH)
+		{
+			s_CameraMovement.moveY = -s_CameraMovement.velocity;
+			return;
+		}
+
+		if (s_Camera.y < s_CameraMovement.border.y && s_MouseY >= static_cast<int32_t>(s_Camera.h) - s_CameraMovement.rangeH)
+		{
+			s_CameraMovement.moveY = s_CameraMovement.velocity;
+			return;
+		}
+	}
+
+	inline void ManageCamera()
+	{
+		s_CameraMovement.moveX = 0.0f;
+		s_CameraMovement.moveY = 0.0f;
+
+		ManageCameraX();
+		ManageCameraY();
+	}
 
 	static constexpr inline std::string_view TextureOf(AttackerType type)
 	{
@@ -404,14 +481,12 @@ public:
 	// Updates waves displayed in UI
 	static inline void UpdateWaves()
 	{
-		//App::s_UIWaves.m_Label.UpdateText("Wave: " + std::to_string(s_CurrentLevel->GetCurrentWave() + 1) + "/" + std::to_string(s_CurrentLevel->GetWavesAmount()));
-		App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
+				App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
 	}
 
 	// Updates lifes displayed in UI
 	static inline void UpdateLifes()
 	{
-		//App::s_UILifes.m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 		App::s_UIElements.at(2).m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 

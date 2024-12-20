@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-
 #include <cmath>
 
 class Vector2D
@@ -141,3 +140,15 @@ public:
 		return stream;
 	}
 };
+
+namespace std {
+	template <>
+	struct hash<Vector2D>
+	{
+		std::size_t operator()(Vector2D x) const
+		{
+			std::string_view bytes{ reinterpret_cast<const char*>(&x), sizeof(x) };
+			return std::hash<std::string_view>{}(bytes);
+		}
+	};
+}

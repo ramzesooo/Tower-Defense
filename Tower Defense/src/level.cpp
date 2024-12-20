@@ -35,7 +35,7 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 
 	// Visited positions onto the origins from which they have been visited
 	//std::unordered_map<Vector2D, Vector2D> visited;
-	std::map<Vector2D, Vector2D> visited;
+	std::unordered_map<Vector2D, Vector2D> visited;
 
 	struct Node
 	{
@@ -141,7 +141,7 @@ Level::Level(uint16_t levelID)
 		{
 			// first line of config must contain map's width, height and scale
 			// for example: 70,70,2
-			for (auto i = 0u; i < 3; ++i)
+			for (auto i = 0u; i < 3u; ++i)
 			{
 				if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
 				{
@@ -159,8 +159,8 @@ Level::Level(uint16_t levelID)
 		{
 			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
 			{
-				App::s_Logger.AddLog("Couldn't reach out base's X position from level " + std::to_string(m_LevelID + 1));
-				m_BasePos.x = 0;
+				App::s_Logger.AddLog(std::format("Couldn't reach out base's X position from level {}", m_LevelID + 1));
+				m_BasePos.x = 0.0f;
 				continue;
 			}
 			else
@@ -170,8 +170,8 @@ Level::Level(uint16_t levelID)
 
 			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
 			{
-				App::s_Logger.AddLog("Couldn't reach out base's Y position from level " + std::to_string(m_LevelID + 1));
-				m_BasePos.y = 0;
+				App::s_Logger.AddLog(std::format("Couldn't reach out base's Y position from level {}", m_LevelID + 1));
+				m_BasePos.y = 0.0f;
 			}
 			else
 			{
@@ -189,7 +189,7 @@ Level::Level(uint16_t levelID)
 				continue;
 			}
 
-			m_MovementSpeedRate = static_cast<uint16_t>(std::stoi(value));
+			m_MovementSpeedRate = static_cast<uint16_t>(std::stoul(value));
 			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));)
 			continue;
 		}
@@ -201,7 +201,7 @@ Level::Level(uint16_t levelID)
 
 		WaveContainer newWave{};
 
-		for (auto i = 0u; i < newWave.container.size(); ++i)
+		for (std::size_t i = 0u; i < newWave.container.size(); ++i)
 		{
 			if (!std::getline(ss, value, ','))
 				break;
@@ -221,8 +221,6 @@ Level::Level(uint16_t levelID)
 
 void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 {
-	// layerID has to be unsigned
-	//if (layerID < 0 || layerID >= m_Layers.size())
 	if (layerID >= m_Layers.size())
 	{
 		App::s_Logger.AddLog(std::format("Failed to load level {}: Layer {} doesn't exist", m_LevelID + 1, layerID));
@@ -231,7 +229,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 
 	if (mapFile.fail())
 	{
-		App::s_Logger.AddLog(std::format("Failed to load level {}", m_LevelID + 1));
+		App::s_Logger.AddLog(std::format("Failed to load level {}: Couldn't find the file", m_LevelID + 1));
 		return;
 	}
 
@@ -250,11 +248,11 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 		while (std::getline(ss, value, ','))
 		{
 			//row.push_back(std::stoi(value));
-			row.emplace_back(std::move(std::stoi(value)));
+			row.emplace_back(std::stoi(value));
 		}
 
 		//mapData.push_back(row);
-		mapData.emplace_back(std::move(row));
+		mapData.emplace_back(row);
 	}
 
 	int32_t tileCode;
@@ -284,60 +282,35 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
-	if (layerID < 2u)
+	for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
 	{
-		for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
+		x = i % m_MapData.at(0);
+		y = i / m_MapData.at(1);
+		tileCode = mapData.at(y).at(x);
+		srcX = tileCode % 10;
+		srcY = tileCode / 10;
+
+		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
+
+		if (layerID == 2)
 		{
-			x = i % m_MapData.at(0);
-			y = i / m_MapData.at(1);
-			tileCode = mapData.at(y).at(x);
-			srcX = tileCode % 10;
-			srcY = tileCode / 10;
-			tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
-
-			if (!tile)
-			{
-				m_FailedLoading = true;
-				App::s_Logger.AddLog(std::format("Couldn't load a tile ({}, {})", x * m_ScaledTileSize, y * m_ScaledTileSize));
-			}
-
-			newLayer->tiles.emplace_back(tile);
-		}
-	}
-	else
-	{
-		for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
-		{
-			x = i % m_MapData.at(0);
-			y = i / m_MapData.at(1);
-			tileCode = mapData.at(y).at(x);
-			srcX = tileCode % 10;
-			srcY = tileCode / 10;
-
 			if (tileCode == pathID)
 			{
-				tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType, true);
+				tile->SetWalkable();
 			}
-			else
+			else if(tileCode == spawnerID)
 			{
-				tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType, false);
-
-				if (tileCode == spawnerID)
-				{
-					m_Spawners.emplace_back(tile);
-				}
+				m_Spawners.emplace_back(tile);
 			}
-
-			if (!tile)
-			{
-				m_FailedLoading = true;
-				App::s_Logger.AddLog(std::format("Couldn't load a tile ({}, {})", x * m_ScaledTileSize, y * m_ScaledTileSize));
-			}
-
-			newLayer->tiles.emplace_back(tile);
 		}
 
-		IF_DEBUG(App::s_Logger.AddLog(std::format("Added {} spawners", m_Spawners.size()));)
+		if (!tile)
+		{
+			m_FailedLoading = true;
+			App::s_Logger.AddLog(std::format("Couldn't load a tile in layer {} ({}, {})", layerID, x * m_ScaledTileSize, y * m_ScaledTileSize));
+		}
+
+		newLayer->tiles.emplace_back(tile);
 	}
 
 	mapFile.close();
@@ -572,7 +545,7 @@ void Level::ManageWaves()
 
 void Level::Render()
 {
-	for (std::size_t i = 0; i < m_Layers.size(); ++i)
+	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
 		{
@@ -582,18 +555,19 @@ void Level::Render()
 
 			tile->Draw();
 		}
+			
 	}
 
 	for (const auto &enemy : g_Enemies)
 		enemy->Draw();
+
+	m_Base.Draw();
 
 	for (const auto &tower : g_Towers)
 		tower->Draw();
 
 	for (const auto &attacker : g_Attackers)
 		attacker->Draw();
-
-	m_Base.Draw();
 
 	App::s_Building.buildingPlace.Draw();
 
@@ -603,16 +577,12 @@ void Level::Render()
 
 Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 {
-	// Don't need to check if layer is less than 0, since it has to be unsigned
-	//if (layer < 0 || layer >= m_Layers.size())
 	if (layer >= m_Layers.size())
 	{
 		App::s_Logger.AddLog(std::format("Requested a tile ({}, {}), but layer {} doesn't exist", posX, posY, layer));
 		return nullptr;
 	}
 
-	// Don't need to check if posX or posY is less than 0, since it has to be unsigned
-	//if (posX < 0 || posX >= m_MapData.at(0) || posY < 0 || posY >= m_MapData.at(1))
 	if (posX >= m_MapData.at(0) || posY >= m_MapData.at(1))
 		return nullptr;
 
@@ -625,9 +595,6 @@ void Level::OnUpdateCamera()
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
 		{
-			//if (!tile)
-				//continue;
-
 			tile->AdjustToView();
 		}
 	}

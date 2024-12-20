@@ -1,5 +1,6 @@
 #include "common.h"
 #include "app.h"
+#include "entity/label.h"
 
 #include "SDL.h"
 #include "SDL_ttf.h"
@@ -29,17 +30,26 @@ int main(int argc, char** arg)
 			SDL_GetVersion(&SDLVersion); // linked version
 			App::s_Logger.AddLog(std::format("Linked: {}.{}.{}\n", SDLVersion.major, SDLVersion.minor, SDLVersion.patch));
 		}
-	)
+	);
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0 || TTF_Init() != 0)
 	{
 		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		return -1;
 	}
 
-	IF_DEBUG(App::s_Logger.PrintQueuedLogs();)
-	IF_DEBUG(App::s_Logger.ClearLogs();)
+	IF_DEBUG(
+		{
+			SDL_DisplayMode info;
+			SDL_GetCurrentDisplayMode(0, &info);
+			App::s_Logger.AddLog(std::format("Display: {}x{}@{}Hz\n", info.w, info.h, info.refresh_rate));
+		}
+	);
 
-	uint32_t logsTime = SDL_GetTicks() + logsCooldown;
+	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
+	IF_DEBUG(App::s_Logger.ClearLogs(););
+
+	IF_DEBUG(uint32_t logsTime = SDL_GetTicks() + logsCooldown;);
 
 	auto tp1 = std::chrono::system_clock::now();
 
@@ -49,7 +59,7 @@ int main(int argc, char** arg)
 	std::chrono::duration<float> elapsedTime = tp2 - tp1;
 	tp1 = tp2;
 
-	IF_DEBUG(uint32_t frames = 0;)
+	IF_DEBUG(uint32_t frames = 0;);
 
 	while (app.IsRunning())
 	{
@@ -58,10 +68,6 @@ int main(int argc, char** arg)
 		tp1 = tp2;
 
 		App::s_ElapsedTime = elapsedTime.count();
-
-		app.EventHandler();
-		app.Update();
-		app.Render();
 
 		IF_DEBUG(
 			frames++;
@@ -72,8 +78,20 @@ int main(int argc, char** arg)
 				frames = 0;
 				App::s_Logger.PrintQueuedLogs();
 				App::s_Logger.ClearLogs();
+
+				static const std::string lastFrameTime = "Last frame time: ";
+				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
 			}
-		)
+		);
+
+		app.EventHandler();
+		app.Update();
+		app.Render();
+
+		/*IF_DEBUG(
+			static const std::string lastFrameTime = "Last frame time: ";
+			App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
+		);*/
 	}
 
 	return 0;

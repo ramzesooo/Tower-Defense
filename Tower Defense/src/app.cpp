@@ -57,14 +57,14 @@ SDL_Rect UIElement::heartDestRect{};
 std::array<UIElement, 4> App::s_UIElements{};
 Label App::s_UICoinsNotification(1000);
 
-IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;)
-IF_DEBUG(Label *App::s_PointedPosition = nullptr;)
-
 bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
 
-IF_DEBUG(bool App::s_Speedy = false;)
+IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
+IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
+IF_DEBUG(Label *App::s_FrameDelay = nullptr;);
+IF_DEBUG(bool App::s_Speedy = false;);
 // class App STATIC VARIABLES
 
 SDL_Texture *BuildingState::originalTexture = nullptr;
@@ -110,11 +110,6 @@ App::App()
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
 
-	/*s_CameraMovement.rangeW = WINDOW_WIDTH / 6;
-	s_CameraMovement.rangeH = WINDOW_HEIGHT / 6;*/
-	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
-	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
-
 	for (const auto &[id, path] : textures)
 	{
 		App::s_Textures.AddTexture(std::string(id), std::string(path).c_str());
@@ -152,6 +147,14 @@ App::App()
 		App::s_Logger.AddLog(std::string_view("First level couldn't be loaded properly."));
 		initialized = false;
 	}
+	else
+	{
+		s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
+		s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+	}
+	
+	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
+	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
 
 	PrepareUI();
 
@@ -164,8 +167,9 @@ App::App()
 	const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
 	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
-	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default"));)
-	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default"));)
+	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default")););
+	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default")););
+	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(500, 10, " ", s_Textures.GetFont("default"), SDL_Color{ 0, 200, 0, 255 }););
 
 	int32_t centerX = App::WINDOW_WIDTH / 2;
 	int32_t centerY = App::WINDOW_HEIGHT / 2;
@@ -173,7 +177,7 @@ App::App()
 	// MAIN MENU
 	Button *btn = nullptr;
 
-	for (std::size_t i = 0; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
+	for (std::size_t i = 0u; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(i);
 		btn->destRect.w = App::WINDOW_WIDTH / 7;
@@ -213,12 +217,12 @@ App::App()
 App::~App()
 {
 	m_Levels.clear();
-	App::s_Logger.AddLog(std::string_view("App::~App: Levels have been cleared"));
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Levels have been cleared")););
 
 	if (s_Renderer)
 	{
 		SDL_DestroyRenderer(s_Renderer);
-		App::s_Logger.AddLog(std::string_view("App::~App: Renderer has been destroyed"));
+		IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Renderer has been destroyed")););
 		s_Renderer = nullptr;
 	}
 
@@ -226,19 +230,19 @@ App::~App()
 	{
 		SDL_DestroyWindow(m_Window);
 		m_Window = nullptr;
-		App::s_Logger.AddLog(std::string_view("App::~App: Window has been destroyed"));
+		IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Window has been destroyed")););
 	}
 
 	// TTF_Quit() is called in ~TextureManager()
 	SDL_Quit();
-	App::s_Logger.AddLog(std::string_view("App::~App: Triggered SDL_Quit()"));
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Triggered SDL_Quit()")););
 
 	if (App::s_Instance == this)
 		App::s_Instance = nullptr;
 
-	App::s_Logger.AddLog(std::string_view("App::~App: Application has been cleared"));
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Application has been cleared")););
 
-	IF_DEBUG(App::s_Logger.PrintQueuedLogs();)
+	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
 }
 
 void App::EventHandler()
@@ -271,7 +275,6 @@ void App::EventHandler()
 		s_MouseY = s_Event.motion.y;
 
 		OnCursorMove();
-
 		return;
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
@@ -379,21 +382,9 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	if (!s_IsCameraLocked && (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f))
+	if (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f)
 	{
-		s_Camera.x += (s_CameraMovement.moveX * App::s_ElapsedTime);
-		s_Camera.y += (s_CameraMovement.moveY * App::s_ElapsedTime);
-
 		UpdateCamera();
-
-		IF_DEBUG(
-			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
-				s_MouseX,
-				s_MouseY,
-				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseX) / s_CurrentLevel->m_ScaledTileSize),
-				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseY) / s_CurrentLevel->m_ScaledTileSize)
-			));
-		)
 	}
 
 	App::s_CurrentLevel->ManageWaves();
@@ -424,7 +415,8 @@ void App::Render()
 
 void App::DrawUI()
 {
-	IF_DEBUG(s_EnemiesAmountLabel->Draw();)
+	IF_DEBUG(s_EnemiesAmountLabel->Draw(););
+	IF_DEBUG(s_FrameDelay->Draw(););
 
 	m_PauseLabel->Draw();
 
@@ -448,27 +440,24 @@ void App::DrawUI()
 
 void App::UpdateCamera()
 {
-	if (s_Camera.x < 0.0f)
-	{
-		s_Camera.x = 0.0f;
-		s_CameraMovement.moveX = 0.0f;
-	}
-	else if (s_Camera.x > s_CurrentLevel->m_MapData.at(3) - s_Camera.w)
-	{
-		s_Camera.x = s_CurrentLevel->m_MapData.at(3) - s_Camera.w;
-		s_CameraMovement.moveX = 0.0f;
-	}
+	static Vector2D cameraVelocity;
 
-	if (s_Camera.y < 0.0f)
-	{
-		s_Camera.y = 0.0f;
-		s_CameraMovement.moveY = 0.0f;
-	}
-	else if (s_Camera.y > s_CurrentLevel->m_MapData.at(4) - s_Camera.h)
-	{
-		s_Camera.y = s_CurrentLevel->m_MapData.at(4) - s_Camera.h;
-		s_CameraMovement.moveY = 0.0f;
-	}
+	cameraVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
+	cameraVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;
+
+	s_Camera.x += cameraVelocity.x;
+	s_Camera.y += cameraVelocity.y;
+
+	MakeCameraCorrect();
+
+	IF_DEBUG(
+		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+			s_MouseX,
+			s_MouseY,
+			std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)),
+			std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize))
+		));
+	)
 
 	s_CurrentLevel->OnUpdateCamera();
 }
@@ -498,20 +487,20 @@ void App::OnResolutionChange()
 	s_Camera.w = static_cast<float>(App::WINDOW_WIDTH);
 	s_Camera.h = static_cast<float>(App::WINDOW_HEIGHT);
 
+	s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
+	s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
 	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
 	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
 
-	UpdateCamera();
+	//UpdateCamera();
+	MakeCameraCorrect();
 }
 
 void App::LoadLevel()
 {
-	//std::string path;
 	std::ifstream mapFile;
-	for (uint16_t i = 0; i < Level::s_LayersAmount; i++)
+	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{
-		//path = std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i);
-		//path = "levels\\" + std::to_string(s_CurrentLevel->GetID() + 1) + "\\map_layer" + std::to_string(i) + ".map";
 		mapFile = std::ifstream(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
 
 		s_CurrentLevel->Setup(mapFile, i);
@@ -616,35 +605,6 @@ void App::ManageBuildingState()
 		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
 		s_Building.canBuild = false;
 		return;
-	}
-}
-
-void App::ManageCamera()
-{
-	if (s_MouseX <= s_CameraMovement.rangeW)
-	{
-		s_CameraMovement.moveX = -360.0f;
-	}
-	else if (s_MouseX >= static_cast<int32_t>(s_Camera.w) - s_CameraMovement.rangeW)
-	{
-		s_CameraMovement.moveX = 360.0f;
-	}
-	else
-	{
-		s_CameraMovement.moveX = 0.0f;
-	}
-
-	if (s_MouseY <= s_CameraMovement.rangeH)
-	{
-		s_CameraMovement.moveY = -360.0f;
-	}
-	else if (s_MouseY >= static_cast<int32_t>(s_Camera.h) - s_CameraMovement.rangeH)
-	{
-		s_CameraMovement.moveY = 360.0f;
-	}
-	else
-	{
-		s_CameraMovement.moveY = 0.0f;
 	}
 }
 
