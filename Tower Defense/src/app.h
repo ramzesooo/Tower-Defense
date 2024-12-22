@@ -193,14 +193,17 @@ public:
 
 	inline void OnCursorMove()
 	{
-		IF_DEBUG(
-			s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
-				s_MouseX,
-				s_MouseY,
-				std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseX) / s_CurrentLevel->m_ScaledTileSize),
-				std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseY) / s_CurrentLevel->m_ScaledTileSize)
-			));
-		)
+#ifdef DEBUG
+		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+
+		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+			s_MouseX,
+			s_MouseY,
+			s_Building.coordinates.x,
+			s_Building.coordinates.y)
+		);
+#endif
 
 		switch (s_UIState)
 		{

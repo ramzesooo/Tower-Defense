@@ -62,6 +62,7 @@ public:
 
 	// Base is signed as a regular tile
 	void SetupBase(uint32_t posX, uint32_t posY);
+	void SetupBase(const Vector2D &pos) { SetupBase(static_cast<uint32_t>(pos.x), static_cast<uint32_t>(pos.y)); }
 
 	void Clean();
 

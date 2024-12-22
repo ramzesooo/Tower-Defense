@@ -297,7 +297,7 @@ void App::EventHandler()
 			return;
 		case SDLK_TAB: // move the camera to the primary point (base)
 			{
-				const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
+				const Vector2D &basePos = s_CurrentLevel->m_BasePos;
 
 				s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 				s_Camera.y = basePos.y - s_Camera.h / 2.0f;
@@ -454,9 +454,9 @@ void App::UpdateCamera()
 		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
 			s_MouseX,
 			s_MouseY,
-			std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)),
-			std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize))
-		));
+			s_Building.coordinates.x,
+			s_Building.coordinates.y)
+		);
 	)
 
 	s_CurrentLevel->OnUpdateCamera();
@@ -498,24 +498,23 @@ void App::OnResolutionChange()
 
 void App::LoadLevel()
 {
-	std::ifstream mapFile;
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{
-		mapFile = std::ifstream(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
+		std::ifstream mapFile = std::ifstream(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
 
 		s_CurrentLevel->Setup(mapFile, i);
 	}
 
-	s_CurrentLevel->SetupBase(static_cast<uint32_t>(s_CurrentLevel->m_BasePos.x), static_cast<uint32_t>(s_CurrentLevel->m_BasePos.y));
-
-	App::Instance().SetCoins(5);
+	s_CurrentLevel->SetupBase(s_CurrentLevel->m_BasePos);
 
 	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 
 	s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 	s_Camera.y = basePos.y - s_Camera.h / 2.0f;
 
-	s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
+	App::Instance().SetCoins(5);
+
+	App::s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
 }
 
 void App::SwitchBuildingState()
@@ -554,8 +553,10 @@ void App::SwitchBuildingState()
 
 void App::ManageBuildingState()
 {
-	s_Building.coordinates.x = std::floorf((App::s_Camera.x / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseX) / s_CurrentLevel->m_ScaledTileSize);
-	s_Building.coordinates.y = std::floorf((App::s_Camera.y / s_CurrentLevel->m_ScaledTileSize) + static_cast<float>(s_MouseY) / s_CurrentLevel->m_ScaledTileSize);
+	IF_NDEBUG(
+		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+	);
 
 	s_Building.pointedTile = App::s_CurrentLevel->GetTileFrom(s_Building.coordinates.x, s_Building.coordinates.y, 0);
 	if (!s_Building.pointedTile)

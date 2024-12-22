@@ -79,7 +79,8 @@ int main(int argc, char** arg)
 				App::s_Logger.PrintQueuedLogs();
 				App::s_Logger.ClearLogs();
 
-				static const std::string lastFrameTime = "Last frame time: ";
+				static constexpr char lastFrameTime[] = "Last frame time: ";
+				//static const std::string lastFrameTime = "Last frame time: ";
 				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
 			}
 		);
@@ -87,11 +88,6 @@ int main(int argc, char** arg)
 		app.EventHandler();
 		app.Update();
 		app.Render();
-
-		/*IF_DEBUG(
-			static const std::string lastFrameTime = "Last frame time: ";
-			App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
-		);*/
 	}
 
 	return 0;

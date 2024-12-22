@@ -1,8 +1,6 @@
 #pragma once
 #include "../Vector2D.h"
 
-#include "SDL.h"
-
 #include <vector>
 #include <array>
 #include <memory>
@@ -23,6 +21,9 @@ enum class EntityGroup
 class Entity
 {
 public:
+	bool m_IsActive = true;
+	std::bitset<(std::size_t)EntityGroup::size> m_GroupBitSet;
+public:
 	Entity() = default;
 	Entity(const Entity&) = delete;
 	Entity& operator=(const Entity&) = delete;
@@ -39,13 +40,8 @@ public:
 	bool IsActive() const { return m_IsActive; }
 
 	bool HasGroup(EntityGroup group) const { return m_GroupBitSet[(std::size_t)group]; }
-	void AddGroup(EntityGroup group);
-	//This should be changed, because DeleteGroup should also remove the entity from specific groupedEntities' vector
-	void DeleteGroup(EntityGroup group) { m_GroupBitSet[(std::size_t)group] = false; }
-
-	bool m_IsActive = true;
-
-	std::bitset<(std::size_t)EntityGroup::size> m_GroupBitSet;
+	void AddToGroup(EntityGroup group);
+	void RemoveFromGroup(EntityGroup group);
 };
 
 class Manager
@@ -103,10 +99,11 @@ public:
 			// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
 			for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i)
 			{
-				if ((*it)->HasGroup((EntityGroup)i))
+				/*if ((*it)->HasGroup((EntityGroup)i))
 				{
 					std::erase(m_GroupedEntities[i], it->get());
-				}
+				}*/
+				(*it)->RemoveFromGroup((EntityGroup)i);
 			}
 
 			//Ready to erase the unique pointer from entities

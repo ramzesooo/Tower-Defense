@@ -356,7 +356,7 @@ Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16
 	}
 
 	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
-	tower->AddGroup(EntityGroup::tower);
+	tower->AddToGroup(EntityGroup::tower);
 
 	AddAttacker(tower, (AttackerType)(tier - 1));
 	return tower;
@@ -390,14 +390,14 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	}*/
 
 	auto attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
-	attacker->AddGroup(EntityGroup::attacker);
+	attacker->AddToGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
 }
 
 Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale) const
 {
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
-	enemy->AddGroup(EntityGroup::enemy);
+	enemy->AddToGroup(EntityGroup::enemy);
 
 	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size()));)
 
@@ -412,7 +412,7 @@ void Level::AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy*
 		return;
 
 	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
-	projectile->AddGroup(EntityGroup::projectile);
+	projectile->AddToGroup(EntityGroup::projectile);
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }
 
