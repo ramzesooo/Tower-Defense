@@ -297,17 +297,6 @@ void Enemy::UpdateMovement()
 		PlayAnim("WalkUp");
 
 	UpdateHealthBar();
-
-	//if (m_Velocity.IsEqualZero())
-	//{
-	//	PlayAnim("Idle");
-	//	if (++m_MoveCount >= m_Path.size())
-	//	{
-	//		App::s_Logger.AddLog(std::string_view("Enemy have reached last movement and still tries to move!"));
-	//		m_MoveCount = m_Path.size();
-	//	}
-	//	return;
-	//}
 }
 
 void Enemy::Move()
@@ -379,19 +368,36 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 {
-	int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
-	int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
+	//const SDL_Rect& towerOffset = tower->GetRect();
+	//int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
+	//int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
+	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
+	// So all we need to do is add +1 to the position
+	static constexpr int32_t towerOffset = 1;
+
+	int32_t posX = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
+	int32_t posY = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
+
 	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
 	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
 
 	// Tower's position is based on left-upper tile occupied by the tower
-	for (auto i = 0; i < 4; i++)
+	/*for (auto i = 0; i < 4; i++)
 	{
 		auto x = i % 2;
 		auto y = i / 2;
 
 		if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
 			&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
+		{
+			return true;
+		}
+	}*/
+
+	for (auto i = range; i > 0; i--)
+	{
+		if (posX - i <= enemyX && posY - i <= enemyY
+			&& posX + i + towerOffset >= enemyX && posY + i + towerOffset >= enemyY)
 		{
 			return true;
 		}

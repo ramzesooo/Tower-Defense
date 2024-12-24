@@ -69,7 +69,7 @@ public:
 	static SDL_FRect s_Camera;
 
 	static Level *s_CurrentLevel;
-	static constexpr uint16_t s_TowerRange = 3;
+	static constexpr uint16_t s_TowerRange = 5;
 	static float s_ElapsedTime;
 	static UIState s_UIState;
 	static int32_t s_MouseX;

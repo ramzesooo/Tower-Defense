@@ -297,7 +297,7 @@ void App::EventHandler()
 			return;
 		case SDLK_TAB: // move the camera to the primary point (base)
 			{
-				const Vector2D &basePos = s_CurrentLevel->m_BasePos;
+				const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 
 				s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 				s_Camera.y = basePos.y - s_Camera.h / 2.0f;

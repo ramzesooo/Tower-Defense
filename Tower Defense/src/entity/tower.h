@@ -41,6 +41,7 @@ public:
 	void Draw() override;
 
 	Vector2D GetPos() const override { return m_Pos; }
+	const SDL_Rect &GetRect() const { return destRect; }
 
 	void AssignAttacker(Attacker* attacker) { m_Attacker = attacker; }
 	Attacker* GetAttacker() const { return m_Attacker; }
