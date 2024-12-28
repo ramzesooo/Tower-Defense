@@ -48,11 +48,6 @@ SDL_Texture *UIElement::s_HeartTexture = nullptr;
 SDL_Rect UIElement::coinDestRect{};
 SDL_Rect UIElement::heartDestRect{};
 
-//UIElement App::s_UICoins;
-//UIElement App::s_UIWaves;
-//UIElement App::s_UILifes;
-//UIElement App::s_UITime;
-
 // [0] = waves, [1] = coins, [2] = lifes, [3] = time
 std::array<UIElement, 4> App::s_UIElements{};
 Label App::s_UICoinsNotification(1000);
@@ -64,7 +59,7 @@ CameraMovement App::s_CameraMovement;
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
 IF_DEBUG(Label *App::s_FrameDelay = nullptr;);
-IF_DEBUG(bool App::s_Speedy = false;);
+IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
 // class App STATIC VARIABLES
 
 SDL_Texture *BuildingState::originalTexture = nullptr;
@@ -113,6 +108,11 @@ App::App()
 	for (const auto &[id, path] : textures)
 	{
 		App::s_Textures.AddTexture(std::string(id), std::string(path).c_str());
+	}
+
+	for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
+	{
+		Tower::s_TowerTextures[i] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
 	}
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
@@ -324,14 +324,25 @@ void App::EventHandler()
 			return;*/
 #ifdef DEBUG
 		case SDLK_F4: // Speed up enemies' movement speed
-			s_Speedy = !s_Speedy;
+			switch (s_Speedy)
+			{
+			case EnemyDebugSpeed::none:
+				s_Speedy = EnemyDebugSpeed::faster;
+				break;
+			case EnemyDebugSpeed::faster:
+				s_Speedy = EnemyDebugSpeed::stay;
+				break;
+			case EnemyDebugSpeed::stay:
+				s_Speedy = EnemyDebugSpeed::none;
+				break;
+			}
 
 			for (const auto &e : g_Enemies)
 			{
-				dynamic_cast<Enemy*>(e)->SpeedUp();
+				dynamic_cast<Enemy*>(e)->DebugSpeed();
 			}
 
-			s_Logger.AddLog(std::format("Enemies' speed up: {}", s_Speedy));
+			s_Logger.AddLog(std::format("Enemies' speed up: {}", static_cast<int32_t>(s_Speedy)));
 			return;
 #endif
 		case SDLK_F5: // Add life
@@ -408,7 +419,7 @@ void App::Render()
 		DrawUI();
 	}
 
-	IF_DEBUG(s_PointedPosition->Draw();)
+	IF_DEBUG(s_PointedPosition->Draw(););
 
 	SDL_RenderPresent(App::s_Renderer);
 }
@@ -425,17 +436,10 @@ void App::DrawUI()
 		s_UIElements.at(i).Draw();
 	}
 
-	//s_UIWaves.Draw();
-
-	//s_UICoins.Draw();
 	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);
-
-	s_UICoinsNotification.Draw();
-	
-	//s_UILifes.Draw();
 	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
 
-	//s_UITime.Draw();
+	s_UICoinsNotification.Draw();
 }
 
 void App::UpdateCamera()
@@ -494,6 +498,7 @@ void App::OnResolutionChange()
 
 	//UpdateCamera();
 	MakeCameraCorrect();
+	s_CurrentLevel->OnUpdateCamera();
 }
 
 void App::LoadLevel()
@@ -586,7 +591,7 @@ void App::ManageBuildingState()
 	// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
 	{
 		Tower *tower = pointedTile->GetTowerOccupying();
-		if (tower && tower->GetTier() < 3 && pointedTile == tower->GetOccupiedTile(0))
+		if (tower && tower->CanUpgrade() && pointedTile == tower->GetOccupiedTile(0))
 		{
 			BuildingState::originalTexture = s_Textures.GetTexture("upgradeTower");
 			s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
@@ -598,7 +603,7 @@ void App::ManageBuildingState()
 
 	for (auto i = 0u; i < 4u; i++)
 	{
-		pointedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)s_Building.coordinates.x + i % 2, (uint32_t)s_Building.coordinates.y + i / 2, 0);
+		pointedTile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(s_Building.coordinates.x) + i % 2, static_cast<uint32_t>(s_Building.coordinates.y) + i / 2, 0);
 		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
 			continue;
 

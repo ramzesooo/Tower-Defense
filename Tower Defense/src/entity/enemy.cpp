@@ -9,13 +9,14 @@
 
 extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
-IF_DEBUG(extern std::vector<Entity*> &g_Enemies;)
+IF_DEBUG(extern std::vector<Entity*> &g_Enemies;);
 
 SDL_Texture *Enemy::s_ArrowTexture = nullptr;
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
+	IF_DEBUG(, m_Speedy(App::s_Speedy))
 {
 	destRect.w = Enemy::s_EnemyWidth * m_Scale;
 	destRect.h = Enemy::s_EnemyHeight * m_Scale;
@@ -26,7 +27,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.squareRect.w = float(App::s_CurrentLevel->m_ScaledTileSize);
 	m_RectHP.squareRect.h = float(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
 
-	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom((uint32_t)m_Pos.x, (uint32_t)m_Pos.y);
+	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom(m_Pos.x, m_Pos.y);
 
 	animations.emplace("Idle", Animation("Idle", 0, 2, 500));
 	animations.emplace("Walk", Animation("Walk", 1, 3, 100)); // walk down
@@ -59,14 +60,12 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	}
 
 	m_MovementSpeed *= App::s_CurrentLevel->m_MovementSpeedRate;
+	IF_DEBUG(m_MovementDebugSpeed = m_MovementSpeed;);
 
 	IF_DEBUG(
-		if (App::s_Speedy)
-		{
+		if (m_Speedy == EnemyDebugSpeed::faster)
 			m_MovementSpeed *= 2.0f;
-			m_Speedy = true;
-		}
-	)
+	);
 
 	PlayAnim("Idle");
 
@@ -81,8 +80,9 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
 
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
-	m_RectHP.labelHP->UpdateText(std::to_string((int32_t)m_HPPercent) + "%");
+	float HPBarY = m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f);
+	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, HPBarY));
+	m_RectHP.labelHP->UpdateText(std::to_string(static_cast<int32_t>(m_HPPercent)) + "%");
 }
 
 Enemy::~Enemy()
@@ -117,16 +117,18 @@ void Enemy::Destroy()
 
 	IF_DEBUG(
 		App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size() - 1));
-	)
-
-	m_MoveCount = 0;
-	m_Path.clear();
+	);
 
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
 void Enemy::Update()
 {
+	IF_DEBUG(
+		if (m_Speedy == EnemyDebugSpeed::stay)
+			return;
+	);
+
 	if (m_Velocity.IsEqualZero())
 	{
 		if (m_MoveCount == m_Path.size())
@@ -210,10 +212,7 @@ void Enemy::PlayAnim(std::string_view animID)
 		return;
 	}
 
-	if (m_CurrentAnim.id != it->second.id)
-	{
-		m_CurrentAnim = it->second;
-	}
+	m_CurrentAnim = it->second;
 }
 
 void Enemy::UpdateMovement()
@@ -320,7 +319,7 @@ void Enemy::Move()
 
 void Enemy::UpdateHealthBar()
 {
-	static float onePercent = m_RectHP.squareRect.w / 100; // references to width of 1% hp
+	static float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
 
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
@@ -368,9 +367,6 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 {
-	//const SDL_Rect& towerOffset = tower->GetRect();
-	//int32_t posX = static_cast<int32_t>(tower->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
-	//int32_t posY = static_cast<int32_t>(tower->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
 	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
 	// So all we need to do is add +1 to the position
 	static constexpr int32_t towerOffset = 1;
@@ -378,21 +374,8 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	int32_t posX = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t posY = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
 
-	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
-	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
-
-	// Tower's position is based on left-upper tile occupied by the tower
-	/*for (auto i = 0; i < 4; i++)
-	{
-		auto x = i % 2;
-		auto y = i / 2;
-
-		if ((posX + x) - range <= enemyX && (posY + y) - range <= enemyY
-			&& (posX + x) + range >= enemyX && (posY + y) + range >= enemyY)
-		{
-			return true;
-		}
-	}*/
+	int32_t enemyX = int32_t(m_Pos.x);
+	int32_t enemyY = int32_t(m_Pos.y);
 
 	for (auto i = range; i > 0; i--)
 	{
@@ -407,18 +390,22 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 }
 
 IF_DEBUG(
-void Enemy::SpeedUp()
+void Enemy::DebugSpeed()
 {
-	if (App::s_Speedy)
+	m_Speedy = App::s_Speedy;
+
+	switch (m_Speedy)
 	{
-		m_MovementSpeed *= 2.0f;
-		m_Velocity *= 2.0f;
-		m_Speedy = true;
+	case EnemyDebugSpeed::none:
+		m_MovementSpeed = m_MovementDebugSpeed;
+		Move();
+		break;
+	case EnemyDebugSpeed::faster:
+		m_MovementSpeed = m_MovementDebugSpeed * 2;
+		Move();
+		break;
+	case EnemyDebugSpeed::stay:
+		break;
 	}
-	else if (m_Speedy) // if turning off and the enemy is faster
-	{
-		m_MovementSpeed /= 2.0f;
-		m_Velocity /= 2.0f;
-		m_Speedy = false;
-	}
-})
+}
+);

@@ -13,6 +13,7 @@ enum class EntityGroup
 {
 	enemy = 0,
 	tower,
+	animatedTower,
 	attacker,
 	projectile,
 	size
@@ -29,10 +30,10 @@ public:
 	Entity& operator=(const Entity&) = delete;
 	virtual ~Entity() { m_IsActive = false; };
 
-	virtual void Update() {}
-	virtual void Draw() {}
+	virtual void Update() = 0;
+	virtual void Draw() = 0;
 
-	virtual void AdjustToView() {}
+	virtual void AdjustToView() = 0;
 
 	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
 
@@ -61,7 +62,7 @@ public:
 			e->Update();
 		}
 
-		for (const auto &t : m_GroupedEntities.at((std::size_t)EntityGroup::tower))
+		for (const auto &t : m_GroupedEntities.at((std::size_t)EntityGroup::animatedTower))
 		{
 			t->Update();
 		}

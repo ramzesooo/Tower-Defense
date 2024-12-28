@@ -347,18 +347,38 @@ void Level::Clean()
 	m_SpecificEnemiesAmount = {};
 }
 
-Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
-{
-	if (!towerTexture)
-	{
-		App::s_Logger.AddLog(std::string_view("Level::AddTower: Tower's texture doesn't exist!"));
-		return nullptr;
-	}
+//Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
+//{
+//	if (!towerTexture)
+//	{
+//		App::s_Logger.AddLog(std::string_view("Level::AddTower: Tower's texture doesn't exist!"));
+//		return nullptr;
+//	}
+//
+//	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
+//	tower->AddToGroup(EntityGroup::tower);
+//
+//	AddAttacker(tower, (AttackerType)(tier - 1));
+//	return tower;
+//}
 
-	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
+Tower* Level::AddTower(float posX, float posY, TowerType type)
+{
+	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, type);
 	tower->AddToGroup(EntityGroup::tower);
 
-	AddAttacker(tower, (AttackerType)(tier - 1));
+	switch (type)
+	{
+	case TowerType::classic:
+	{
+		static constexpr AttackerType attackerType = AttackerType::archer;
+		AddAttacker(tower, attackerType);
+	}
+		break;
+	case TowerType::dark:
+		break;
+	}
+
 	return tower;
 }
 
@@ -424,7 +444,11 @@ void Level::HandleMouseButtonEvent()
 		{
 			if (App::s_Building.canBuild)
 			{
-				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
+				//Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
+				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+				if (!tower->CanUpgrade())
+					return;
+
 				App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
 				App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
 				App::s_Building.towerToUpgrade = tower;

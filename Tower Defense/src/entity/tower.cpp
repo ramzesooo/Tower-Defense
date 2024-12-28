@@ -3,44 +3,54 @@
 #include "../textureManager.h"
 #include "../app.h"
 
-static constexpr int32_t imageWidth = 144;
+std::array<SDL_Texture *, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
-Tower::Tower(float posX, float posY, SDL_Texture* texture, uint16_t tier)
-	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize), m_Texture(texture)
+Tower::Tower(float posX, float posY, TowerType type)
+	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
+	m_Type(type), m_Texture(s_TowerTextures.at((std::size_t)type))
 {
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
-
-	if (tier > 3)
-	{
-		App::s_Logger.AddLog(std::string_view("Tried to add a tower with tier higher than 3"));
-		tier = 3;
-	}
-	else if (tier < 1)
-	{
-		App::s_Logger.AddLog(std::string_view("Tried to add a tower with tier lower than 1"));
-		tier = 1;
-	}
-
-	m_Tier = tier;
 
 	{
 		Tile* tile = nullptr;
 		for (auto i = 0u; i < 4; i++)
 		{
-			tile = App::s_CurrentLevel->GetTileFrom((uint32_t)posX + i % 2, (uint32_t)posY + i / 2);
+			tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
 			m_OccupiedTiles[i] = tile;
 			tile->SetTowerOccupying(this);
 		}
 	}
 	
-	srcRect.x = (tier - 1) * (imageWidth / 3);
-	srcRect.y = 0;
-	srcRect.w = (imageWidth / 3);
-	srcRect.h = 64;
-
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = destRect.h = scaledTileSize * 2;
+
+	switch (m_Type)
+	{
+	case TowerType::classic:
+		m_TowerWidth = 144;
+		m_TowerHeight = 64;
+		//srcRect.x = (tier - 1) * (imageWidth / 3);
+		srcRect.x = srcRect.y = 0;
+		srcRect.w = m_TowerWidth / 3;
+		srcRect.h = 64;
+		m_MaxTier = 3;
+		break;
+	case TowerType::dark:
+		//destRect.w = destRect.h = scaledTileSize * 4;
+		m_TowerWidth = 160;
+		m_TowerHeight = 186;
+		srcRect.x = srcRect.y = 0;
+		srcRect.w = m_TowerWidth;
+		srcRect.h = m_TowerHeight;
+		m_MaxTier = 1;
+		m_AnimData.animated = true;
+		m_AnimData.animations.emplace("Idle", Animation("Idle", 0, 13, 100));
+		m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 100));
+		PlayAnim("Idle");
+		AddToGroup(EntityGroup::animatedTower);
+		break;
+	}
 }
 
 void Tower::Destroy()
@@ -67,6 +77,16 @@ void Tower::Destroy()
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
+void Tower::Update()
+{
+	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_AnimData.m_CurrentAnim.speed) % m_AnimData.m_CurrentAnim.frames);
+}
+
+void Tower::Draw()
+{
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}
+
 void Tower::AdjustToView()
 {
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
@@ -76,14 +96,9 @@ void Tower::AdjustToView()
 		m_Attacker->AdjustToView();
 }
 
-void Tower::Draw()
-{
-	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
-}
-
 void Tower::Upgrade()
 {
-	if (m_Tier >= 3)
+	if (m_Tier >= m_MaxTier)
 	{
 		App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
 		App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
@@ -92,14 +107,32 @@ void Tower::Upgrade()
 	}
 
 	++m_Tier;
-	srcRect.x = (m_Tier - 1) * (imageWidth / 3);
+	srcRect.x = (m_Tier - 1) * (m_TowerWidth / 3);
 
-	if (m_Attacker->IsAttacking())
-		m_Attacker->StopAttacking();
+	if (m_Attacker)
+	{
+		if (m_Attacker->IsAttacking())
+			m_Attacker->StopAttacking();
 
-	m_Attacker->Destroy();
-	m_Attacker = nullptr;
+		m_Attacker->Destroy();
+		m_Attacker = nullptr;
 
-	App::s_Manager.Refresh();
-	App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
+		App::s_Manager.Refresh();
+		App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
+	}
+}
+
+void Tower::PlayAnim(std::string_view animID)
+{
+	auto it = m_AnimData.animations.find(animID);
+	if (it == m_AnimData.animations.end())
+	{
+		App::s_Logger.AddLog(std::string_view("Couldn't find animation called "));
+		App::s_Logger.AddLog(animID);
+		return;
+	}
+
+	m_AnimData.m_CurrentAnim = it->second;
+	srcRect.y = m_AnimData.m_CurrentAnim.index * m_TowerHeight;
+	printf("%d\n", srcRect.y);
 }

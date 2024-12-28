@@ -43,13 +43,13 @@ void Tile::Destroy()
 	//App::s_Manager.m_EntitiesToDestroy = true;
 }
 
+void Tile::Draw()
+{
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}
+
 void Tile::AdjustToView()
 {
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
-}
-
-void Tile::Draw()
-{
-	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }

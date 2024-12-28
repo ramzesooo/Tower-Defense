@@ -1,7 +1,9 @@
 #pragma once
 enum class TowerType
 {
-
+	classic = 0,
+	dark,
+	size
 };
 
 enum class ProjectileType

@@ -84,10 +84,6 @@ public:
 	static SDL_Texture *s_Square;
 	static SDL_Texture *s_GreenTex;
 
-	/*static UIElement s_UIWaves;
-	static UIElement s_UICoins;
-	static UIElement s_UILifes;
-	static UIElement s_UITime;*/
 
 	// [0] = waves, [1] = coins, [2] = lifes, [3] = time
 	static std::array<UIElement, 4> s_UIElements;
@@ -100,7 +96,7 @@ public:
 	IF_DEBUG(static Label *s_PointedPosition;);
 	IF_DEBUG(static Label *s_FrameDelay;);
 
-	IF_DEBUG(static bool s_Speedy;);
+	IF_DEBUG(static EnemyDebugSpeed s_Speedy;);
 public:
 	App();
 	~App();
@@ -272,7 +268,6 @@ public:
 			break;
 		}
 
-		//s_Logger.AddLog(std::format("App::SetUIState: {}", newState));
 		App::s_Logger.AddLog(std::string_view("App::SetUIState: "), false);
 		App::s_Logger.AddLog(newState);
 	}
@@ -294,9 +289,6 @@ public:
 			s_CameraMovement.moveX = 0.0f;
 			s_CameraMovement.moveY = 0.0f;
 		}
-		/*s_IsCameraLocked = !s_IsCameraLocked;
-		s_CameraMovement.moveX = 0.0f;
-		s_CameraMovement.moveY = 0.0f;*/
 	}
 
 	inline void MakeCameraCorrect()
@@ -399,6 +391,18 @@ public:
 		{
 		case ProjectileType::arrow:
 			return "projectileArrow";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view TextureOf(TowerType type)
+	{
+		switch (type)
+		{
+		case TowerType::classic:
+			return "classicTower";
+		case TowerType::dark:
+			return "darkTower";
 		}
 		return "";
 	}
@@ -537,12 +541,13 @@ static constexpr TextureData textures[]
 	{ "heartUI", "assets/ui/heart.png" },
 
 	{ "base", "assets/base.png" },
-	{ "tower", "assets/towers/tower.png" },
 	{ "square", "assets/square_32x32.png" },
 	{ "green", "assets/green_32x32.png" },
 	{ "transparent", "assets/transparent.png" },
 	{ "grayArrow", "assets/grayArrow_32x32.png" },
 
+	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
+	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
 	{ App::TextureOf(ProjectileType::arrow), "assets/arrow_16x16.png" },
 	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
 	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},

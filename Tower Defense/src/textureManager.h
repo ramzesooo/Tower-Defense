@@ -1,17 +1,11 @@
 #pragma once
+#include "common.h"
+
 #include "SDL.h"
 #include "SDL_ttf.h"
 
 #include <unordered_map>
 #include <string>
-
-struct proxy_hash {
-	using is_transparent = void;
-	// abbreviated function template (C++20)
-	std::size_t operator()(const auto& key) const {
-		return std::hash<std::remove_cvref_t<decltype(key)>>{}(key);
-	}
-};
 
 class TextureManager
 {

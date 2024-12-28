@@ -42,8 +42,10 @@ public:
 
 	void Destroy() override;
 
-	void AdjustToView() override;
+	void Update() override {};
 	void Draw() override;
+
+	void AdjustToView() override;
 
 	void SetTexture(SDL_Texture* texture) { m_Texture = texture; }
 

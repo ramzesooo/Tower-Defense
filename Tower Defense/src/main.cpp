@@ -80,7 +80,6 @@ int main(int argc, char** arg)
 				App::s_Logger.ClearLogs();
 
 				static constexpr char lastFrameTime[] = "Last frame time: ";
-				//static const std::string lastFrameTime = "Last frame time: ";
 				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
 			}
 		);

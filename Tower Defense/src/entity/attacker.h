@@ -1,11 +1,11 @@
 #pragma once
+#include "../common.h"
 #include "typesEnums.h"
 #include "entity.h"
 #include "enemy.h"
 #include "projectile.h"
 #include "../Vector2D.h"
 #include "anim.h"
-#include "../textureManager.h" // textureManager contains proxy_hash struct
 
 #include "SDL.h"
 

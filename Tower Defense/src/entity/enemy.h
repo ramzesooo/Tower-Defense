@@ -102,11 +102,12 @@ public:
 
 	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 
-	IF_DEBUG(void SpeedUp();)
+	IF_DEBUG(void DebugSpeed(););
 
 	void SetPath(const std::vector<Vector2D> &pathVector) { m_Path = pathVector; }
 private:
-	IF_DEBUG(bool m_Speedy = false;)
+	IF_DEBUG(EnemyDebugSpeed m_Speedy = EnemyDebugSpeed::none;);
+	IF_DEBUG(float m_MovementDebugSpeed = 1.4f;);
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture* m_Texture = nullptr;
 	EnemyType m_Type;
