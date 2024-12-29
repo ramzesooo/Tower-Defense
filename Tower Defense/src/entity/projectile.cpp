@@ -9,6 +9,8 @@
 
 extern uint32_t g_PausedTicks;
 
+static constexpr uint32_t projectileLifetime = 5000;
+
 Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetPos().x * App::s_CurrentLevel->m_ScaledTileSize, target->GetPos().y * App::s_CurrentLevel->m_ScaledTileSize), 
@@ -22,12 +24,17 @@ Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 		destRect.y = static_cast<int32_t>(m_Pos.y);
 		break;
 	case ProjectileType::dark:
+		srcRect.w = srcRect.h = 24;
 		destRect.x = static_cast<int32_t>(m_Pos.x);
 		destRect.y = static_cast<int32_t>(m_Pos.y);
-		srcRect.w = srcRect.h = 24;
 		destRect.w = destRect.h = 48;
+		m_Lifetime.timePerFrame = m_Lifetime.darkProjectileLifetime / 7;
+		m_Lifetime.lifetime = SDL_GetTicks() + m_Lifetime.darkProjectileLifetime;
+		m_Lifetime.nextFrame = SDL_GetTicks() + m_Lifetime.timePerFrame - g_PausedTicks;
+		m_Lifetime.isRestricted = true;
 		animated = true;
-		anim = Animation("Attack", 0, 4, 100);
+		anim = Animation("Attack", 0, 4, m_Lifetime.timePerFrame);
+		m_BaseVelocity *= 1.10f;
 		break;
 	}
 }
@@ -40,14 +47,6 @@ void Projectile::Destroy()
 		return;
 
 	std::erase(m_Owner->m_OwnedProjectiles, this);
-	/*for (auto it = m_Owner->m_OwnedProjectiles.begin(); it != m_Owner->m_OwnedProjectiles.end(); it++)
-	{
-		if ((*it) == this)
-		{
-			m_Owner->m_OwnedProjectiles.erase(it);
-			return;
-		}
-	}*/
 
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
@@ -69,26 +68,33 @@ void Projectile::Update()
 		return;
 	}
 
+	if (m_Lifetime.isRestricted && SDL_GetTicks() >= m_Lifetime.lifetime)
+	{
+		Destroy();
+		return;
+	}
+
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
-	m_Destination = (m_Target->GetPos() * scaledTileSize);
+	m_Destination = m_Target->GetPos() * scaledTileSize;
+	Vector2D truncatedPos = { trunc(m_Pos.x), trunc(m_Pos.y) };
 
-	if (m_Destination.x == trunc(m_Pos.x))
+	if (m_Destination.x == truncatedPos.x)
 	{
 		m_Velocity.x = 0.0f;
 	}
 	else
 	{
-		m_Velocity.x = m_Destination.x > trunc(m_Pos.x) ? baseVelocity : -baseVelocity;
+		m_Velocity.x = m_Destination.x > truncatedPos.x ? m_BaseVelocity : -m_BaseVelocity;
 	}
 
-	if (m_Destination.y == trunc(m_Pos.y))
+	if (m_Destination.y == truncatedPos.y)
 	{
 		m_Velocity.y = 0.0f;
 	}
 	else
 	{
-		m_Velocity.y = m_Destination.y > trunc(m_Pos.y) ? baseVelocity : -baseVelocity;
+		m_Velocity.y = m_Destination.y > truncatedPos.y ? m_BaseVelocity : -m_BaseVelocity;
 	}
 
 	if (m_Velocity.y == 0.0f && m_Velocity.x == 0.0f)
@@ -115,8 +121,17 @@ void Projectile::Draw()
 
 void Projectile::AdjustToView()
 {
-	destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
-	destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
+	switch (m_Type)
+	{
+	case ProjectileType::arrow:
+		destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
+		destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
+		return;
+	case ProjectileType::dark:
+		destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);
+		destRect.y = static_cast<int32_t>(m_Pos.y) - static_cast<int32_t>(App::s_Camera.y);
+		return;
+	}
 }
 
 void Projectile::UpdateArrow()
@@ -155,9 +170,35 @@ void Projectile::UpdateDark()
 
 	m_Pos += (m_Velocity + fixedVelocity) * App::s_ElapsedTime;
 
-	destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
-	destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
+	//destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
+	//destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
 
-	srcRect.x = srcRect.w * ((SDL_GetTicks() / anim.speed) % anim.frames);
-	//srcRect.y = anim.index * srcRect.h;
+	destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y) - static_cast<int32_t>(App::s_Camera.y);
+
+	/*m_Lifetime.ticks = SDL_GetTicks() - g_PausedTicks;*/
+	if (SDL_GetTicks() - g_PausedTicks >= m_Lifetime.nextFrame)
+	{
+		// Unnecessary at the moment, because the projectile should disappear on the last frame
+		/*if (m_Lifetime.currentFrame++ >= anim.frames)
+		{
+			m_Lifetime.currentFrame = 0u;
+		}*/
+
+		m_Lifetime.currentFrame++;
+
+		if (m_Lifetime.currentFrame >= static_cast<uint32_t>(anim.frames - 1))
+		{
+			m_Lifetime.lifetime = SDL_GetTicks() + 200;
+			m_Lifetime.nextFrame = UINT32_MAX;
+			m_BaseVelocity = 0.1f;
+			m_Velocity = Vector2D(0.1f, 0.1f);
+			srcRect.x = srcRect.w * (anim.frames - 1);
+			return;
+		}
+
+		m_Lifetime.nextFrame = SDL_GetTicks() + m_Lifetime.timePerFrame;
+
+		srcRect.x = srcRect.w * m_Lifetime.currentFrame;
+	}
 }

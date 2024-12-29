@@ -7,9 +7,22 @@
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "SDL_timer.h"
 
 class Attacker;
 class Enemy;
+
+struct ProjectileLifetime
+{
+	static constexpr uint32_t darkProjectileLifetime = 3000;
+
+	// specifies whether the projectile's lifetime depends on time
+	bool isRestricted = false;
+	uint32_t lifetime = 0;
+	uint32_t timePerFrame = 0;
+	uint32_t nextFrame = 0;
+	uint32_t currentFrame = 0;
+};
 
 class Projectile : public Entity
 {
@@ -56,19 +69,26 @@ public:
 
 	ProjectileType GetType() const { return m_Type; }
 private:
-	static constexpr float baseVelocity = 200.0f;
+	//static constexpr float s_BaseVelocity = 210.0f;
 	//static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Rect srcRect{ 0, 0, 16, 16 };
-	SDL_Texture* m_Texture = nullptr;
 	SDL_Rect destRect{ 0, 0, 18, 18 };
+	SDL_Texture* m_Texture = nullptr;
+
 	double m_Angle = 360;
+
 	Vector2D m_Pos{ 0.0f, 0.0f };
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
+	float m_BaseVelocity = 210.0f;
+
 	ProjectileType m_Type = ProjectileType::arrow;
+
 	Attacker *m_Owner = nullptr;
 	Enemy *m_Target = nullptr;
 
 	bool animated = false;
 	Animation anim;
+
+	ProjectileLifetime m_Lifetime;
 };
