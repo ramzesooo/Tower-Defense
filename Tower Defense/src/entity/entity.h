@@ -76,12 +76,8 @@ public:
 		{
 			p->Update();
 		}
-
-		/*for (const auto &e : entities)
-			e->Update();*/
 	}
 
-	//void Refresh();
 	inline void Refresh()
 	{
 		if (!m_EntitiesToDestroy)
@@ -100,10 +96,6 @@ public:
 			// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
 			for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i)
 			{
-				/*if ((*it)->HasGroup((EntityGroup)i))
-				{
-					std::erase(m_GroupedEntities[i], it->get());
-				}*/
 				(*it)->RemoveFromGroup((EntityGroup)i);
 			}
 

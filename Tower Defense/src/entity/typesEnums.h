@@ -9,6 +9,7 @@ enum class TowerType
 enum class ProjectileType
 {
 	arrow = 0,
+	dark,
 	size
 };
 
@@ -26,6 +27,7 @@ enum class AttackerType
 	archer = 0,
 	hunter,
 	musketeer,
+	darkTower,
 	size
 };
 

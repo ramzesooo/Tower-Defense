@@ -250,26 +250,7 @@ void Enemy::UpdateMovement()
 		m_OccupiedTile = nextTile;
 		m_OccupiedTile->SetOccupyingEntity(this);
 
-		Attacker *attacker = nullptr;
-		Tower *tower = nullptr;
-		for (const auto &t : g_Towers)
-		{
-			tower = dynamic_cast<Tower*>(t);
-			attacker = tower->GetAttacker();
-
-			if (!attacker)
-				continue;
-
-			if (attacker->GetTarget() == this)
-			{
-				if (!IsTowerInRange(tower, App::s_TowerRange))
-					attacker->StopAttacking();
-			}
-			else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange(tower, App::s_TowerRange))
-			{
-				attacker->InitAttack(this);
-			}
-		}
+		ValidAttacker();
 	}
 
 	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
@@ -319,7 +300,7 @@ void Enemy::Move()
 
 void Enemy::UpdateHealthBar()
 {
-	static float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
+	static const float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
 
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
@@ -351,7 +332,7 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	{
 		App::Instance().AddCoins(m_Coins);
 
-		m_HP = 0;
+		m_HP = 0u;
 		Destroy();
 		return;
 	}
@@ -363,6 +344,34 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	UpdateHealthBar();
 
 	projectile->Destroy();
+}
+
+void Enemy::ValidAttacker()
+{
+	if (!m_IsActive)
+		return;
+
+	Attacker *attacker = nullptr;
+	Tower *tower = nullptr;
+	for (const auto &t : g_Towers)
+	{
+		tower = dynamic_cast<Tower*>(t);
+		attacker = tower->GetAttacker();
+
+		if (!attacker)
+			continue;
+
+		if (attacker->GetTarget() == this)
+		{
+			if (!IsTowerInRange(tower, App::s_TowerRange))
+				attacker->StopAttacking();
+		}
+		//else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange(tower, App::s_TowerRange))
+		else if (!attacker->IsAttacking() && IsTowerInRange(tower, App::s_TowerRange))
+		{
+			attacker->InitAttack(this);
+		}
+	}
 }
 
 bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const

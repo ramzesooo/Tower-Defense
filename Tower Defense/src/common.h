@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <type_traits>
 
 #ifdef DEBUG
 #define IF_DEBUG(...) __VA_ARGS__

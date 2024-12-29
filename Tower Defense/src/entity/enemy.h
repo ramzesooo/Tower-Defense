@@ -92,6 +92,8 @@ public:
 
 	void OnHit(Projectile *projectile, uint16_t dmg);
 
+	void ValidAttacker();
+
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
 	// And searches towers from x: -range, y: -range to: x: range, y: range

@@ -3,6 +3,8 @@
 #include "../textureManager.h"
 #include "../app.h"
 
+extern uint32_t g_PausedTicks;
+
 std::array<SDL_Texture *, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
 Tower::Tower(float posX, float posY, TowerType type)
@@ -35,6 +37,11 @@ Tower::Tower(float posX, float posY, TowerType type)
 		srcRect.w = m_TowerWidth / 3;
 		srcRect.h = 64;
 		m_MaxTier = 3;
+
+		{
+			static constexpr AttackerType attackerType = AttackerType::archer;
+			App::s_CurrentLevel->AddAttacker(this, attackerType);
+		}
 		break;
 	case TowerType::dark:
 		//destRect.w = destRect.h = scaledTileSize * 4;
@@ -49,8 +56,15 @@ Tower::Tower(float posX, float posY, TowerType type)
 		m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 100));
 		PlayAnim("Idle");
 		AddToGroup(EntityGroup::animatedTower);
+
+		{
+			static constexpr AttackerType attackerType = AttackerType::darkTower;
+			App::s_CurrentLevel->AddAttacker(this, attackerType);
+		}
 		break;
 	}
+
+	AddToGroup(EntityGroup::tower);
 }
 
 void Tower::Destroy()
@@ -79,7 +93,10 @@ void Tower::Destroy()
 
 void Tower::Update()
 {
-	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_AnimData.m_CurrentAnim.speed) % m_AnimData.m_CurrentAnim.frames);
+	if (!m_AnimData.animated)
+		return;
+
+	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
 }
 
 void Tower::Draw()
@@ -132,7 +149,35 @@ void Tower::PlayAnim(std::string_view animID)
 		return;
 	}
 
-	m_AnimData.m_CurrentAnim = it->second;
-	srcRect.y = m_AnimData.m_CurrentAnim.index * m_TowerHeight;
-	printf("%d\n", srcRect.y);
+	m_AnimData.currentAnim = it->second;
+	srcRect.y = m_AnimData.currentAnim.index * m_TowerHeight;
+}
+
+void Tower::UpdateAnimSpeed(std::string_view animID, int32_t newSpeed)
+{
+	auto it = m_AnimData.animations.find(animID);
+	if (it == m_AnimData.animations.end())
+	{
+		App::s_Logger.AddLog(std::string_view("Tower::UpdateAnimSpeed: Couldn't find animation called "));
+		App::s_Logger.AddLog(animID);
+		return;
+	}
+
+	it->second.speed = newSpeed;
+
+	if (it->second.id == m_AnimData.currentAnim.id)
+		m_AnimData.currentAnim = it->second;
+}
+
+int32_t Tower::GetAnimSpeed(std::string_view animID)
+{
+	auto it = m_AnimData.animations.find(animID);
+	if (it == m_AnimData.animations.end())
+	{
+		App::s_Logger.AddLog(std::string_view("Tower::GetAnimSpeed: Couldn't find animation called "));
+		App::s_Logger.AddLog(animID);
+		return 0u;
+	}
+
+	return it->second.speed;
 }

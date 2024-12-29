@@ -64,12 +64,16 @@ IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
 
 SDL_Texture *BuildingState::originalTexture = nullptr;
 
+// class App GLOBAL VARIABLES
 std::default_random_engine g_Rng(App::s_Rnd());
 
 auto &g_Projectiles = App::s_Manager.GetGroup(EntityGroup::projectile);
 auto &g_Towers = App::s_Manager.GetGroup(EntityGroup::tower);
 auto &g_Attackers = App::s_Manager.GetGroup(EntityGroup::attacker);
 auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
+
+uint32_t g_PausedTicks = 0;
+// class App GLOBAL VARIABLES
 
 App::App()
 {
@@ -247,6 +251,8 @@ App::~App()
 
 void App::EventHandler()
 {
+	static uint32_t windowMinimizedTicks = 0u;
+
 	SDL_PollEvent(&s_Event);
 
 	switch (s_Event.type)
@@ -259,9 +265,12 @@ void App::EventHandler()
 				OnResolutionChange();
 				return;
 			case SDL_WINDOWEVENT_MINIMIZED:
+				windowMinimizedTicks = SDL_GetTicks();
 				s_IsWindowMinimized = true;
 				return;
 			case SDL_WINDOWEVENT_RESTORED:
+				g_PausedTicks += SDL_GetTicks() - windowMinimizedTicks;
+				windowMinimizedTicks = 0u;
 				s_IsWindowMinimized = false;
 				return;
 			default:
@@ -324,25 +333,33 @@ void App::EventHandler()
 			return;*/
 #ifdef DEBUG
 		case SDLK_F4: // Speed up enemies' movement speed
-			switch (s_Speedy)
 			{
-			case EnemyDebugSpeed::none:
-				s_Speedy = EnemyDebugSpeed::faster;
-				break;
-			case EnemyDebugSpeed::faster:
-				s_Speedy = EnemyDebugSpeed::stay;
-				break;
-			case EnemyDebugSpeed::stay:
-				s_Speedy = EnemyDebugSpeed::none;
-				break;
-			}
+				static std::string_view debugSpeedName = "";
 
-			for (const auto &e : g_Enemies)
-			{
-				dynamic_cast<Enemy*>(e)->DebugSpeed();
-			}
+				switch (s_Speedy)
+				{
+				case EnemyDebugSpeed::none:
+					s_Speedy = EnemyDebugSpeed::faster;
+					debugSpeedName = "EnemyDebugSpeed::faster";
+					break;
+				case EnemyDebugSpeed::faster:
+					s_Speedy = EnemyDebugSpeed::stay;
+					debugSpeedName = "EnemyDebugSpeed::stay";
+					break;
+				case EnemyDebugSpeed::stay:
+					s_Speedy = EnemyDebugSpeed::none;
+					debugSpeedName = "EnemyDebugSpeed::none";
+					break;
+				}
 
-			s_Logger.AddLog(std::format("Enemies' speed up: {}", static_cast<int32_t>(s_Speedy)));
+				for (const auto &e : g_Enemies)
+				{
+					dynamic_cast<Enemy*>(e)->DebugSpeed();
+				}
+
+				s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
+				s_Logger.AddLog(debugSpeedName);
+			}
 			return;
 #endif
 		case SDLK_F5: // Add life
@@ -357,6 +374,12 @@ void App::EventHandler()
 		case SDLK_F8: // Take coin
 			TakeCoins();
 			return;
+#ifdef DEBUG
+		case SDLK_F9: // Refresh attack (in case of EnemyDebugSpeed::stay)
+			for (const auto &e : g_Enemies)
+				dynamic_cast<Enemy*>(e)->ValidAttacker();
+			return;
+#endif
 		case SDLK_F10: // Destroy all enemies
 			for (const auto &e : g_Enemies)
 				e->Destroy();
@@ -501,6 +524,56 @@ void App::OnResolutionChange()
 	s_CurrentLevel->OnUpdateCamera();
 }
 
+void App::SetUIState(UIState state)
+{
+	if (s_UIState == state)
+		return;
+
+	std::string_view newState;
+
+	m_PreviousUIState = s_UIState;
+	s_UIState = state;
+
+	static uint32_t startPausedTicks = 0u;
+
+	if (startPausedTicks == 0u)
+	{
+		if (IsGamePaused(state))
+		{
+			startPausedTicks = SDL_GetTicks();
+		}
+	}
+	else
+	{
+		if (!IsGamePaused(state))
+		{
+			g_PausedTicks += SDL_GetTicks() - startPausedTicks;
+			startPausedTicks = 0u;
+		}
+	}
+
+	switch (state)
+	{
+	case UIState::mainMenu:
+		newState = "mainMenu";
+		m_PauseLabel->m_Drawable = false;
+		App::Instance().OnResolutionChange();
+		break;
+	case UIState::none:
+		newState = "none";
+		m_PauseLabel->m_Drawable = false;
+		break;
+	case UIState::building:
+		newState = "building";
+		m_PauseLabel->m_Drawable = true;
+		ManageBuildingState();
+		break;
+	}
+
+	App::s_Logger.AddLog(std::string_view("App::SetUIState: "), false);
+	App::s_Logger.AddLog(newState);
+}
+
 void App::LoadLevel()
 {
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
@@ -621,10 +694,13 @@ uint16_t App::GetDamageOf(ProjectileType type)
 	switch (type)
 	{
 		case ProjectileType::arrow:
-		{
 			minDmg = 17;
 			maxDmg = 30;
-		}
+			break;
+		case ProjectileType::dark:
+			minDmg = 45;
+			maxDmg = 55;
+			break;
 	}
 
 	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);

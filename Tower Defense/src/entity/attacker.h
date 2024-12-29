@@ -71,11 +71,12 @@ public:
 	Enemy* GetTarget() const { return m_Target; }
 	void SetTarget(Enemy* target) { m_Target = target; }
 private:
-	const uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
+	uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 	Tower* m_OccupiedTower;
 	AttackerType m_Type;
 	ProjectileType m_ProjectileType = ProjectileType::arrow;
 	SDL_Texture* m_Texture = nullptr;
+	bool m_Invisible = false;
 	uint16_t m_Scale = 1;
 
 	// m_Pos for Attacker is taken from appropriate tower and it's already scaled with tiles' size
@@ -91,5 +92,5 @@ private:
 	Enemy* m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
 	// m_AdjustedTicks is nothing else than just ticks, but it's updated in InitAttack() to display animation in correct way
-	uint32_t m_AdjustedTicks = SDL_GetTicks();
+	//uint32_t m_AdjustedTicks = SDL_GetTicks();
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include "typesEnums.h"
+#include "anim.h"
 
 #include "entity.h"
 #include "../Vector2D.h"
@@ -38,10 +39,15 @@ public:
 		return *this;
 	}
 
+	void Destroy() override;
+
 	void Update() override;
 	void Draw() override;
+
 	void AdjustToView() override;
-	void Destroy() override;
+
+	void UpdateArrow();
+	void UpdateDark();
 
 	void SetTarget(Enemy *target) { m_Target = target; }
 	void SetOwner(Attacker *owner) { m_Owner = owner; }
@@ -51,7 +57,8 @@ public:
 	ProjectileType GetType() const { return m_Type; }
 private:
 	static constexpr float baseVelocity = 200.0f;
-	static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
+	//static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
+	SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Texture* m_Texture = nullptr;
 	SDL_Rect destRect{ 0, 0, 18, 18 };
 	double m_Angle = 360;
@@ -61,4 +68,7 @@ private:
 	ProjectileType m_Type = ProjectileType::arrow;
 	Attacker *m_Owner = nullptr;
 	Enemy *m_Target = nullptr;
+
+	bool animated = false;
+	Animation anim;
 };

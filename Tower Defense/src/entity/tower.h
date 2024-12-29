@@ -18,7 +18,7 @@ class Attacker;
 struct TowerAnimation
 {
 	bool animated = false;
-	Animation m_CurrentAnim;
+	Animation currentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 };
 
@@ -59,6 +59,7 @@ public:
 	void AdjustToView() override;
 
 	Vector2D GetPos() const override { return m_Pos; }
+	const SDL_Rect &GetRect() const { return destRect; }
 
 	void AssignAttacker(Attacker* attacker) { m_Attacker = attacker; }
 	Attacker* GetAttacker() const { return m_Attacker; }
@@ -85,6 +86,10 @@ public:
 	std::array<Tile*, 4>& GetOccupiedTiles() { return m_OccupiedTiles; }
 
 	void PlayAnim(std::string_view animID);
+
+	bool IsAnimated() const { return m_AnimData.animated; }
+	void UpdateAnimSpeed(std::string_view animID, int32_t newSpeed);
+	int32_t GetAnimSpeed(std::string_view animID);
 private:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;

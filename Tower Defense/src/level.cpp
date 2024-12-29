@@ -10,7 +10,7 @@
 #include <sstream>
 #include <cmath>
 #include <format>
-#include <map>
+#include <unordered_map>
 #include <queue>
 
 SDL_Texture *Level::s_Texture = nullptr;
@@ -364,52 +364,46 @@ void Level::Clean()
 
 Tower* Level::AddTower(float posX, float posY, TowerType type)
 {
-	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, type);
-	tower->AddToGroup(EntityGroup::tower);
-
-	switch (type)
-	{
-	case TowerType::classic:
-	{
-		static constexpr AttackerType attackerType = AttackerType::archer;
-		AddAttacker(tower, attackerType);
-	}
-		break;
-	case TowerType::dark:
-		break;
-	}
-
-	return tower;
+	return App::s_Manager.NewEntity<Tower>(posX, posY, type);
 }
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 {
 	if (!assignedTower || assignedTower->GetAttacker())
 	{
-		App::s_Logger.AddLog(std::string_view("Tried to add attacker to not existing tower or an attacker for the specific tower already exists."));
+		App::s_Logger.AddLog(std::string_view("Tried to add attacker to non-existing tower or an attacker for the specific tower already exists."));
 		return;
 	}
-	
-	// Probably will have to use the switch in the future anyway, so let's consider it as a temporary
-	uint32_t shotCooldown = 325 - (50 * ((uint32_t)type + 1));
 
-	/*switch (type)
+	// Probably will have to use the switch in the future anyway, so let's consider it as a temporary
+	//uint32_t shotCooldown = 325 - (50 * ((uint32_t)type + 1));
+	uint32_t shotCooldown = 0u;
+	Attacker *attacker = nullptr;
+
+	switch (type)
 	{
 	case AttackerType::archer:
-		shotCooldown = 325;
+		shotCooldown = 315u;
+		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::hunter:
-		shotCooldown = 275;
+		shotCooldown = 280u;
+		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::musketeer:
-		shotCooldown = 225;
+		shotCooldown = 250u;
+		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		break;
+	case AttackerType::darkTower:
+		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11u;
+		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, nullptr, shotCooldown, scale);
 		break;
 	default:
-		shotCooldown = 300;
+		shotCooldown = 300u;
+		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
-	}*/
+	}
 
-	auto attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 	attacker->AddToGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
 }
@@ -419,7 +413,7 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddToGroup(EntityGroup::enemy);
 
-	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size()));)
+	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
 
 	enemy->SetPath(findPath({ posX, posY }, m_BasePos));
 
@@ -447,7 +441,13 @@ void Level::HandleMouseButtonEvent()
 				//Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
 				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
 				if (!tower->CanUpgrade())
+				{
+					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
+					App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+					App::s_Building.towerToUpgrade = nullptr;
+					App::s_Building.canBuild = false;
 					return;
+				}
 
 				App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
 				App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);

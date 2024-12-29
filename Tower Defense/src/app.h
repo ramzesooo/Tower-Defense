@@ -28,7 +28,7 @@
 
 struct CameraMovement
 {
-	static constexpr float velocity = 360.0f;
+	static constexpr float velocity = 420.0f;
 
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
@@ -69,7 +69,7 @@ public:
 	static SDL_FRect s_Camera;
 
 	static Level *s_CurrentLevel;
-	static constexpr uint16_t s_TowerRange = 5;
+	static constexpr uint16_t s_TowerRange = 5u;
 	static float s_ElapsedTime;
 	static UIState s_UIState;
 	static int32_t s_MouseX;
@@ -223,9 +223,6 @@ public:
 	// for checking is specific state going to pause the game
 	static inline bool IsGamePaused(UIState state)
 	{
-		if (s_IsWindowMinimized)
-			return true;
-
 		switch (state)
 		{
 		case UIState::mainMenu:
@@ -238,39 +235,11 @@ public:
 	}
 
 	// for checking is currently the game paused
-	static inline bool IsGamePaused() { return IsGamePaused(s_UIState); }
+	static inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
+	//static inline bool IsGamePaused() { return IsGamePaused(s_UIState); }
 
-	inline void SetUIState(UIState state)
-	{
-		if (s_UIState == state)
-			return;
+	void SetUIState(UIState state);
 
-		std::string_view newState;
-
-		m_PreviousUIState = s_UIState;
-		s_UIState = state;
-
-		switch (state)
-		{
-		case UIState::mainMenu:
-			newState = "mainMenu";
-			m_PauseLabel->m_Drawable = false;
-			App::Instance().OnResolutionChange();
-			break;
-		case UIState::none:
-			newState = "none";
-			m_PauseLabel->m_Drawable = false;
-			break;
-		case UIState::building:
-			newState = "building";
-			m_PauseLabel->m_Drawable = true;
-			ManageBuildingState();
-			break;
-		}
-
-		App::s_Logger.AddLog(std::string_view("App::SetUIState: "), false);
-		App::s_Logger.AddLog(newState);
-	}
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
 
@@ -365,6 +334,8 @@ public:
 			return "attackerHunter";
 		case AttackerType::musketeer:
 			return "attackerMusketeer";
+		case AttackerType::darkTower:
+			return "";
 		}
 		return "";
 	}
@@ -391,6 +362,8 @@ public:
 		{
 		case ProjectileType::arrow:
 			return "projectileArrow";
+		case ProjectileType::dark:
+			return "projectileDarkTower";
 		}
 		return "";
 	}
@@ -548,10 +521,14 @@ static constexpr TextureData textures[]
 
 	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
 	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
+
 	{ App::TextureOf(ProjectileType::arrow), "assets/arrow_16x16.png" },
+	{ App::TextureOf(ProjectileType::dark), "assets/projectiles/darkTowerAttack.png" },
+
 	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
 	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
 	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
+
 	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
 	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
 	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },

@@ -395,3 +395,7 @@ FodyWeavers.xsd
 /Tower Defense/levels/1/map.pyxel
 /Tower Defense/levels/0/map.pyxel
 /Tower Defense/src/findPath.h
+/Tower Defense/assets/towers/dark/DarkTower_attack.gif
+/Tower Defense/assets/towers/dark/DarkTower_cover.gif
+/Tower Defense/assets/towers/dark/DarkTower_destruction.gif
+/Tower Defense/assets/towers/dark/DarkTower_idle.gif
