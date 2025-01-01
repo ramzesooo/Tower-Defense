@@ -1,10 +1,7 @@
-#include "common.h"
-
 #include "level.h"
 #include "app.h"
 #include "entity/enemy.h"
 #include "entity/label.h"
-//#include "findPath.h"
 
 #include <fstream>
 #include <sstream>
@@ -134,7 +131,6 @@ Level::Level(uint16_t levelID)
 
 		std::istringstream ss(line);
 		std::string value;
-
 
 		// Map data
 		if (lineNumber == 1)
@@ -298,8 +294,9 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			{
 				tile->SetWalkable();
 			}
-			else if(tileCode == spawnerID)
+			else if (tileCode == spawnerID)
 			{
+				m_Spawners.reserve(1);
 				m_Spawners.emplace_back(tile);
 			}
 		}
@@ -345,6 +342,7 @@ void Level::Clean()
 	m_CurrentWave = 0;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
+	App::s_Manager.RecoveryMemoryAfterWave();
 }
 
 //Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
@@ -479,9 +477,9 @@ void Level::InitWave()
 
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
-	const Tile* spawner = m_Spawners.at(spawnerDistr(g_Rng));
+	const Tile *spawner = m_Spawners.at(spawnerDistr(g_Rng));
 
-	const Vector2D spawnPos(spawner->GetPos().x / m_ScaledTileSize, spawner->GetPos().y / m_ScaledTileSize);
+	const Vector2D spawnPos(spawner->GetPos().x / static_cast<float>(m_ScaledTileSize), spawner->GetPos().y / static_cast<float>(m_ScaledTileSize));
 
 	EnemyType type = EnemyType::elf;
 	// It might be as well casual variable defined in for loop, but maybe it's better to store it here
@@ -538,6 +536,8 @@ void Level::ManageWaves()
 			for (const auto &i : m_Waves.at(m_CurrentWave).container)
 				m_ExpectedEnemiesAmount += i;
 
+			App::s_Manager.ReserveMemoryForWave(m_ExpectedEnemiesAmount);
+
 			InitWave();
 
 			App::UpdateWaves();
@@ -546,7 +546,7 @@ void Level::ManageWaves()
 		}
 		return;
 	case WaveProgress::Initializing:
-		if (SDL_GetTicks() > m_NextSpawn)
+		if (SDL_GetTicks() >= m_NextSpawn)
 			InitWave();
 		return;
 	case WaveProgress::InProgress:
@@ -554,6 +554,7 @@ void Level::ManageWaves()
 		{
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = {};
+			App::s_Manager.RecoveryMemoryAfterWave();
 		}
 		return;
 	case WaveProgress::Finished:
@@ -613,8 +614,25 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	return m_Layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
 }
 
+#ifdef ASYNC_TILES
+static std::mutex s_TilesMutex;
+
+static void AdjustTilesToView(std::array<Layer, Level::s_LayersAmount> *layers)
+{
+	std::lock_guard<std::mutex> lock(s_TilesMutex);
+	for (std::size_t i = 0u; i < layers->size(); ++i)
+	{
+		for (const auto &tile : layers->at(i).tiles)
+		{
+			tile->AdjustToView();
+		}
+	}
+}
+#endif
+
 void Level::OnUpdateCamera()
 {
+#ifndef ASYNC_TILES
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
@@ -622,6 +640,9 @@ void Level::OnUpdateCamera()
 			tile->AdjustToView();
 		}
 	}
+#else
+	m_Futures.push_back(std::async(std::launch::async, AdjustTilesToView, &m_Layers));
+#endif
 
 	m_Base.AdjustToView();
 

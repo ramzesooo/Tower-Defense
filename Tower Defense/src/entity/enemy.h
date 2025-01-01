@@ -10,12 +10,12 @@
 #include "label.h"
 #include "anim.h"
 #include "../Vector2D.h"
-#include "../textureManager.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
 
 #include <vector>
+#include <unordered_map>
 
 class Tower;
 
@@ -102,7 +102,7 @@ public:
 	void SetOccupiedTile(Tile *newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
 
-	void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
+	//void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 
 	IF_DEBUG(void DebugSpeed(););
 
@@ -131,8 +131,8 @@ private:
 
 	RectHP m_RectHP;
 	uint16_t m_HP = 0;
-	float m_HPPercent = 100;
 	uint16_t m_MaxHP = 0;
+	float m_HPPercent = 100.0f;
 
 	uint16_t m_Coins = 1; // coins granted for killing the enemy
 

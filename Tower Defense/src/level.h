@@ -1,4 +1,5 @@
 #pragma once
+#include "common.h"
 #include "entity/typesEnums.h"
 
 #include "entity/tile.h"
@@ -8,6 +9,9 @@
 #include "entity/base.h"
 
 #include <vector>
+#ifdef ASYNC_TILES
+#include <future>
+#endif
 
 class App;
 class Enemy;
@@ -139,4 +143,8 @@ private:
 	WaveProgress m_WaveProgress = WaveProgress::OnCooldown;
 	uint32_t m_WaveCooldown = 0;
 	uint32_t m_NextSpawn = 0;
+
+#ifdef ASYNC_TILES
+	std::vector<std::future<void>> m_Futures;
+#endif
 };

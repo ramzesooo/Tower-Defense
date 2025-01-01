@@ -1,5 +1,8 @@
 #pragma once
 #include "../Vector2D.h"
+#include "typesEnums.h"
+
+#include "SDL_render.h"
 
 #include <vector>
 #include <array>
@@ -114,21 +117,21 @@ public:
 	template<class T, class... Args>
 	inline T *NewEntity(Args&&... args)
 	{
-		m_Entities.emplace_back(std::move(std::make_unique<T>(std::forward<Args>(args)...)));
+		m_Entities.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
 		return (T*)m_Entities.back().get();
 	}
 
 	template<class... Args>
 	inline Tile *NewTile(Args&&... args)
 	{
-		m_Tiles.emplace_back(std::move(std::make_unique<Tile>(std::forward<Args>(args)...)));
+		m_Tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
 		return m_Tiles.back().get();
 	}
 	
 	template<class... Args>
 	inline Label *NewLabel(Args&&... args)
 	{
-		m_Labels.emplace_back(std::move(std::make_unique<Label>(std::forward<Args>(args)...)));
+		m_Labels.emplace_back(std::make_unique<Label>(std::forward<Args>(args)...));
 		return m_Labels.back().get();
 	}
 
@@ -166,6 +169,20 @@ public:
 	inline void DestroyAllTiles()
 	{
 		m_Tiles.clear();
+	}
+
+	inline void ReserveMemoryForWave(std::size_t size)
+	{
+		m_Labels.reserve(m_Labels.size() + size);
+		m_Entities.reserve(m_Entities.size() + size);
+		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).reserve(m_GroupedEntities.at((std::size_t)EntityGroup::enemy).size() + size);
+	}
+
+	inline void RecoveryMemoryAfterWave()
+	{
+		m_Labels.shrink_to_fit();
+		m_Entities.shrink_to_fit();
+		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).shrink_to_fit();
 	}
 private:
 	std::vector<std::unique_ptr<Tile>> m_Tiles;

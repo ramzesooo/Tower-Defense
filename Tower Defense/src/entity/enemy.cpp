@@ -18,14 +18,21 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
 	IF_DEBUG(, m_Speedy(App::s_Speedy))
 {
+	static TTF_Font *healthFont = App::s_Textures.GetFont("enemyHealth");
+
 	destRect.w = Enemy::s_EnemyWidth * m_Scale;
 	destRect.h = Enemy::s_EnemyHeight * m_Scale;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
-	m_RectHP.squareRect.w = float(App::s_CurrentLevel->m_ScaledTileSize);
-	m_RectHP.squareRect.h = float(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
+	m_RectHP.squareRect.x = static_cast<float>(destRect.x) + static_cast<float>(destRect.w) / 8.0f;
+	m_RectHP.squareRect.y = static_cast<float>(destRect.y) - static_cast<float>(destRect.h) / 12.0f;
+
+	m_RectHP.squareRect.w = static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize);
+	m_RectHP.squareRect.h = static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
+
+	m_RectHP.onePercent = m_RectHP.squareRect.w / 100.0f;
 
 	m_OccupiedTile = App::s_CurrentLevel->GetTileFrom(m_Pos.x, m_Pos.y);
 
@@ -69,29 +76,34 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 
 	PlayAnim("Idle");
 
-	m_RectHP.labelHP = App::s_Manager.NewLabel(0, 0, "-0", App::s_Textures.GetFont("enemyHealth"), SDL_Color(255, 255, 255, 255), this);
+	//m_RectHP.labelHP = App::s_Manager.NewLabel(0, 0, "-0", healthFont, SDL_Color(255, 255, 255, 255), this);
+	m_RectHP.labelHP = Label(0, 0, "-0", healthFont, SDL_Color(255, 255, 255, 255), this);
 
-	m_RectHP.squareRect.x = float(destRect.x) + float(destRect.w) / 8.0f;
-	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
-
-	m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+	//m_HPPercent = float(m_HP) / float(m_MaxHP) * 100.0f;
+	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 
 	m_RectHP.barRect = m_RectHP.squareRect;
-	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100 * (-m_HPPercent));
+	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100.0f * (-m_HPPercent));
 
 	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
 	float HPBarY = m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f);
-	m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, HPBarY));
-	m_RectHP.labelHP->UpdateText(std::to_string(static_cast<int32_t>(m_HPPercent)) + "%");
+	//m_RectHP.labelHP->UpdatePos(Vector2D(HPBarX, HPBarY));
+	m_RectHP.labelHP.UpdatePos(Vector2D(HPBarX, HPBarY));
+	//m_RectHP.labelHP->UpdateText(std::to_string(static_cast<int32_t>(m_HPPercent)) + "%");
+	//m_RectHP.labelHP->UpdateText(std::format("{}%", m_HPPercent));
+	m_RectHP.labelHP.UpdateText(std::format("{}%", m_HPPercent));
 }
 
 Enemy::~Enemy()
 {
-	if (m_RectHP.labelHP)
+	/*if (m_RectHP.labelHP)
 	{
 		m_RectHP.labelHP->m_AttachedTo = nullptr;
 		m_RectHP.labelHP->Destroy();
-	}
+	}*/
+
+	m_RectHP.labelHP.m_AttachedTo = nullptr;
+	m_RectHP.labelHP.Destroy();
 }
 
 void Enemy::Destroy()
@@ -158,7 +170,8 @@ void Enemy::Draw()
 
 		TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
 		TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
-		m_RectHP.labelHP->Draw();
+		//m_RectHP.labelHP->Draw();
+		m_RectHP.labelHP.Draw();
 		return;
 	}
 
@@ -300,16 +313,17 @@ void Enemy::Move()
 
 void Enemy::UpdateHealthBar()
 {
-	static const float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
+	//static const float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
 
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
-	m_RectHP.squareRect.y = float(destRect.y) - float(destRect.h) / 12.0f;
+	m_RectHP.squareRect.y = static_cast<float>(destRect.y) - static_cast<float>(destRect.h) / 12.0f;
 
 	m_RectHP.barRect.x = m_RectHP.squareRect.x;
 	m_RectHP.barRect.y = m_RectHP.squareRect.y;
-	m_RectHP.barRect.w = std::fabs(onePercent * (-m_HPPercent));
+	m_RectHP.barRect.w = std::fabs(m_RectHP.onePercent * (-m_HPPercent));
 
-	m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	//m_RectHP.labelHP->UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	m_RectHP.labelHP.UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
 }
 
 void Enemy::AdjustToView()
@@ -339,7 +353,8 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 
 	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 	
-	m_RectHP.labelHP->UpdateText(std::format("{}%", m_HPPercent));
+	//m_RectHP.labelHP->UpdateText(std::format("{}%", m_HPPercent));
+	m_RectHP.labelHP.UpdateText(std::format("{}%", m_HPPercent));
 
 	UpdateHealthBar();
 
@@ -366,7 +381,6 @@ void Enemy::ValidAttacker()
 			if (!IsTowerInRange(tower, App::s_TowerRange))
 				attacker->StopAttacking();
 		}
-		//else if (!attacker->IsAttacking() && m_IsActive && IsTowerInRange(tower, App::s_TowerRange))
 		else if (!attacker->IsAttacking() && IsTowerInRange(tower, App::s_TowerRange))
 		{
 			attacker->InitAttack(this);

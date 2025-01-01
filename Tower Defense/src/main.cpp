@@ -71,7 +71,8 @@ int main(int argc, char** arg)
 
 		IF_DEBUG(
 			frames++;
-			if (SDL_GetTicks() > logsTime)
+
+			if (SDL_GetTicks() >= logsTime)
 			{
 				SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::format("Tower Defense (FPS: {})", frames).c_str());
 				logsTime = SDL_GetTicks() + logsCooldown;

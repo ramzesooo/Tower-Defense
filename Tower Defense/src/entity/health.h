@@ -1,5 +1,5 @@
 #pragma once
-#include "entity.h"
+//#include "entity.h"
 #include "label.h"
 
 #include "SDL_rect.h"
@@ -10,5 +10,7 @@ struct RectHP
 	SDL_FRect squareRect{ 0.0f, 0.0f, 32.0f, 32.0f };
 	SDL_FRect barRect{ 0.0f, 0.0f, 32.0f, 32.0f };
 	// Label responsible for displaying enemy's hp
-	Label *labelHP = nullptr;
+	//Label *labelHP = nullptr;
+	Label labelHP;
+	float onePercent; // references to width of 1% hp
 };

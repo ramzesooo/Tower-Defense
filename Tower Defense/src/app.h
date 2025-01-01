@@ -461,7 +461,7 @@ public:
 	// Updates waves displayed in UI
 	static inline void UpdateWaves()
 	{
-				App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
+		App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
 	}
 
 	// Updates lifes displayed in UI
@@ -488,9 +488,11 @@ private:
 
 	UIState m_PreviousUIState = UIState::none;
 
-	std::vector<std::unique_ptr<Level>> m_Levels;
+	//std::vector<std::unique_ptr<Level>> m_Levels;
+	std::vector<Level> m_Levels;
 
-	Label *m_PauseLabel = nullptr;
+	//Label *m_PauseLabel = nullptr;
+	Label m_PauseLabel;
 
 	uint16_t m_Coins = 0;
 };

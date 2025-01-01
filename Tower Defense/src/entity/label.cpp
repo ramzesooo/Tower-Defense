@@ -3,7 +3,6 @@
 #include "../app.h"
 #include "../logger.h"
 
-#include <string_view>
 #include <format>
 
 Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
@@ -16,15 +15,14 @@ Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font
 	if (!surface)
 	{
 		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateText"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create a surface in Label::Label\nLast SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	m_Texture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!m_Texture)
 	{
-		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateText"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create texture from surface in Label::Label\nLast SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}
@@ -35,10 +33,10 @@ Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font
 
 void Label::Destroy()
 {
-	if (m_AttachedTo && m_AttachedTo->HasGroup(EntityGroup::enemy))
+	/*if (m_AttachedTo && m_AttachedTo->HasGroup(EntityGroup::enemy))
 	{
 		dynamic_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
-	}
+	}*/
 
 	if (m_Texture)
 	{
@@ -55,7 +53,7 @@ void Label::Draw()
 	if (!m_Drawable || !m_Texture || m_Alpha == 0)
 		return;
 
-	if (m_VanishDelay > 0 && (double)SDL_GetTicks() >= (double)m_Ticks + m_DelayPerAlphaUnit)
+	if (m_VanishDelay > 0 && static_cast<double>(SDL_GetTicks()) >= static_cast<double>(m_Ticks) + m_DelayPerAlphaUnit)
 	{
 		m_Ticks = SDL_GetTicks();
 		SDL_SetTextureAlphaMod(m_Texture, m_Alpha--);
@@ -69,16 +67,14 @@ void Label::UpdateText(const std::string& text)
 	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
 	{
-		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateText"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create a surface in Label::UpdateText\nLast SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	SDL_Texture *newTexture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!newTexture)
 	{
-		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateText"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create texture from surface in Label::UpdateText\nLast SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}
@@ -99,16 +95,14 @@ void Label::UpdateColor(SDL_Color newColor)
 	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, std::string(m_Text).c_str(), m_Color);
 	if (!surface)
 	{
-		App::s_Logger.AddLog(std::string_view("Failed to create a surface in Label::UpdateColor"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create a surface in Label::UpdateColor\nLast SDL Error: {}", SDL_GetError()));
 		return;
 	}
 
 	SDL_Texture *newTexture = SDL_CreateTextureFromSurface(App::s_Renderer, surface);
 	if (!newTexture)
 	{
-		App::s_Logger.AddLog(std::string_view("Failed to create texture from surface in Label::UpdateColor"));
-		App::s_Logger.AddLog(std::format("Last SDL Error: {}", SDL_GetError()));
+		App::s_Logger.AddLog(std::format("Failed to create texture from surface in Label::UpdateColor\nLast SDL Error: {}", SDL_GetError()));
 		SDL_FreeSurface(surface);
 		return;
 	}

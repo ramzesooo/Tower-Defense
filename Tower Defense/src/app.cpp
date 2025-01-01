@@ -137,14 +137,18 @@ App::App()
 
 	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
 
+	TTF_Font *defaultFont = App::s_Textures.GetFont("default");
+
 	m_Levels.reserve(levelsToLoad);
 
 	for (uint16_t i = 0u; i < levelsToLoad; i++)
 	{
-		m_Levels.emplace_back(std::move(std::make_unique<Level>(i)));
+		//m_Levels.emplace_back(std::move(std::make_unique<Level>(i)));
+		m_Levels.emplace_back(i);
 	}
 
-	App::s_CurrentLevel = m_Levels.at(0).get();
+	//App::s_CurrentLevel = m_Levels.at(0).get();
+	App::s_CurrentLevel = &m_Levels.at(0);
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
 	{
@@ -165,15 +169,19 @@ App::App()
 	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace.SetTexture(s_Textures.GetTexture("transparent"));
 
-	m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
-	m_PauseLabel->m_Drawable = false;
+	//m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
+	m_PauseLabel = Label(int32_t(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
+	//m_PauseLabel->m_Drawable = false;
+	m_PauseLabel.m_Drawable = false;
 
-	const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
-	m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
+	//const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
+	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
+	//m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
+	m_PauseLabel.UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
-	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", s_Textures.GetFont("default")););
-	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", s_Textures.GetFont("default")););
-	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(500, 10, " ", s_Textures.GetFont("default"), SDL_Color{ 0, 200, 0, 255 }););
+	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", defaultFont););
+	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", defaultFont););
+	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(500, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 }););
 
 	int32_t centerX = App::WINDOW_WIDTH / 2;
 	int32_t centerY = App::WINDOW_HEIGHT / 2;
@@ -187,13 +195,13 @@ App::App()
 		btn->destRect.w = App::WINDOW_WIDTH / 7;
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + ((int32_t)i - 1) * (btn->destRect.h + btn->destRect.h / 4);
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
 	}
 
 	// Button "Play"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -201,7 +209,7 @@ App::App()
 	// Button "Options"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(1);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -209,7 +217,7 @@ App::App()
 	// Button "Exit"
 	{
 		btn = &s_MainMenu.m_PrimaryButtons.at(2);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", App::s_Textures.GetFont("default"));
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", defaultFont);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -452,7 +460,8 @@ void App::DrawUI()
 	IF_DEBUG(s_EnemiesAmountLabel->Draw(););
 	IF_DEBUG(s_FrameDelay->Draw(););
 
-	m_PauseLabel->Draw();
+	//m_PauseLabel->Draw();
+	m_PauseLabel.Draw();
 
 	for (std::size_t i = 0u; i < s_UIElements.size(); i++)
 	{
@@ -499,7 +508,8 @@ void App::OnResolutionChange()
 		return;
 	}
 
-	m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
+	//m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
+	m_PauseLabel.UpdatePos({ m_PauseLabel.GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
 
 	if (static_cast<float>(App::WINDOW_WIDTH) > s_Camera.w)
 		s_Camera.x -= static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w;
@@ -543,29 +553,29 @@ void App::SetUIState(UIState state)
 			startPausedTicks = SDL_GetTicks();
 		}
 	}
-	else
+	else if (!IsGamePaused(state))
 	{
-		if (!IsGamePaused(state))
-		{
-			g_PausedTicks += SDL_GetTicks() - startPausedTicks;
-			startPausedTicks = 0u;
-		}
+		g_PausedTicks += SDL_GetTicks() - startPausedTicks;
+		startPausedTicks = 0u;
 	}
 
 	switch (state)
 	{
 	case UIState::mainMenu:
 		newState = "mainMenu";
-		m_PauseLabel->m_Drawable = false;
+		//m_PauseLabel->m_Drawable = false;
+		m_PauseLabel.m_Drawable = false;
 		App::Instance().OnResolutionChange();
 		break;
 	case UIState::none:
 		newState = "none";
-		m_PauseLabel->m_Drawable = false;
+		//m_PauseLabel->m_Drawable = false;
+		m_PauseLabel.m_Drawable = false;
 		break;
 	case UIState::building:
 		newState = "building";
-		m_PauseLabel->m_Drawable = true;
+		//m_PauseLabel->m_Drawable = true;
+		m_PauseLabel.m_Drawable = true;
 		ManageBuildingState();
 		break;
 	}

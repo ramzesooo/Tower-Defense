@@ -7,7 +7,6 @@
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "SDL_timer.h"
 
 class Attacker;
 class Enemy;
