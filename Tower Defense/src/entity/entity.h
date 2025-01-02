@@ -173,14 +173,12 @@ public:
 
 	inline void ReserveMemoryForWave(std::size_t size)
 	{
-		m_Labels.reserve(m_Labels.size() + size);
 		m_Entities.reserve(m_Entities.size() + size);
 		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).reserve(m_GroupedEntities.at((std::size_t)EntityGroup::enemy).size() + size);
 	}
 
 	inline void RecoveryMemoryAfterWave()
 	{
-		m_Labels.shrink_to_fit();
 		m_Entities.shrink_to_fit();
 		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).shrink_to_fit();
 	}

@@ -29,8 +29,8 @@ public:
 
 	inline void Draw()
 	{
-		TextureManager::DrawTexture(UIElement::s_BgTexture, UIElement::srcRect, this->destRect);
-		this->m_Label.Draw();
+		TextureManager::DrawTexture(UIElement::s_BgTexture, UIElement::srcRect, destRect);
+		m_Label.Draw();
 	}
 };
 

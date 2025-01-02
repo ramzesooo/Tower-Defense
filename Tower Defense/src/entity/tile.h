@@ -10,7 +10,7 @@
 class Tower;
 
 // It's not needed anymore to inheritance from Entity
-// TODO: Adjust it to be totally not dependent from Entity class,
+// TODO: Adjust it to be totally independent from Entity class,
 // Manager has another method for tiles NewTile() instead of NewEntity() with another vector
 // It has been done to avoid iterating through a lot of tiles in Refresh() and Update() because it's stealing a lot of performance
 class Tile : public Entity
@@ -19,7 +19,8 @@ public:
 	Tile() = delete;
 	Tile(TileType type, int32_t tileScale);
 	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type = TileType::regular);
-	Tile(const Tile& r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type), m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile) {}
+	Tile(const Tile& r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type),
+		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable) {}
 	~Tile() = default;
 
 	inline Tile& operator=(const Tile& r)
@@ -36,6 +37,7 @@ public:
 		m_Type = r.m_Type;
 		m_EntityOccupying = r.m_EntityOccupying;
 		m_TowerOnTile = r.m_TowerOnTile;
+		m_IsWalkable = r.m_IsWalkable;
 
 		return *this;
 	}

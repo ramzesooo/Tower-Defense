@@ -88,13 +88,15 @@ public:
 	}
 
 	template<typename T>
-	inline Vector2D &operator*(const T& i)
+	inline Vector2D operator*(const T& i)
+	//inline Vector2D &operator*(const T& i)
 	//Vector2D& operator*(const int& i)
 	{
-		this->x *= i;
-		this->y *= i;
+		Vector2D vec2{ this->x, this->y };
+		vec2.x *= i;
+		vec2.y *= i;
 
-		return *this;
+		return vec2;
 	}
 
 	template<typename T>
@@ -131,7 +133,7 @@ public:
 
 	inline bool IsEqualZero() const
 	{
-		return x == 0.0f && y == 0.0f ? true : false;
+		return x == 0.0f && y == 0.0f;
 	}
 
 	friend inline std::ostream& operator<<(std::ostream& stream, const Vector2D& vec)

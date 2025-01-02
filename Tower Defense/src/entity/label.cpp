@@ -33,11 +33,6 @@ Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font
 
 void Label::Destroy()
 {
-	/*if (m_AttachedTo && m_AttachedTo->HasGroup(EntityGroup::enemy))
-	{
-		dynamic_cast<Enemy*>(m_AttachedTo)->SetAttachedLabel(nullptr);
-	}*/
-
 	if (m_Texture)
 	{
 		SDL_DestroyTexture(m_Texture);

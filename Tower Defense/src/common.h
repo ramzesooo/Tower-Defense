@@ -9,7 +9,7 @@
 #define IF_NDEBUG(...) __VA_ARGS__
 #endif
 
-//#define ASYNC_TILES
+#define ASYNC_TILES 0
 
 IF_DEBUG(
 enum class EnemyDebugSpeed

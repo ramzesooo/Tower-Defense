@@ -77,6 +77,8 @@ uint32_t g_PausedTicks = 0;
 
 App::App()
 {
+	TTF_Font *defaultFont = nullptr;
+
 	bool initialized = true;
 
 	if (!App::s_Instance)
@@ -123,6 +125,8 @@ App::App()
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
 	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);
 
+	defaultFont = App::s_Textures.GetFont("default");
+
 	App::s_GreenTex = App::s_Textures.GetTexture("green");
 	App::s_Square = App::s_Textures.GetTexture("square");
 
@@ -137,17 +141,13 @@ App::App()
 
 	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
 
-	TTF_Font *defaultFont = App::s_Textures.GetFont("default");
-
 	m_Levels.reserve(levelsToLoad);
 
 	for (uint16_t i = 0u; i < levelsToLoad; i++)
 	{
-		//m_Levels.emplace_back(std::move(std::make_unique<Level>(i)));
 		m_Levels.emplace_back(i);
 	}
 
-	//App::s_CurrentLevel = m_Levels.at(0).get();
 	App::s_CurrentLevel = &m_Levels.at(0);
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
@@ -169,14 +169,10 @@ App::App()
 	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
 	s_Building.buildingPlace.SetTexture(s_Textures.GetTexture("transparent"));
 
-	//m_PauseLabel = s_Manager.NewLabel(int32_t(s_Camera.w) - 10, 10, "PAUSED", s_Textures.GetFont("default"));
 	m_PauseLabel = Label(int32_t(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
-	//m_PauseLabel->m_Drawable = false;
 	m_PauseLabel.m_Drawable = false;
 
-	//const SDL_Rect &pauseLabelRect = m_PauseLabel->GetRect();
 	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
-	//m_PauseLabel->UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 	m_PauseLabel.UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", defaultFont););
@@ -228,9 +224,6 @@ App::App()
 
 App::~App()
 {
-	m_Levels.clear();
-	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Levels have been cleared")););
-
 	if (s_Renderer)
 	{
 		SDL_DestroyRenderer(s_Renderer);

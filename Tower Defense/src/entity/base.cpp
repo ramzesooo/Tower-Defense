@@ -4,9 +4,6 @@
 
 void Base::Draw() const
 {
-	//if (!m_IsActive)
-		//return;
-
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }
 

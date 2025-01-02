@@ -76,5 +76,5 @@ private:
 	TTF_Font *m_Font = nullptr;
 	SDL_Texture *m_Texture = nullptr;
 	SDL_Rect destRect{ 0, 0, 0, 0 };
-	SDL_Color m_Color { 255, 255, 255, 255 };
+	SDL_Color m_Color{ 255, 255, 255, 255 };
 };

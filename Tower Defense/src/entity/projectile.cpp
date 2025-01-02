@@ -59,10 +59,18 @@ void Projectile::Update()
 		return;
 	}
 
-	if (m_Pos.x + static_cast<float>(destRect.w) >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime) 
+	static Vector2D realVelocity;
+
+	realVelocity = m_Velocity * App::s_ElapsedTime;
+
+	/*if (m_Pos.x + static_cast<float>(destRect.w) >= m_Destination.x - (m_Velocity.x * App::s_ElapsedTime)
 		&& m_Pos.x - static_cast<float>(destRect.w) <= m_Destination.x + (m_Velocity.x * App::s_ElapsedTime)
-		&& m_Pos.y + static_cast<float>(destRect.h) >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime) 
-		&& m_Pos.y - static_cast<float>(destRect.h) <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))
+		&& m_Pos.y + static_cast<float>(destRect.h) >= m_Destination.y - (m_Velocity.y * App::s_ElapsedTime)
+		&& m_Pos.y - static_cast<float>(destRect.h) <= m_Destination.y + (m_Velocity.y * App::s_ElapsedTime))*/
+	if (m_Pos.x + static_cast<float>(destRect.w) >= m_Destination.x - realVelocity.x
+		&& m_Pos.x - static_cast<float>(destRect.w) <= m_Destination.x + realVelocity.x
+		&& m_Pos.y + static_cast<float>(destRect.h) >= m_Destination.y - realVelocity.y
+		&& m_Pos.y - static_cast<float>(destRect.h) <= m_Destination.y + realVelocity.y)
 	{
 		m_Target->OnHit(this, App::GetDamageOf(m_Type));
 		return;
@@ -97,7 +105,7 @@ void Projectile::Update()
 		m_Velocity.y = m_Destination.y > truncatedPos.y ? m_BaseVelocity : -m_BaseVelocity;
 	}
 
-	if (m_Velocity.y == 0.0f && m_Velocity.x == 0.0f)
+	if (m_Velocity.IsEqualZero())
 	{
 		m_Target->OnHit(this, App::GetDamageOf(m_Type));
 		return;
@@ -141,8 +149,6 @@ void Projectile::UpdateArrow()
 	float magnitude = std::sqrtf(m_Velocity.x * m_Velocity.x + m_Velocity.y * m_Velocity.y);
 	if (magnitude > 0.0f)
 	{
-		/*fixedVelocity.x /= magnitude;
-		fixedVelocity.y /= magnitude;*/
 		fixedVelocity /= magnitude;
 	}
 
@@ -169,9 +175,6 @@ void Projectile::UpdateDark()
 		fixedVelocity /= magnitude;
 
 	m_Pos += (m_Velocity + fixedVelocity) * App::s_ElapsedTime;
-
-	//destRect.x = static_cast<int32_t>(m_Pos.x) + App::s_CurrentLevel->m_ScaledTileSize / 2 - static_cast<int32_t>(App::s_Camera.x);
-	//destRect.y = static_cast<int32_t>(m_Pos.y) + destRect.h / 2 - static_cast<int32_t>(App::s_Camera.y);
 
 	destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y) - static_cast<int32_t>(App::s_Camera.y);

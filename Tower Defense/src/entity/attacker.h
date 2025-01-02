@@ -7,7 +7,7 @@
 #include "../Vector2D.h"
 #include "anim.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
 
 #include <unordered_map>
 
@@ -24,7 +24,8 @@ public:
 
 	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale = 1);
 	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
-		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot) {}
+		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot),
+		m_Invisible(r.m_Invisible), animations(r.animations) {}
 	~Attacker() = default;
 
 	inline Attacker& operator=(const Attacker& r)
@@ -44,6 +45,8 @@ public:
 		m_CurrentAnim = r.m_CurrentAnim;
 		m_Target = r.m_Target;
 		m_NextShot = r.m_NextShot;
+		m_Invisible = r.m_Invisible;
+		animations = r.animations;
 
 		return *this;
 	}

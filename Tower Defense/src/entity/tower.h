@@ -4,12 +4,10 @@
 #include "anim.h"
 
 #include "entity.h"
-//#include "attacker.h"
 #include "tile.h"
-#include "../level.h"
 #include "../Vector2D.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
 
 #include <unordered_map>
 
@@ -72,18 +70,10 @@ public:
 	// Returns specific occupied tile from array m_OccupiedTiles
 	// Or returns nullptr if ID is less than 0 or greater than array size
 	// The array's size is 4, because the tower occupies just 4 tiles
-	inline Tile* GetOccupiedTile(uint16_t ID) const
-	{
-		if (ID >= m_OccupiedTiles.size())
-		{
-			return nullptr;
-		}
-
-		return m_OccupiedTiles.at(ID);
-	}
+	Tile *GetOccupiedTile(uint16_t ID) const;
 
 	// Returns reference to whole array m_OccupiedTiles
-	std::array<Tile*, 4>& GetOccupiedTiles() { return m_OccupiedTiles; }
+	std::array<Tile*, 4> &GetOccupiedTiles() { return m_OccupiedTiles; }
 
 	void PlayAnim(std::string_view animID);
 

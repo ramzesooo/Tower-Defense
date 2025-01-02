@@ -1,7 +1,10 @@
 #include "tower.h"
 #include "attacker.h"
+#include "../level.h"
 #include "../textureManager.h"
 #include "../app.h"
+
+#include <format>
 
 extern uint32_t g_PausedTicks;
 
@@ -15,7 +18,7 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 	{
 		Tile* tile = nullptr;
-		for (auto i = 0u; i < 4; i++)
+		for (auto i = 0u; i < 4u; i++)
 		{
 			tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
 			m_OccupiedTiles[i] = tile;
@@ -93,9 +96,6 @@ void Tower::Destroy()
 
 void Tower::Update()
 {
-	if (!m_AnimData.animated)
-		return;
-
 	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
 }
 
@@ -137,6 +137,17 @@ void Tower::Upgrade()
 		App::s_Manager.Refresh();
 		App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
 	}
+}
+
+Tile *Tower::GetOccupiedTile(uint16_t ID) const
+{
+	if (ID >= m_OccupiedTiles.size())
+	{
+		App::s_Logger.AddLog(std::format("Tower::GetOccupiedTile: Requested tile #{}, but maximum is #{}", ID, m_OccupiedTiles.size()));
+		return nullptr;
+	}
+
+	return m_OccupiedTiles.at(ID);
 }
 
 void Tower::PlayAnim(std::string_view animID)

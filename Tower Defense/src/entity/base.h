@@ -1,5 +1,4 @@
 #pragma once
-#include "label.h"
 #include "tile.h"
 #include "../Vector2D.h"
 
@@ -18,6 +17,29 @@ public:
 
 	uint16_t m_Lifes = 0u;
 	uint16_t m_MaxLifes = 0u;
+public:
+	Base() = default;
+	Base(const Base &r) : m_IsActive(r.m_IsActive), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture),
+		m_Tile(r.m_Tile), m_Lifes(r.m_Lifes), m_MaxLifes(r.m_MaxLifes) {}
+	~Base() = default;
+
+	Base operator=(const Base &r)
+	{
+		if (this == &r)
+		{
+			return *this;
+		}
+
+		m_IsActive = r.m_IsActive;
+		destRect = r.destRect;
+		m_Pos = r.m_Pos;
+		m_Texture = r.m_Texture;
+		m_Tile = r.m_Tile;
+		m_Lifes = r.m_Lifes;
+		m_MaxLifes = r.m_MaxLifes;
+
+		return *this;
+	}
 
 	const SDL_Rect& GetRect() const { return destRect; }
 

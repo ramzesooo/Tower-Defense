@@ -5,11 +5,10 @@
 #include "entity/tile.h"
 #include "entity/tower.h"
 #include "entity/attacker.h"
-//#include "entity/enemy.h"
 #include "entity/base.h"
 
 #include <vector>
-#ifdef ASYNC_TILES
+#if ASYNC_TILES == 1
 #include <future>
 #endif
 
@@ -22,12 +21,27 @@ struct WaveContainer
 };
 
 //Layer references to just map's layer
-struct Layer
+class Layer
 {
+public:
+	std::vector<Tile*> tiles;
+public:
+	Layer() = default;
+	Layer(const Layer &r) : tiles(r.tiles) {}
+	~Layer() = default;
+
+	Layer &operator=(const Layer &r)
+	{
+		if (this == &r)
+			return *this;
+
+		tiles = r.tiles;
+
+		return *this;
+	}
+
 	// returns a tile from specific coordinates
 	Tile *GetTileFrom(std::size_t posX, std::size_t posY, uint16_t mapWidth) const { return tiles.at(posY * mapWidth + posX); }
-
-	std::vector<Tile*> tiles;
 };
 
 enum class WaveProgress
@@ -59,8 +73,41 @@ public:
 	Vector2D m_BasePos;
 	uint16_t m_MovementSpeedRate = 1;
 public:
+	Level() = delete;
 	Level(uint16_t levelID);
+	Level(const Level &r) : m_MapData(r.m_MapData), m_ScaledTileSize(r.m_ScaledTileSize), m_BasePos(r.m_BasePos), m_MovementSpeedRate(r.m_MovementSpeedRate),
+		m_FailedLoading(r.m_FailedLoading), m_BaseTextureID(r.m_BaseTextureID), m_Base(r.m_Base), m_LevelID(r.m_LevelID), m_Layers(r.m_Layers),
+		m_Spawners(r.m_Spawners), m_SpecificEnemiesAmount(r.m_SpecificEnemiesAmount), m_Waves(r.m_Waves), m_ExpectedEnemiesAmount(r.m_ExpectedEnemiesAmount),
+		m_SpawnedEnemies(r.m_SpawnedEnemies), m_CurrentWave(r.m_CurrentWave), m_WaveProgress(r.m_WaveProgress), m_WaveCooldown(r.m_WaveCooldown),
+		m_NextSpawn(r.m_NextSpawn) {}
 	~Level() = default;
+
+	Level &operator=(const Level &r)
+	{
+		if (this == &r)
+			return *this;
+
+		m_MapData = r.m_MapData;
+		m_ScaledTileSize = r.m_ScaledTileSize;
+		m_BasePos = r.m_BasePos;
+		m_MovementSpeedRate = r.m_MovementSpeedRate;
+		m_FailedLoading = r.m_FailedLoading;
+		m_BaseTextureID = r.m_BaseTextureID;
+		m_Base = r.m_Base;
+		m_LevelID = r.m_LevelID;
+		m_Layers = r.m_Layers;
+		m_Spawners = r.m_Spawners;
+		m_SpecificEnemiesAmount = r.m_SpecificEnemiesAmount;
+		m_Waves = r.m_Waves;
+		m_ExpectedEnemiesAmount = r.m_ExpectedEnemiesAmount;
+		m_SpawnedEnemies = r.m_SpawnedEnemies;
+		m_CurrentWave = r.m_CurrentWave;
+		m_WaveProgress = r.m_WaveProgress;
+		m_WaveCooldown = r.m_WaveCooldown;
+		m_NextSpawn = r.m_NextSpawn;
+
+		return *this;
+	}
 
 	void Setup(std::ifstream& mapFile, uint16_t layerID);
 
@@ -79,7 +126,6 @@ public:
 	// 
 	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
-	//Tower* AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier);
 	Tower* AddTower(float posX, float posY, TowerType type);
 	void AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy* AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 2) const;
@@ -133,9 +179,7 @@ private:
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
 	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{};
 
-	//Wave m_Wave;
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
-	//std::vector<std::array<uint16_t, (std::size_t)EnemyType::size>> m_Waves;
 	std::vector<WaveContainer> m_Waves;
 	std::size_t m_ExpectedEnemiesAmount = 0;
 	std::size_t m_SpawnedEnemies = 0;
@@ -144,7 +188,7 @@ private:
 	uint32_t m_WaveCooldown = 0;
 	uint32_t m_NextSpawn = 0;
 
-#ifdef ASYNC_TILES
+#if ASYNC_TILES == 1
 	std::vector<std::future<void>> m_Futures;
 #endif
 };

@@ -115,11 +115,11 @@ Level::Level(uint16_t levelID)
 	: m_LevelID(levelID)
 {
 	// LOAD CONFIG
-	std::ifstream configFile("levels\\" + std::to_string(m_LevelID + 1) + "\\" + configName);
+	std::ifstream configFile(std::format("levels\\{}\\{}", m_LevelID + 1, configName));
 
 	if (configFile.fail())
 	{
-		App::s_Logger.AddLog("Config file for level " + std::to_string(m_LevelID + 1) + " doesn't exist!");
+		App::s_Logger.AddLog(std::format("Config file for level {} doesn't exist!", m_LevelID + 1));
 		return;
 	}
 
@@ -141,7 +141,7 @@ Level::Level(uint16_t levelID)
 			{
 				if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
 				{
-					App::s_Logger.AddLog("Couldn't reach out map data no. " + std::to_string(i) + " from level " + std::to_string(m_LevelID + 1));
+					App::s_Logger.AddLog(std::format("Couldn't reach out map data no. {} from level {}", i, m_LevelID + 1));
 					m_MapData[i] = 2;
 					break;
 				}
@@ -191,9 +191,6 @@ Level::Level(uint16_t levelID)
 		}
 
 		m_Waves.reserve(1);
-		//m_Waves.emplace_back(WaveContainer{});
-		//m_Waves.emplace_back(std::array<uint16_t, (std::size_t)EnemyType::size>{});
-		//auto &wave = m_Waves.back();
 
 		WaveContainer newWave{};
 
@@ -243,11 +240,9 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 
 		while (std::getline(ss, value, ','))
 		{
-			//row.push_back(std::stoi(value));
 			row.emplace_back(std::stoi(value));
 		}
 
-		//mapData.push_back(row);
 		mapData.emplace_back(row);
 	}
 
@@ -296,7 +291,7 @@ void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
 			}
 			else if (tileCode == spawnerID)
 			{
-				m_Spawners.reserve(1);
+				m_Spawners.reserve(m_Spawners.size() + 1);
 				m_Spawners.emplace_back(tile);
 			}
 		}
@@ -342,23 +337,7 @@ void Level::Clean()
 	m_CurrentWave = 0;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
-	App::s_Manager.RecoveryMemoryAfterWave();
 }
-
-//Tower* Level::AddTower(float posX, float posY, SDL_Texture* towerTexture, uint16_t tier)
-//{
-//	if (!towerTexture)
-//	{
-//		App::s_Logger.AddLog(std::string_view("Level::AddTower: Tower's texture doesn't exist!"));
-//		return nullptr;
-//	}
-//
-//	auto tower = App::s_Manager.NewEntity<Tower>(posX, posY, towerTexture, tier);
-//	tower->AddToGroup(EntityGroup::tower);
-//
-//	AddAttacker(tower, (AttackerType)(tier - 1));
-//	return tower;
-//}
 
 Tower* Level::AddTower(float posX, float posY, TowerType type)
 {
@@ -436,7 +415,6 @@ void Level::HandleMouseButtonEvent()
 		{
 			if (App::s_Building.canBuild)
 			{
-				//Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, App::s_Textures.GetTexture("tower"), 1);
 				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
 				if (!tower->CanUpgrade())
 				{
@@ -508,14 +486,6 @@ void Level::InitWave()
 	
 	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown;
 	m_SpawnedEnemies++;
-
-	/*std::size_t i = 0;
-	std::vector<Vector2D> testVector = findPath(spawnPos, dest);
-	for (const auto &pos : testVector)
-	{
-		printf("#%zd: (%.1f, %.1f)\n", ++i, pos.x, pos.y);
-	}
-	printf("(%.1f, %.1f)\n", dest.x, dest.y);*/
 }
 
 void Level::ManageWaves()
@@ -574,10 +544,6 @@ void Level::Render()
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
 		{
-			// Might be necessary, but the game isn't supposed to create nullptr tiles, if it does, then it's probably an issue with level
-			//if (!tile)
-				//continue;
-
 			tile->Draw();
 		}
 			
@@ -614,7 +580,7 @@ Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	return m_Layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
 }
 
-#ifdef ASYNC_TILES
+#if ASYNC_TILES == 1
 static std::mutex s_TilesMutex;
 
 static void AdjustTilesToView(std::array<Layer, Level::s_LayersAmount> *layers)
@@ -632,7 +598,7 @@ static void AdjustTilesToView(std::array<Layer, Level::s_LayersAmount> *layers)
 
 void Level::OnUpdateCamera()
 {
-#ifndef ASYNC_TILES
+#if ASYNC_TILES == 0
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).tiles)
