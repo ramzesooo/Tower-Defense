@@ -74,6 +74,7 @@ public:
 
 	Vector2D GetPos() const override { return m_Pos; }
 	Vector2D GetScaledPos() const { return m_ScaledPos; }
+	const SDL_Rect &GetRect() const { return destRect; }
 
 	// Vector2D destination is a difference between current position
 	// For example it should be x: 1.0f, y: -1.0f to move one tile left and 1 tile up
@@ -90,7 +91,7 @@ public:
 	void UpdateHealthBar();
 	void AdjustToView() override;
 
-	void OnHit(Projectile *projectile, uint16_t dmg);
+	void OnHit(uint16_t dmg);
 
 	void ValidAttacker();
 
@@ -101,8 +102,6 @@ public:
 
 	void SetOccupiedTile(Tile *newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }
-
-	//void SetAttachedLabel(Label *label) { m_RectHP.labelHP = label; }
 
 	IF_DEBUG(void DebugSpeed(););
 

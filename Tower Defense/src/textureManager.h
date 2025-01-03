@@ -1,7 +1,8 @@
 #pragma once
 #include "common.h"
 
-#include "SDL.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 #include "SDL_ttf.h"
 
 #include <unordered_map>
@@ -26,7 +27,7 @@ public:
 	SDL_Texture* GetTexture(std::string_view textureID) const;
 
 	void AddFont(std::string_view fontID, const char* path, uint16_t fontSize);
-	TTF_Font* GetFont(std::string_view fontID) const;
+	TTF_Font *GetFont(std::string_view fontID) const;
 private:
 	std::unordered_map<std::string, SDL_Texture*, proxy_hash, std::equal_to<void>> textures;
 	std::unordered_map<std::string, TTF_Font*, proxy_hash, std::equal_to<void>> fonts;

@@ -5,8 +5,7 @@
 class Vector2D
 {
 public:
-	float x = 0.0f;
-	float y = 0.0f;
+	float x = 0.0f, y = 0.0f;
 
 	Vector2D() = default;
 	Vector2D(float setX, float setY) : x(setX), y(setY) {}
@@ -18,9 +17,7 @@ public:
 	Vector2D &operator=(const Vector2D &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		this->x = r.x;
 		this->y = r.y;
@@ -88,17 +85,45 @@ public:
 	}
 
 	template<typename T>
-	inline Vector2D operator*(const T& i)
-	//inline Vector2D &operator*(const T& i)
-	//Vector2D& operator*(const int& i)
+	inline Vector2D operator+(const T& i)
 	{
-		Vector2D vec2{ this->x, this->y };
-		vec2.x *= i;
-		vec2.y *= i;
-
-		return vec2;
+		return Vector2D(this->x + i, this->y + i);
 	}
 
+	template<typename T>
+	inline Vector2D operator-(const T& i)
+	{
+		return Vector2D(this->x - i, this->y - i);
+	}
+
+	template<typename T>
+	inline Vector2D operator*(const T& i)
+	{
+		return Vector2D(this->x * i, this->y * i);
+	}
+	
+	template<typename T>
+	inline Vector2D operator/(const T& i)
+	{
+		return Vector2D(this->x / i, this->y / i);
+	}
+
+	template<typename T>
+	inline Vector2D &operator+=(const T& i)
+	{
+		this->x += i;
+		this->y += i;
+
+		return *this;
+	}
+	template<typename T>
+	inline Vector2D &operator-=(const T& i)
+	{
+		this->x -= i;
+		this->y -= i;
+
+		return *this;
+	}
 	template<typename T>
 	inline Vector2D &operator*=(const T& i)
 	{

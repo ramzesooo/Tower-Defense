@@ -118,7 +118,7 @@ public:
 	inline T *NewEntity(Args&&... args)
 	{
 		m_Entities.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-		return (T*)m_Entities.back().get();
+		return dynamic_cast<T*>(m_Entities.back().get());
 	}
 
 	template<class... Args>

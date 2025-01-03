@@ -40,10 +40,10 @@ public:
 
 	void Draw();
 
-	void UpdateText(const std::string& text);
+	void UpdateText(const std::string &text);
 	void UpdateColor(SDL_Color newColor);
 
-	inline void UpdatePos(Vector2D pos)
+	inline void UpdatePos(const Vector2D &pos)
 	{
 		destRect.x = static_cast<int32_t>(pos.x);
 		destRect.y = static_cast<int32_t>(pos.y);

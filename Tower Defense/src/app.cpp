@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include "SDL_image.h"
+
 #include <fstream>
 #include <cmath>
 
@@ -55,6 +57,7 @@ Label App::s_UICoinsNotification(1000);
 bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
+Vector2D CameraMovement::realVelocity{ 0.0f, 0.0f };
 
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
@@ -74,6 +77,46 @@ auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 uint32_t g_PausedTicks = 0;
 // class App GLOBAL VARIABLES
+
+struct TextureData
+{
+	std::string_view id, path;
+};
+
+static constexpr TextureData textures[]
+{
+	{ "mapSheet", "assets/tileset.png" },
+	{ "szpaku", "assets/szpaku.jpg" },
+	{ "buttonUI", "assets/ui/ui_button.png" },
+	{ "hoveredButtonUI", "assets/ui/ui_button_hovered.png" },
+	{ "canBuild", "assets/ui/tile_CanBuild.png" },
+	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
+	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
+	{ "elementUI", "assets/ui/ui_element.png" },
+	{ "coinUI", "assets/ui/coin.png" },
+	{ "heartUI", "assets/ui/heart.png" },
+
+	{ "base", "assets/base.png" },
+	{ "square", "assets/square_32x32.png" },
+	{ "green", "assets/green_32x32.png" },
+	{ "transparent", "assets/transparent.png" },
+	{ "grayArrow", "assets/grayArrow_32x32.png" },
+
+	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
+	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
+
+	{ App::TextureOf(ProjectileType::arrow), "assets/projectiles/arrow_16x16.png" },
+	{ App::TextureOf(ProjectileType::thunder), "assets/projectiles/thunder.png" },
+
+	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
+	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
+	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
+
+	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
+	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
+	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },
+	{ App::TextureOf(EnemyType::dwarfKing), "assets/entities/enemy/enemyDwarfKing.png" }
+};
 
 App::App()
 {
@@ -453,7 +496,6 @@ void App::DrawUI()
 	IF_DEBUG(s_EnemiesAmountLabel->Draw(););
 	IF_DEBUG(s_FrameDelay->Draw(););
 
-	//m_PauseLabel->Draw();
 	m_PauseLabel.Draw();
 
 	for (std::size_t i = 0u; i < s_UIElements.size(); i++)
@@ -469,26 +511,28 @@ void App::DrawUI()
 
 void App::UpdateCamera()
 {
-	static Vector2D cameraVelocity;
+	CameraMovement::realVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
+	CameraMovement::realVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;
 
-	cameraVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
-	cameraVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;
-
-	s_Camera.x += cameraVelocity.x;
-	s_Camera.y += cameraVelocity.y;
+	s_Camera.x += CameraMovement::realVelocity.x;
+	s_Camera.y += CameraMovement::realVelocity.y;
 
 	MakeCameraCorrect();
 
 	IF_DEBUG(
-		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			s_MouseX,
 			s_MouseY,
+			static_cast<int32_t>(s_Camera.x + s_MouseX),
+			static_cast<int32_t>(s_Camera.y + s_MouseY),
 			s_Building.coordinates.x,
 			s_Building.coordinates.y)
 		);
 	)
 
 	s_CurrentLevel->OnUpdateCamera();
+
+	CameraMovement::realVelocity = { 0.0f, 0.0f };
 }
 
 void App::OnResolutionChange()
@@ -501,7 +545,6 @@ void App::OnResolutionChange()
 		return;
 	}
 
-	//m_PauseLabel->UpdatePos({ m_PauseLabel->GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
 	m_PauseLabel.UpdatePos({ m_PauseLabel.GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
 
 	if (static_cast<float>(App::WINDOW_WIDTH) > s_Camera.w)
@@ -522,7 +565,6 @@ void App::OnResolutionChange()
 	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
 	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
 
-	//UpdateCamera();
 	MakeCameraCorrect();
 	s_CurrentLevel->OnUpdateCamera();
 }
@@ -556,18 +598,15 @@ void App::SetUIState(UIState state)
 	{
 	case UIState::mainMenu:
 		newState = "mainMenu";
-		//m_PauseLabel->m_Drawable = false;
 		m_PauseLabel.m_Drawable = false;
 		App::Instance().OnResolutionChange();
 		break;
 	case UIState::none:
 		newState = "none";
-		//m_PauseLabel->m_Drawable = false;
 		m_PauseLabel.m_Drawable = false;
 		break;
 	case UIState::building:
 		newState = "building";
-		//m_PauseLabel->m_Drawable = true;
 		m_PauseLabel.m_Drawable = true;
 		ManageBuildingState();
 		break;
@@ -581,7 +620,7 @@ void App::LoadLevel()
 {
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{
-		std::ifstream mapFile = std::ifstream(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
+		std::ifstream mapFile(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
 
 		s_CurrentLevel->Setup(mapFile, i);
 	}
@@ -700,9 +739,9 @@ uint16_t App::GetDamageOf(ProjectileType type)
 			minDmg = 17;
 			maxDmg = 30;
 			break;
-		case ProjectileType::dark:
-			minDmg = 45;
-			maxDmg = 55;
+		case ProjectileType::thunder:
+			minDmg = 55;
+			maxDmg = 70;
 			break;
 	}
 

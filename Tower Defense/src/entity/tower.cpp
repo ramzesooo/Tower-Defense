@@ -8,7 +8,7 @@
 
 extern uint32_t g_PausedTicks;
 
-std::array<SDL_Texture *, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
+std::array<SDL_Texture*, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
 Tower::Tower(float posX, float posY, TowerType type)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
@@ -55,8 +55,8 @@ Tower::Tower(float posX, float posY, TowerType type)
 		srcRect.h = m_TowerHeight;
 		m_MaxTier = 1;
 		m_AnimData.animated = true;
-		m_AnimData.animations.emplace("Idle", Animation("Idle", 0, 13, 100));
-		m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 100));
+		m_AnimData.animations.emplace("Idle", Animation("Idle", 0, 13, 75));
+		m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 150));
 		PlayAnim("Idle");
 		AddToGroup(EntityGroup::animatedTower);
 

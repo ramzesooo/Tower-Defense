@@ -16,8 +16,9 @@
 #include "logger.h"
 #include "Vector2D.h"
 
-#include "SDL.h"
-#include "SDL_image.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
+#include "SDL_events.h"
 #include "SDL_ttf.h"
 
 #include <string>
@@ -29,6 +30,7 @@
 struct CameraMovement
 {
 	static constexpr float velocity = 420.0f;
+	static Vector2D realVelocity;
 
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
@@ -157,9 +159,11 @@ public:
 		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 
-		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {})",
+		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			s_MouseX,
 			s_MouseY,
+			static_cast<int32_t>(s_Camera.x + s_MouseX),
+			static_cast<int32_t>(s_Camera.y + s_MouseY),
 			s_Building.coordinates.x,
 			s_Building.coordinates.y)
 		);
@@ -326,7 +330,9 @@ public:
 		{
 		case ProjectileType::arrow:
 			return "projectileArrow";
-		case ProjectileType::dark:
+		//case ProjectileType::dark:
+			//return "projectileDarkTower";
+		case ProjectileType::thunder:
 			return "projectileDarkTower";
 		}
 		return "";
@@ -454,46 +460,6 @@ private:
 	Label m_PauseLabel;
 
 	uint16_t m_Coins = 0;
-};
-
-struct TextureData
-{
-	std::string_view id, path;
-};
-
-static constexpr TextureData textures[]
-{
-	{ "mapSheet", "assets/tileset.png" },
-	{ "szpaku", "assets/szpaku.jpg" },
-	{ "buttonUI", "assets/ui/ui_button.png" },
-	{ "hoveredButtonUI", "assets/ui/ui_button_hovered.png" },
-	{ "canBuild", "assets/ui/tile_CanBuild.png" },
-	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
-	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
-	{ "elementUI", "assets/ui/ui_element.png" },
-	{ "coinUI", "assets/ui/coin.png" },
-	{ "heartUI", "assets/ui/heart.png" },
-
-	{ "base", "assets/base.png" },
-	{ "square", "assets/square_32x32.png" },
-	{ "green", "assets/green_32x32.png" },
-	{ "transparent", "assets/transparent.png" },
-	{ "grayArrow", "assets/grayArrow_32x32.png" },
-
-	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
-	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
-
-	{ App::TextureOf(ProjectileType::arrow), "assets/arrow_16x16.png" },
-	{ App::TextureOf(ProjectileType::dark), "assets/projectiles/darkTowerAttack.png" },
-
-	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
-	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
-	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
-
-	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
-	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
-	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },
-	{ App::TextureOf(EnemyType::dwarfKing), "assets/entities/enemy/enemyDwarfKing.png" }
 };
 
 /*

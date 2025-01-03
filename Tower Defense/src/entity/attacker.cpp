@@ -31,7 +31,7 @@ Attacker::Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture
 				m_ShotCooldown = shotCooldown;
 				m_Invisible = true;
 				m_Pos.x -= static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;
-				m_ProjectileType = ProjectileType::dark;
+				m_ProjectileType = ProjectileType::thunder;
 			}
 			break;
 	}
@@ -66,6 +66,7 @@ void Attacker::Destroy()
 
 void Attacker::Update()
 {
+	// TODO: Predict if the target will be killed before attack and find another target
 	uint32_t ticks = SDL_GetTicks() - g_PausedTicks;
 
 	if (IsAttacking() && ticks >= m_NextShot)
@@ -132,19 +133,8 @@ void Attacker::InitAttack(Enemy* target)
 void Attacker::StopAttacking(bool toErase)
 {
 	if (toErase)
-	{
 		std::erase(m_Target->m_Attackers, this);
-		/*for (auto it = m_Target->m_Attackers.begin(); it != m_Target->m_Attackers.end(); it++)
-		{
-			if ((*it) == this)
-			{
-				m_Target->m_Attackers.erase(it);
-				break;
-			}
-		}*/
-	}
 
-	//m_AdjustedTicks = SDL_GetTicks();
 	m_Target = nullptr;
 	m_NextShot = 0u;
 

@@ -15,7 +15,7 @@ SDL_Texture *Enemy::s_ArrowTexture = nullptr;
 
 Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
-	m_ScaledPos(m_Pos.x * App::s_CurrentLevel->m_ScaledTileSize, m_Pos.y * App::s_CurrentLevel->m_ScaledTileSize)
+	m_ScaledPos(m_Pos * App::s_CurrentLevel->m_ScaledTileSize)
 	IF_DEBUG(, m_Speedy(App::s_Speedy))
 {
 	static TTF_Font *healthFont = App::s_Textures.GetFont("enemyHealth");
@@ -83,9 +83,8 @@ Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint1
 	m_RectHP.barRect = m_RectHP.squareRect;
 	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100.0f * (-m_HPPercent));
 
-	float HPBarX = m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f);
-	float HPBarY = m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f);
-	m_RectHP.labelHP.UpdatePos(Vector2D(HPBarX, HPBarY));
+	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
+	m_RectHP.labelHP.UpdatePos(HPPos);
 	m_RectHP.labelHP.UpdateText(std::format("{}%", m_HPPercent));
 }
 
@@ -252,9 +251,9 @@ void Enemy::UpdateMovement()
 		ValidAttacker();
 	}
 
-	m_Pos += Vector2D(m_Velocity) * App::s_ElapsedTime;
+	m_Pos += m_Velocity * App::s_ElapsedTime;
 
-	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
+	m_ScaledPos = m_Pos * App::s_CurrentLevel->m_ScaledTileSize;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
@@ -299,8 +298,6 @@ void Enemy::Move()
 
 void Enemy::UpdateHealthBar()
 {
-	//static const float onePercent = m_RectHP.squareRect.w / 100.0f; // references to width of 1% hp
-
 	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
 	m_RectHP.squareRect.y = static_cast<float>(destRect.y) - static_cast<float>(destRect.h) / 12.0f;
 
@@ -308,12 +305,13 @@ void Enemy::UpdateHealthBar()
 	m_RectHP.barRect.y = m_RectHP.squareRect.y;
 	m_RectHP.barRect.w = std::fabs(m_RectHP.onePercent * (-m_HPPercent));
 
-	m_RectHP.labelHP.UpdatePos(int32_t(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f)), int32_t(m_RectHP.barRect.y + (m_RectHP.barRect.h / 4.0f)));
+	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
+	m_RectHP.labelHP.UpdatePos(HPPos);
 }
 
 void Enemy::AdjustToView()
 {
-	m_ScaledPos = Vector2D(m_Pos) * App::s_CurrentLevel->m_ScaledTileSize;
+	m_ScaledPos = m_Pos * App::s_CurrentLevel->m_ScaledTileSize;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
@@ -321,7 +319,7 @@ void Enemy::AdjustToView()
 	UpdateHealthBar();
 }
 
-void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
+void Enemy::OnHit(uint16_t dmg)
 {
 	if (m_HP > dmg)
 	{
@@ -341,8 +339,6 @@ void Enemy::OnHit(Projectile* projectile, uint16_t dmg)
 	m_RectHP.labelHP.UpdateText(std::format("{}%", m_HPPercent));
 
 	UpdateHealthBar();
-
-	projectile->Destroy();
 }
 
 void Enemy::ValidAttacker()
@@ -358,12 +354,12 @@ void Enemy::ValidAttacker()
 		attacker = tower->GetAttacker();
 
 		if (!attacker)
-			continue;
-
-		if (attacker->GetTarget() == this)
 		{
-			if (!IsTowerInRange(tower, App::s_TowerRange))
-				attacker->StopAttacking();
+			continue;
+		}
+		else if (attacker->GetTarget() == this && !IsTowerInRange(tower, App::s_TowerRange))
+		{
+			attacker->StopAttacking();
 		}
 		else if (!attacker->IsAttacking() && IsTowerInRange(tower, App::s_TowerRange))
 		{
@@ -381,8 +377,8 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	int32_t posX = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
 	int32_t posY = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
 
-	int32_t enemyX = int32_t(m_Pos.x);
-	int32_t enemyY = int32_t(m_Pos.y);
+	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
+	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
 
 	for (auto i = range; i > 0; i--)
 	{

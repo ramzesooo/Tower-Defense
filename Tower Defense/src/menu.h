@@ -1,11 +1,6 @@
 #pragma once
 #include "UI.h"
 
-#include "entity/label.h"
-#include "textureManager.h"
-
-#include "SDL.h"
-
 #include <array>
 
 class App;
@@ -19,6 +14,7 @@ class MainMenu
 {
 public:
 	static MenuState s_State;
+	static SDL_Rect s_BgDestRect;
 
 	Button *m_HoveredButton = nullptr;
 	// [0] = Play, [1] = Options, [2] = Exit

@@ -1,16 +1,23 @@
 #include "menu.h"
+#include "textureManager.h"
 #include "app.h"
+#include "entity/label.h"
+
+#include "SDL_rect.h"
+
+#include <format>
 
 SDL_Texture *Button::s_DefaultButton = nullptr;
 SDL_Texture *Button::s_HoveredButton = nullptr;
 
 MenuState MainMenu::s_State = MenuState::primary;
+SDL_Rect MainMenu::s_BgDestRect{ 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT };
 
 void MainMenu::Render()
 {
 	static constexpr SDL_Rect srcRect{ 0, 0, 1500, 1500 };
 	static SDL_Texture *background = App::s_Textures.GetTexture("szpaku");
-	TextureManager::DrawTexture(background, srcRect, { 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT });
+	TextureManager::DrawTexture(background, srcRect, s_BgDestRect);
 
 	switch (s_State)
 	{
@@ -28,7 +35,7 @@ void MainMenu::HandleMouseButtonEvent()
 	if (!m_HoveredButton)
 		return;
 
-	App::s_Logger.AddLog("Pressed button " + m_HoveredButton->m_Label.GetText());
+	App::s_Logger.AddLog(std::format("Pressed button {}", m_HoveredButton->m_Label.GetText()));
 
 	switch (s_State)
 	{
@@ -103,8 +110,11 @@ void MainMenu::OnResolutionChange()
 	{
 		Button *btn = &m_PrimaryButtons.at(i);
 		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + ((int32_t)i - 1) * (btn->destRect.h + btn->destRect.h / 4);
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
 
 		btn->m_Label.UpdatePos(btn->destRect.x + btn->destRect.w / 2 - btn->m_Label.GetRect().w / 2, btn->destRect.y + btn->destRect.h / 4);
 	}
+
+	s_BgDestRect.w = App::WINDOW_WIDTH;
+	s_BgDestRect.h = App::WINDOW_HEIGHT;
 }

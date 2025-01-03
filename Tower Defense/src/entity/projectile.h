@@ -13,7 +13,7 @@ class Enemy;
 
 struct ProjectileLifetime
 {
-	static constexpr uint32_t darkProjectileLifetime = 3000;
+	//static constexpr uint32_t darkProjectileLifetime = 3000;
 
 	bool isRestricted = false; // specifies whether the projectile's lifetime depends on time
 	uint32_t lifetime = 0;
@@ -26,17 +26,17 @@ class Projectile : public Entity
 {
 public:
 	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
-	Projectile(const Projectile &r) : m_Texture(r.m_Texture), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
-		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner) {}
+	Projectile(const Projectile &r) : srcRect(r.srcRect), m_Texture(r.m_Texture), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
+		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner), 
+		m_IsAnimated(r.m_IsAnimated), m_Animation(r.m_Animation), m_Lifetime(r.m_Lifetime), m_BaseVelocity(r.m_BaseVelocity) {}
 	~Projectile() = default;
 
 	inline Projectile& operator=(const Projectile &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
+		srcRect = r.srcRect;
 		m_Texture = r.m_Texture;
 		destRect = r.destRect;
 		m_Angle = r.m_Angle;
@@ -46,6 +46,10 @@ public:
 		m_Type = r.m_Type;
 		m_Owner = r.m_Owner;
 		m_Target = r.m_Target;
+		m_Lifetime = r.m_Lifetime;
+		m_Animation = r.m_Animation;
+		m_IsAnimated = r.m_IsAnimated;
+		m_BaseVelocity = r.m_BaseVelocity;
 
 		return *this;
 	}
@@ -58,7 +62,8 @@ public:
 	void AdjustToView() override;
 
 	void UpdateArrow();
-	void UpdateDark();
+	//void UpdateDark();
+	void UpdateThunder();
 
 	void SetTarget(Enemy *target) { m_Target = target; }
 	void SetOwner(Attacker *owner) { m_Owner = owner; }
@@ -70,7 +75,7 @@ private:
 	//static constexpr float s_BaseVelocity = 210.0f;
 	//static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Rect srcRect{ 0, 0, 16, 16 };
-	SDL_Rect destRect{ 0, 0, 18, 18 };
+	SDL_FRect destRect{ 0.0f, 0.0f, 18.0f, 18.0f };
 	SDL_Texture* m_Texture = nullptr;
 
 	double m_Angle = 360;
@@ -85,8 +90,8 @@ private:
 	Attacker *m_Owner = nullptr;
 	Enemy *m_Target = nullptr;
 
-	bool animated = false;
-	Animation anim;
+	bool m_IsAnimated = false;
+	Animation m_Animation;
 
 	ProjectileLifetime m_Lifetime;
 };

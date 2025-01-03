@@ -1,5 +1,4 @@
 #pragma once
-//#include "entity.h"
 #include "label.h"
 
 #include "SDL_rect.h"

@@ -372,7 +372,7 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::darkTower:
-		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11u;
+		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11;
 		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, nullptr, shotCooldown, scale);
 		break;
 	default:

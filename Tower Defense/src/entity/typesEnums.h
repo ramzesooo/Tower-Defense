@@ -9,7 +9,7 @@ enum class TowerType
 enum class ProjectileType
 {
 	arrow = 0,
-	dark,
+	thunder,
 	size
 };
 

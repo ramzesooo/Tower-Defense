@@ -6,15 +6,12 @@ struct Animation
 	Animation() = default;
 	Animation(const Animation& r) : id(r.id), index(r.index), frames(r.frames), speed(r.speed){}
 	Animation(std::string_view animID, int32_t i, int32_t f, int32_t s) : id(animID), index(i), frames(f), speed(s){}
-
 	~Animation() = default;
 
-	inline Animation& operator=(const Animation& r)
+	inline Animation &operator=(const Animation &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		id = r.id;
 		index = r.index;

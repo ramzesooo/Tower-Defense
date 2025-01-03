@@ -1,4 +1,3 @@
-#include "common.h"
 #include "textureManager.h"
 #include "app.h"
 #include "logger.h"
@@ -40,7 +39,7 @@ void TextureManager::AddTexture(const std::string &textureID, const char* path)
 	}
 	SDL_FreeSurface(tempSurface);
 
-	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded texture \"{}\" from \"{}\"", textureID, path));)
+	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded texture \"{}\" from \"{}\"", textureID, path)););
 
 	textures.emplace(textureID, texture);
 }
@@ -53,6 +52,8 @@ void TextureManager::DrawTexture(SDL_Texture* texture, const SDL_Rect& src, cons
 void TextureManager::DrawTextureF(SDL_Texture* texture, const SDL_Rect& src, const SDL_FRect& dest, double angle, SDL_RendererFlip flip)
 {
 	SDL_RenderCopyExF(App::s_Renderer, texture, &src, &dest, angle, NULL, flip);
+	// Basically could be if (SDL_RenderCopyExF(...) != 0) to print errors as well as TextureManager::DrawTexture
+	// But there is a high chance that's unnecessary
 }
 
 SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
@@ -70,7 +71,7 @@ SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
 
 void TextureManager::AddFont(std::string_view fontID, const char* path, uint16_t fontSize)
 {
-	TTF_Font* font = TTF_OpenFont(path, fontSize);
+	TTF_Font *font = TTF_OpenFont(path, fontSize);
 
 	if (!font)
 	{
