@@ -11,10 +11,11 @@ Adding more, about Visual Studio, the solution file as well as writing whole sou
 
 ## Assets
 For making some assets I've mostly used **Pyxel Edit**, but some of them have been made by someone else:
-- Tileset from [**oryxdesignlab.com**](https://www.oryxdesignlab.com/products/16-bit-fantasy-tileset)
-- Attackers and Enemies from [**"Puny Characters" *by Shade***](https://merchant-shade.itch.io/16x16-puny-characters)
-- Towers from [**"Survival - Tower Defense" *by FkgCluster***](https://fkgcluster.itch.io/survivaltowerdefense)
-- Health bars from [**"UI Bars" *by guilemus***](https://guilemus.itch.io/ui-bars)
+- [**oryxdesignlab.com**](https://www.oryxdesignlab.com/products/16-bit-fantasy-tileset)
+- [**"Puny Characters" *by Shade***](https://merchant-shade.itch.io/16x16-puny-characters)
+- [**"Survival - Tower Defense" *by FkgCluster***](https://fkgcluster.itch.io/survivaltowerdefense)
+- [**"UI Bars" *by guilemus***](https://guilemus.itch.io/ui-bars)
+- [**"Dark Tower" *by CreativeKind***](https://creativekind.itch.io/dark-tower)
 
 ## Idea of the game
 Basically, while making the game I've got more than just one idea of designing it, but at the moment I ended up with specifying amount of levels in *app.cpp* to prepare all of them at the start of the game, but the main job is done in App::LoadLevel(), I tried to make all of it to be done automatically and I tried to avoid hard-coding anything to make it easier to be adjusted if somehow anybody tried to have some fun with the game and make some adjustments/changes/tests, whatever.
@@ -27,7 +28,7 @@ Every level must have config file named like this: *.config* and it's important 
 
 **Y** - Lock/unlock camera moving
 
-**F1-F4** - Prepared resolutions
+**F1-F3** - Prepared resolutions
 
 **F5** - Add 1 life
 
