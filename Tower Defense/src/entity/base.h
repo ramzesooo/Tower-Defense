@@ -26,9 +26,7 @@ public:
 	Base operator=(const Base &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		m_IsActive = r.m_IsActive;
 		destRect = r.destRect;

@@ -415,7 +415,7 @@ void Level::HandleMouseButtonEvent()
 		{
 			if (App::s_Building.canBuild)
 			{
-				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
 				if (!tower->CanUpgrade())
 				{
 					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");

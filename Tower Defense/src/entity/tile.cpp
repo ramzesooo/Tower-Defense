@@ -39,8 +39,6 @@ void Tile::Destroy()
 			}
 		}
 	}
-
-	//App::s_Manager.m_EntitiesToDestroy = true;
 }
 
 void Tile::Draw()

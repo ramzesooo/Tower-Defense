@@ -130,6 +130,7 @@ public:
 			case 2: // lifes
 				UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w, destRect.h - UIElement::heartRect.h / 2 };
 				break;
+			// Do nothing for the rest
 			case 0:
 			case 3:
 			default:
@@ -189,7 +190,7 @@ public:
 	}
 
 	// for checking is specific state going to pause the game
-	static inline bool IsGamePaused(UIState state)
+	static constexpr inline bool IsGamePaused(UIState state)
 	{
 		switch (state)
 		{
@@ -204,7 +205,6 @@ public:
 
 	// for checking is currently the game paused
 	static inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
-	//static inline bool IsGamePaused() { return IsGamePaused(s_UIState); }
 
 	void SetUIState(UIState state);
 
@@ -393,7 +393,15 @@ public:
 		UpdateCoins();
 	}
 
-	static inline void SetLifes(uint16_t lifes) { s_CurrentLevel->GetBase()->m_Lifes = lifes; }
+	static inline void SetLifes(uint16_t lifes)
+	{
+		Base *base = s_CurrentLevel->GetBase();
+
+		if (lifes >= base->m_MaxLifes)
+			base->m_Lifes = base->m_MaxLifes;
+		else
+			base->m_Lifes = lifes;
+	}
 
 	// Arg is not required, adds 1 by default
 	static inline void AddLifes(uint16_t lifes = 1)
@@ -461,35 +469,3 @@ private:
 
 	uint16_t m_Coins = 0;
 };
-
-/*
-App::s_Textures.AddTexture("mapSheet", "assets\\tileset.png");
-
-App::s_Textures.AddTexture("szpaku", "assets\\szpaku.jpg");
-App::s_Textures.AddTexture("buttonUI", "assets\\ui\\ui_button.png");
-App::s_Textures.AddTexture("hoveredButtonUI", "assets\\ui\\ui_button_hovered.png");
-App::s_Textures.AddTexture("canBuild", "assets\\ui\\tile_CanBuild.png");
-App::s_Textures.AddTexture("cantBuild", "assets\\ui\\tile_CantBuild.png");
-App::s_Textures.AddTexture("upgradeTower", "assets\\ui\\tile_Upgrade.png");
-//App::s_Textures.AddTexture("fullHealth", "assets\\ui\\health_bar.png");
-//App::s_Textures.AddTexture("emptyHealth", "assets\\ui\\empty_bar.png");
-App::s_Textures.AddTexture("elementUI", "assets\\ui\\ui_element.png");
-App::s_Textures.AddTexture("coinUI", "assets\\ui\\coin.png");
-App::s_Textures.AddTexture("heartUI", "assets\\ui\\heart.png");
-
-App::s_Textures.AddTexture("base", "assets\\base.png");
-App::s_Textures.AddTexture("tower", "assets\\towers\\tower.png");
-App::s_Textures.AddTexture("square", "assets\\square_32x32.png");
-App::s_Textures.AddTexture("green", "assets\\green_32x32.png");
-App::s_Textures.AddTexture("transparent", "assets\\transparent.png");
-App::s_Textures.AddTexture("grayArrow", "assets\\grayArrow_32x32.png");
-
-App::s_Textures.AddTexture(TextureOf(ProjectileType::arrow), "assets\\arrow_16x16.png");
-App::s_Textures.AddTexture(TextureOf(AttackerType::archer), "assets\\entities\\friendly\\attackerArcher.png");
-App::s_Textures.AddTexture(TextureOf(AttackerType::hunter), "assets\\entities\\friendly\\attackerHunter.png");
-App::s_Textures.AddTexture(TextureOf(AttackerType::musketeer), "assets\\entities\\friendly\\attackerMusketeer.png");
-App::s_Textures.AddTexture(TextureOf(EnemyType::elf), "assets\\entities\\enemy\\enemyElf.png");
-App::s_Textures.AddTexture(TextureOf(EnemyType::goblinWarrior), "assets\\entities\\enemy\\enemyGoblinWarrior.png");
-App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfSoldier), "assets\\entities\\enemy\\enemyDwarfSoldier.png");
-App::s_Textures.AddTexture(TextureOf(EnemyType::dwarfKing), "assets\\entities\\enemy\\enemyDwarfKing.png");
-*/

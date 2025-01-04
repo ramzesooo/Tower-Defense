@@ -12,7 +12,7 @@ std::array<SDL_Texture*, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
 Tower::Tower(float posX, float posY, TowerType type)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
-	m_Type(type), m_Texture(s_TowerTextures.at((std::size_t)type))
+	m_Type(type), m_Texture(s_TowerTextures.at(static_cast<std::size_t>(type)))
 {
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
@@ -83,8 +83,9 @@ void Tower::Destroy()
 		m_Attacker = nullptr;
 	}
 
-	for (const auto& tile : m_OccupiedTiles)
+	for (const auto &tile : m_OccupiedTiles)
 	{
+		// It should never happen, but whatever
 		if (!tile || tile->GetTowerOccupying() != this)
 			continue;
 
@@ -123,6 +124,9 @@ void Tower::Upgrade()
 		return;
 	}
 
+	// This method shouldn't rely anymore directly on m_Tier - 1 and m_TowerWidth / 3
+	// Since towers as well as attackers can work totally different
+
 	++m_Tier;
 	srcRect.x = (m_Tier - 1) * (m_TowerWidth / 3);
 
@@ -135,7 +139,7 @@ void Tower::Upgrade()
 		m_Attacker = nullptr;
 
 		App::s_Manager.Refresh();
-		App::s_CurrentLevel->AddAttacker(this, (AttackerType)(m_Tier - 1));
+		App::s_CurrentLevel->AddAttacker(this, static_cast<AttackerType>(m_Tier - 1));
 	}
 }
 
@@ -187,7 +191,7 @@ int32_t Tower::GetAnimSpeed(std::string_view animID)
 	{
 		App::s_Logger.AddLog(std::string_view("Tower::GetAnimSpeed: Couldn't find animation called "));
 		App::s_Logger.AddLog(animID);
-		return 0u;
+		return 0;
 	}
 
 	return it->second.speed;

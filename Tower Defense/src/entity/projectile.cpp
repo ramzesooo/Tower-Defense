@@ -36,7 +36,6 @@ Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 		anim = Animation("Attack", 0, 4, m_Lifetime.timePerFrame);
 		m_BaseVelocity *= 1.10f;
 		break;*/
-	// TODO:
 	case ProjectileType::thunder:
 	{
 		const SDL_Rect &targetRect = target->GetRect();
@@ -149,8 +148,10 @@ void Projectile::AdjustToView()
 	switch (m_Type)
 	{
 	case ProjectileType::arrow:
-		destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
-		destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;
+		/*destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
+		destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;*/
+		destRect.x -= CameraMovement::realVelocity.x;
+		destRect.y -= CameraMovement::realVelocity.y;
 		return;
 	/*case ProjectileType::dark:
 		destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);

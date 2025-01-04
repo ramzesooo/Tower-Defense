@@ -19,6 +19,9 @@ TextureManager::~TextureManager()
 	}
 
 	TTF_Quit();
+
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("TextureManager::~TextureManager: Destroyed all fonts and textures and triggered TTF_Quit()")););
+	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
 }
 
 void TextureManager::AddTexture(const std::string &textureID, const char* path)

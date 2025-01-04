@@ -13,7 +13,7 @@ public:
 	void AddLog(const std::string &newLog, bool endLine = true);
 #ifdef DEBUG
 	void PrintQueuedLogs();
-	void ClearLogs();
+	inline void ClearLogs() { logs.clear(); }
 #endif
 private:
 	std::ofstream logFile;

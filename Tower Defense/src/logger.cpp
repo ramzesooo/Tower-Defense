@@ -43,15 +43,10 @@ void Logger::AddLog(const std::string &newLog, bool endLine)
 
 void Logger::PrintQueuedLogs()
 {
-	for (const auto& log : logs)
+	for (const auto &log : logs)
 	{
 		std::cout << log;
 	}
-}
-
-void Logger::ClearLogs()
-{
-	logs.clear();
 }
 #else
 void Logger::AddLog(std::string_view newLog, bool endLine)

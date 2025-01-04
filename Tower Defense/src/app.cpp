@@ -289,7 +289,6 @@ App::~App()
 		App::s_Instance = nullptr;
 
 	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Application has been cleared")););
-
 	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
 }
 
