@@ -1,5 +1,5 @@
 #include "attacker.h"
-#include "tower.h"
+#include "towers/tower.h"
 #include "../level.h"
 #include "../app.h"
 

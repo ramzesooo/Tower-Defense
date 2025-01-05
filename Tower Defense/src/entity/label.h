@@ -1,9 +1,12 @@
 #pragma once
-#include "entity.h"
 #include "../Vector2D.h"
 
-#include "SDL.h"
+#include "SDL_timer.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 #include "SDL_ttf.h"
+
+class Entity;
 
 class Label
 {
@@ -18,12 +21,10 @@ public:
 		m_Color(r.m_Color) {}
 	~Label() = default;
 
-	inline Label& operator=(const Label &r)
+	inline Label &operator=(const Label &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		m_AttachedTo = r.m_AttachedTo;
 

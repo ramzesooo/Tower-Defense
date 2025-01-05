@@ -3,7 +3,6 @@
 #include "entity/typesEnums.h"
 
 #include "entity/tile.h"
-#include "entity/tower.h"
 #include "entity/attacker.h"
 #include "entity/base.h"
 
@@ -14,6 +13,7 @@
 
 class App;
 class Enemy;
+class Tower;
 
 struct WaveContainer
 {

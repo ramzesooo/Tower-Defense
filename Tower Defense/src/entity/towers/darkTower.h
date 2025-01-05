@@ -1,0 +1,17 @@
+#pragma once
+#include "tower.h"
+
+class DarkTower : public Tower
+{
+public:
+	DarkTower() = delete;
+	DarkTower(float posX, float posY, TowerType type);
+	~DarkTower() = default;
+
+	//virtual void Destroy() override;
+
+	virtual void Update() override;
+	//virtual void Draw() override;
+	//virtual void AdjustToView() override;
+	virtual void Upgrade() override;
+};

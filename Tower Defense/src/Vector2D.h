@@ -153,6 +153,15 @@ public:
 	{
 		this->x = std::roundf(this->x);
 		this->y = std::roundf(this->y);
+
+		return *this;
+	}
+
+	inline Vector2D &Trunc()
+	{
+		this->x = std::trunc(this->x);
+		this->y = std::trunc(this->y);
+
 		return *this;
 	}
 

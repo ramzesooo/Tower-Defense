@@ -1,11 +1,11 @@
 #pragma once
-#include "../common.h"
-#include "typesEnums.h"
-#include "anim.h"
+#include "../../common.h"
+#include "../typesEnums.h"
+#include "../../Vector2D.h"
+#include "../anim.h"
 
-#include "entity.h"
-#include "tile.h"
-#include "../Vector2D.h"
+#include "../entity.h"
+#include "../tile.h"
 
 #include "SDL_rect.h"
 
@@ -53,13 +53,12 @@ public:
 		return *this;
 	}
 
-	void Destroy() override;
+	virtual void Destroy() override;
 
-	// This method shouldn't be called for casual towers
-	void Update() override;
-	void Draw() override;
+	virtual void Update() override {};
+	virtual void Draw() override;
 
-	void AdjustToView() override;
+	virtual void AdjustToView() override;
 
 	Vector2D GetPos() const override { return m_Pos; }
 	const SDL_Rect &GetRect() const { return destRect; }
@@ -68,7 +67,7 @@ public:
 	Attacker* GetAttacker() const { return m_Attacker; }
 
 	// Upgrades by one tier up
-	void Upgrade();
+	virtual void Upgrade() {}
 	uint16_t GetTier() const { return m_Tier; }
 	uint16_t CanUpgrade() const { return m_Tier < m_MaxTier; }
 
@@ -85,7 +84,7 @@ public:
 	bool IsAnimated() const { return m_AnimData.animated; }
 	void UpdateAnimSpeed(std::string_view animID, int32_t newSpeed);
 	int32_t GetAnimSpeed(std::string_view animID);
-private:
+protected:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;
 	SDL_Texture* m_Texture = nullptr;

@@ -1,6 +1,5 @@
 #include "entity.h"
 #include "tile.h"
-#include "label.h"
 #include "../app.h"
 
 // class Entity

@@ -14,6 +14,8 @@
 
 static constexpr uint32_t logsCooldown = 1000;
 
+SDL_DisplayMode displayInfo;
+
 int main(int argc, char** arg)
 {
 	IF_DEBUG(
@@ -38,12 +40,10 @@ int main(int argc, char** arg)
 		return -1;
 	}
 
+	SDL_GetCurrentDisplayMode(0, &displayInfo);
+
 	IF_DEBUG(
-		{
-			SDL_DisplayMode info;
-			SDL_GetCurrentDisplayMode(0, &info);
-			App::s_Logger.AddLog(std::format("Display: {}x{}@{}Hz\n", info.w, info.h, info.refresh_rate));
-		}
+		App::s_Logger.AddLog(std::format("Display: {}x{}@{}Hz\n", displayInfo.w, displayInfo.h, displayInfo.refresh_rate));
 	);
 
 	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););

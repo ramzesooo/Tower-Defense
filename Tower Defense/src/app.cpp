@@ -1,4 +1,8 @@
 #include "app.h"
+#include "entity/entity.h"
+#include "entity/enemy.h"
+#include "entity/towers/tower.h"
+#include "entity/tile.h"
 
 #include "SDL_image.h"
 
@@ -78,6 +82,8 @@ auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 uint32_t g_PausedTicks = 0;
 // class App GLOBAL VARIABLES
 
+extern SDL_DisplayMode displayInfo;
+
 struct TextureData
 {
 	std::string_view id, path;
@@ -136,9 +142,16 @@ App::App()
 		initialized = false;
 	}
 
-	SDL_Surface* iconSurface = IMG_Load("assets\\gugu.png");
-	SDL_SetWindowIcon(m_Window, iconSurface);
-	SDL_FreeSurface(iconSurface);
+	SDL_Surface *iconSurface = IMG_Load("assets\\gugu.png");
+	if (!iconSurface)
+	{
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+	}
+	else
+	{
+		SDL_SetWindowIcon(m_Window, iconSurface);
+		SDL_FreeSurface(iconSurface);
+	}
 
 #ifdef DEBUG
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
@@ -366,14 +379,9 @@ void App::EventHandler()
 			SDL_SetWindowSize(m_Window, 1280, 720);
 			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
 			return;
-		case SDLK_F3: // resolution 1920x1080
-			SDL_SetWindowSize(m_Window, 1920, 1080);
-			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+		case SDLK_F3:
+			SDL_MaximizeWindow(m_Window);
 			return;
-		/*case SDLK_F3:
-			SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-			SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-			return;*/
 #ifdef DEBUG
 		case SDLK_F4: // Speed up enemies' movement speed
 			{
@@ -739,8 +747,8 @@ uint16_t App::GetDamageOf(ProjectileType type)
 			maxDmg = 30;
 			break;
 		case ProjectileType::thunder:
-			minDmg = 55;
-			maxDmg = 70;
+			minDmg = 35;
+			maxDmg = 40;
 			break;
 	}
 

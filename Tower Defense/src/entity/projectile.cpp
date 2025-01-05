@@ -19,9 +19,10 @@ Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 	switch (type)
 	{
 	case ProjectileType::arrow:
-		srcRect.w = srcRect.h = 16;
-		destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f;
-		destRect.y = m_Pos.y;
+		//srcRect.w = srcRect.h = 16;
+		m_Pos.x += App::s_CurrentLevel->m_ScaledTileSize / 2.0f;
+		destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
+		destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;
 		break;
 	/*case ProjectileType::dark:
 		srcRect.w = srcRect.h = 24;
@@ -83,7 +84,7 @@ void Projectile::Update()
 		return;
 	}
 
-	static Vector2D realVelocity;
+	static Vector2D realVelocity{ 0.0f, 0.0f };
 
 	realVelocity = m_Velocity * App::s_ElapsedTime;
 
@@ -97,10 +98,10 @@ void Projectile::Update()
 		return;
 	}
 
-	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
+	auto scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
 	m_Destination = m_Target->GetPos() * scaledTileSize;
-	Vector2D truncatedPos = { trunc(m_Pos.x), trunc(m_Pos.y) };
+	Vector2D truncatedPos = { m_Pos.Trunc() };
 
 	if (m_Destination.x == truncatedPos.x)
 	{
@@ -145,23 +146,31 @@ void Projectile::Draw()
 
 void Projectile::AdjustToView()
 {
-	switch (m_Type)
+	if (m_Type != ProjectileType::thunder)
 	{
-	case ProjectileType::arrow:
-		/*destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
-		destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;*/
-		destRect.x -= CameraMovement::realVelocity.x;
-		destRect.y -= CameraMovement::realVelocity.y;
-		return;
-	/*case ProjectileType::dark:
-		destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);
-		destRect.y = static_cast<int32_t>(m_Pos.y) - static_cast<int32_t>(App::s_Camera.y);
-		return;*/
-	case ProjectileType::thunder:
-			destRect.x -= CameraMovement::realVelocity.x;
-			destRect.y -= CameraMovement::realVelocity.y;
 		return;
 	}
+	
+	destRect.x -= CameraMovement::realVelocity.x;
+	destRect.y -= CameraMovement::realVelocity.y;
+
+	//switch (m_Type)
+	//{
+	//case ProjectileType::arrow:
+	//	/*destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
+	//	destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;*/
+	//	destRect.x -= CameraMovement::realVelocity.x;
+	//	destRect.y -= CameraMovement::realVelocity.y;
+	//	return;
+	//case ProjectileType::dark:
+	//	destRect.x = static_cast<int32_t>(m_Pos.x) - static_cast<int32_t>(App::s_Camera.x);
+	//	destRect.y = static_cast<int32_t>(m_Pos.y) - static_cast<int32_t>(App::s_Camera.y);
+	//	return;
+	//case ProjectileType::thunder:
+	//		destRect.x -= CameraMovement::realVelocity.x;
+	//		destRect.y -= CameraMovement::realVelocity.y;
+	//	return;
+	//}
 }
 
 void Projectile::UpdateArrow()
@@ -233,7 +242,7 @@ void Projectile::UpdateThunder()
 		Destroy();
 		return;
 	}
-
+	
 	if (SDL_GetTicks() - g_PausedTicks >= m_Lifetime.nextFrame)
 	{
 		// Unnecessary at the moment, because the projectile should disappear on the last frame

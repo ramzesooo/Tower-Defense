@@ -2,6 +2,7 @@
 #include "app.h"
 #include "entity/enemy.h"
 #include "entity/label.h"
+#include "entity/towers/towers_inc.h"
 
 #include <fstream>
 #include <sstream>
@@ -339,9 +340,22 @@ void Level::Clean()
 	m_SpecificEnemiesAmount = {};
 }
 
-Tower* Level::AddTower(float posX, float posY, TowerType type)
+Tower *Level::AddTower(float posX, float posY, TowerType type)
 {
-	return App::s_Manager.NewEntity<Tower>(posX, posY, type);
+	Tower *tower = nullptr;
+	switch (type)
+	{
+	case TowerType::classic:
+		tower = App::s_Manager.NewEntity<ClassicTower>(posX, posY, type);
+		break;
+	case TowerType::dark:
+		tower = App::s_Manager.NewEntity<DarkTower>(posX, posY, type);
+		break;
+	default:
+		App::s_Logger.AddLog(std::format("Level::AddTower: TowerType {} is invalid", static_cast<std::size_t>(type)));
+		break;
+	}
+	return tower;
 }
 
 void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
@@ -416,6 +430,16 @@ void Level::HandleMouseButtonEvent()
 			if (App::s_Building.canBuild)
 			{
 				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				if (!tower)
+				{
+					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
+					App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+					App::s_Building.towerToUpgrade = nullptr;
+					App::s_Building.canBuild = false;
+					App::s_Logger.AddLog(std::string_view("Level::HandleMouseButtonEvent: Failed adding a tower"));
+					return;
+				}
+
 				if (!tower->CanUpgrade())
 				{
 					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");

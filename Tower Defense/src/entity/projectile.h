@@ -31,7 +31,7 @@ public:
 		m_IsAnimated(r.m_IsAnimated), m_Animation(r.m_Animation), m_Lifetime(r.m_Lifetime), m_BaseVelocity(r.m_BaseVelocity) {}
 	~Projectile() = default;
 
-	inline Projectile& operator=(const Projectile &r)
+	inline Projectile &operator=(const Projectile &r)
 	{
 		if (this == &r)
 			return *this;
@@ -76,14 +76,14 @@ private:
 	//static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_FRect destRect{ 0.0f, 0.0f, 18.0f, 18.0f };
-	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture *m_Texture = nullptr;
 
 	double m_Angle = 360;
 
 	Vector2D m_Pos{ 0.0f, 0.0f };
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
-	float m_BaseVelocity = 210.0f;
+	float m_BaseVelocity = 330.0f;
 
 	ProjectileType m_Type = ProjectileType::arrow;
 

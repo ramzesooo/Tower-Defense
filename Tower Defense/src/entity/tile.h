@@ -1,7 +1,7 @@
 #pragma once
 #include "typesEnums.h"
-
 #include "entity.h"
+
 #include "../Vector2D.h"
 
 #include "SDL_rect.h"
@@ -23,12 +23,10 @@ public:
 		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable) {}
 	~Tile() = default;
 
-	inline Tile& operator=(const Tile& r)
+	inline Tile &operator=(const Tile &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		srcRect = r.srcRect;
 		destRect = r.destRect;

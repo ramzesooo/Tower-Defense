@@ -1,8 +1,6 @@
 #pragma once
 #include "../Vector2D.h"
-#include "typesEnums.h"
-
-#include "SDL_render.h"
+#include "label.h"
 
 #include <vector>
 #include <array>
@@ -10,7 +8,6 @@
 #include <bitset>
 
 class Tile;
-class Label;
 
 enum class EntityGroup
 {

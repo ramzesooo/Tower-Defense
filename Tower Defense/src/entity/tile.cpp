@@ -1,5 +1,5 @@
 #include "tile.h"
-#include "tower.h"
+#include "towers/tower.h"
 #include "../app.h"
 #include "../textureManager.h"
 

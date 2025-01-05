@@ -272,17 +272,22 @@
     <ClCompile Include="src\entity\entity.cpp" />
     <ClCompile Include="src\entity\label.cpp" />
     <ClCompile Include="src\entity\projectile.cpp" />
+    <ClCompile Include="src\entity\towers\classicTower.cpp" />
+    <ClCompile Include="src\entity\towers\darkTower.cpp" />
     <ClCompile Include="src\level.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\menu.cpp" />
     <ClCompile Include="src\textureManager.cpp" />
     <ClCompile Include="src\entity\tile.cpp" />
-    <ClCompile Include="src\entity\tower.cpp" />
+    <ClCompile Include="src\entity\towers\tower.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app.h" />
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\entity\towers\classicTower.h" />
+    <ClInclude Include="src\entity\towers\darkTower.h" />
+    <ClInclude Include="src\entity\towers\towers_inc.h" />
     <ClInclude Include="src\entity\typesEnums.h" />
     <ClInclude Include="src\entity\anim.h" />
     <ClInclude Include="src\entity\base.h" />
@@ -297,7 +302,7 @@
     <ClInclude Include="src\menu.h" />
     <ClInclude Include="src\textureManager.h" />
     <ClInclude Include="src\entity\tile.h" />
-    <ClInclude Include="src\entity\tower.h" />
+    <ClInclude Include="src\entity\towers\tower.h" />
     <ClInclude Include="src\UI.h" />
     <ClInclude Include="src\Vector2D.h" />
   </ItemGroup>

@@ -1,8 +1,8 @@
 #include "tower.h"
-#include "attacker.h"
-#include "../level.h"
-#include "../textureManager.h"
-#include "../app.h"
+#include "../attacker.h"
+#include "../../level.h"
+#include "../../textureManager.h"
+#include "../../app.h"
 
 #include <format>
 
@@ -16,56 +16,16 @@ Tower::Tower(float posX, float posY, TowerType type)
 {
 	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
+	for (auto i = 0u; i < 4u; i++)
 	{
-		Tile* tile = nullptr;
-		for (auto i = 0u; i < 4u; i++)
-		{
-			tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
-			m_OccupiedTiles[i] = tile;
-			tile->SetTowerOccupying(this);
-		}
+		Tile *tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
+		m_OccupiedTiles[i] = tile;
+		tile->SetTowerOccupying(this);
 	}
 	
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
 	destRect.w = destRect.h = scaledTileSize * 2;
-
-	switch (m_Type)
-	{
-	case TowerType::classic:
-		m_TowerWidth = 144;
-		m_TowerHeight = 64;
-		//srcRect.x = (tier - 1) * (imageWidth / 3);
-		srcRect.x = srcRect.y = 0;
-		srcRect.w = m_TowerWidth / 3;
-		srcRect.h = 64;
-		m_MaxTier = 3;
-
-		{
-			static constexpr AttackerType attackerType = AttackerType::archer;
-			App::s_CurrentLevel->AddAttacker(this, attackerType);
-		}
-		break;
-	case TowerType::dark:
-		//destRect.w = destRect.h = scaledTileSize * 4;
-		m_TowerWidth = 160;
-		m_TowerHeight = 186;
-		srcRect.x = srcRect.y = 0;
-		srcRect.w = m_TowerWidth;
-		srcRect.h = m_TowerHeight;
-		m_MaxTier = 1;
-		m_AnimData.animated = true;
-		m_AnimData.animations.emplace("Idle", Animation("Idle", 0, 13, 75));
-		m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 150));
-		PlayAnim("Idle");
-		AddToGroup(EntityGroup::animatedTower);
-
-		{
-			static constexpr AttackerType attackerType = AttackerType::darkTower;
-			App::s_CurrentLevel->AddAttacker(this, attackerType);
-		}
-		break;
-	}
 
 	AddToGroup(EntityGroup::tower);
 }
@@ -95,11 +55,6 @@ void Tower::Destroy()
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
-void Tower::Update()
-{
-	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
-}
-
 void Tower::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
@@ -112,35 +67,6 @@ void Tower::AdjustToView()
 
 	if (m_Attacker)
 		m_Attacker->AdjustToView();
-}
-
-void Tower::Upgrade()
-{
-	if (m_Tier >= m_MaxTier)
-	{
-		App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
-		App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
-		App::s_Building.towerToUpgrade = nullptr;
-		return;
-	}
-
-	// This method shouldn't rely anymore directly on m_Tier - 1 and m_TowerWidth / 3
-	// Since towers as well as attackers can work totally different
-
-	++m_Tier;
-	srcRect.x = (m_Tier - 1) * (m_TowerWidth / 3);
-
-	if (m_Attacker)
-	{
-		if (m_Attacker->IsAttacking())
-			m_Attacker->StopAttacking();
-
-		m_Attacker->Destroy();
-		m_Attacker = nullptr;
-
-		App::s_Manager.Refresh();
-		App::s_CurrentLevel->AddAttacker(this, static_cast<AttackerType>(m_Tier - 1));
-	}
 }
 
 Tile *Tower::GetOccupiedTile(uint16_t ID) const

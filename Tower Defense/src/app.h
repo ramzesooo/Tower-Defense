@@ -5,12 +5,6 @@
 
 #include "menu.h"
 #include "entity/label.h"
-#include "entity/entity.h"
-#include "entity/tile.h"
-#include "entity/attacker.h"
-#include "entity/enemy.h"
-#include "entity/projectile.h"
-#include "entity/tower.h"
 #include "level.h"
 #include "textureManager.h"
 #include "logger.h"
@@ -22,10 +16,13 @@
 #include "SDL_ttf.h"
 
 #include <string>
-#include <memory>
 #include <random>
 #include <vector>
 #include <format>
+
+class Manager;
+class Tower;
+class Tile;
 
 struct CameraMovement
 {
@@ -228,6 +225,7 @@ public:
 		}
 	}
 
+	// Checks if camera is showing correct field and adjusts the camera if not
 	inline void MakeCameraCorrect()
 	{
 		if (s_Camera.x < 0.0f)
@@ -456,7 +454,6 @@ public:
 private:
 	static App *s_Instance;
 
-	bool m_MainMenu = true;
 	bool m_IsFullscreen = false;
 
 	SDL_Window *m_Window = nullptr;

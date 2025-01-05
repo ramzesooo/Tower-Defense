@@ -22,18 +22,16 @@ public:
 
 	std::vector<Projectile*> m_OwnedProjectiles;
 
-	Attacker(Tower* occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale = 1);
-	Attacker(const Attacker& r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
+	Attacker(Tower *occupiedTower, AttackerType type, SDL_Texture *texture, uint32_t shotCooldown, uint16_t scale = 1);
+	Attacker(const Attacker &r) : m_OccupiedTower(r.m_OccupiedTower), m_Type(r.m_Type), m_Texture(r.m_Texture), m_Scale(r.m_Scale),
 		m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect), m_CurrentAnim(r.m_CurrentAnim), m_Target(r.m_Target), m_NextShot(r.m_NextShot),
 		m_Invisible(r.m_Invisible), animations(r.animations) {}
 	~Attacker() = default;
 
-	inline Attacker& operator=(const Attacker& r)
+	inline Attacker &operator=(const Attacker &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		m_OccupiedTower = r.m_OccupiedTower;
 		m_Type = r.m_Type;
@@ -75,10 +73,10 @@ public:
 	void SetTarget(Enemy* target) { m_Target = target; }
 private:
 	uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
-	Tower* m_OccupiedTower;
+	Tower *m_OccupiedTower;
 	AttackerType m_Type;
 	ProjectileType m_ProjectileType = ProjectileType::arrow;
-	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture *m_Texture = nullptr;
 	bool m_Invisible = false;
 	uint16_t m_Scale = 1;
 
@@ -92,7 +90,7 @@ private:
 	Animation m_CurrentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 
-	Enemy* m_Target = nullptr;
+	Enemy *m_Target = nullptr;
 	uint32_t m_NextShot = NULL;
 	// m_AdjustedTicks is nothing else than just ticks, but it's updated in InitAttack() to display animation in correct way
 	//uint32_t m_AdjustedTicks = SDL_GetTicks();
