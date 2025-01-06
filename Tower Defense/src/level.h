@@ -142,7 +142,7 @@ public:
 
 	bool HasLoadingFailed() const { return m_FailedLoading; }
 
-	Base* GetBase() { return &m_Base; }
+	Base *GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
 	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
@@ -154,15 +154,10 @@ public:
 	std::size_t GetWavesAmount() const { return m_Waves.size(); }
 	std::size_t GetCurrentWave() const { return m_CurrentWave; }
 
-	// NOTE: It's not used anywhere and probably it's not needed anymore.
-	// Chunk can contain nullptr as a tile which means it's out of a map
-	// For example when the entity is in pos (0, 0) and range equals to 1 then it also goes for (-1, -1)
-	//std::vector<std::vector<Tile*>> GetChunkOf(Entity* entity, uint16_t range);
-
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
 	inline bool IsTileWalkable(const Vector2D &pos) const
 	{
-		const Tile *tile = m_Layers.at(2).GetTileFrom((std::size_t)pos.x, (std::size_t)pos.y, m_MapData.at(0));
+		const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y), m_MapData.at(0));
 		if (tile && tile->IsWalkable())
 			return true;
 

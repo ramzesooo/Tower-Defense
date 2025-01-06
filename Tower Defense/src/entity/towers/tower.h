@@ -33,6 +33,7 @@ public:
 
 	inline Tower &operator=(const Tower &r)
 	{
+		printf("dupa\n");
 		if (this == &r)
 			return *this;
 

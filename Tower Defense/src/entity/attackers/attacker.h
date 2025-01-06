@@ -31,6 +31,8 @@ public:
 
 	inline Attacker &operator=(const Attacker &r)
 	{
+		printf("dupa\n");
+
 		if (this == &r)
 			return *this;
 
@@ -64,14 +66,16 @@ public:
 	// InitAttack method is canceled if there is already targeted enemy
 	// All this method does is playing animation and setting up cooldown at m_NextShoot
 	// And the true code for attacking happens in Update()
-	void InitAttack(Enemy *target);
+	virtual void InitAttack(Enemy *target, bool updateShotCD = true);
 
 	// arg bool toErase is true by default
-	void StopAttacking(bool toErase = true);
+	virtual void StopAttacking(bool toErase = true);
 	bool IsAttacking() const { return m_Target != nullptr; }
 
+	virtual void ValidTarget();
+
 	Enemy *GetTarget() const { return m_Target; }
-	void SetTarget(Enemy* target) { m_Target = target; }
+	void SetTarget(Enemy *target) { m_Target = target; }
 protected:
 	uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
 	Tower *m_OccupiedTower;

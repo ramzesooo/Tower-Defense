@@ -1,10 +1,10 @@
 #include "attacker.h"
 #include "../towers/tower.h"
-#include "../../level.h"
 #include "../../app.h"
 
 // TODO: Currently not used, bot necessary for adjusting animation just like for animated towers
 extern uint32_t g_PausedTicks;
+extern std::vector<Entity*> &g_Enemies;
 
 Attacker::Attacker(Tower *occupiedTower, AttackerType type, SDL_Texture* texture, uint32_t shotCooldown, uint16_t scale)
 	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(texture), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown),
@@ -54,7 +54,7 @@ void Attacker::PlayAnim(std::string_view animID)
 	m_CurrentAnim = it->second;
 }
 
-void Attacker::InitAttack(Enemy* target)
+void Attacker::InitAttack(Enemy *target, bool updateShotCD)
 {
 	// Don't initialize more attacks than just one
 	if (m_Target)
@@ -62,7 +62,9 @@ void Attacker::InitAttack(Enemy* target)
 
 	target->m_Attackers.emplace_back(this);
 
-	m_NextShot = SDL_GetTicks() + m_ShotCooldown - g_PausedTicks;
+	if (updateShotCD)
+		m_NextShot = SDL_GetTicks() + m_ShotCooldown - g_PausedTicks;
+
 	m_Target = target;
 
 	if (!m_Invisible)
@@ -80,6 +82,33 @@ void Attacker::StopAttacking(bool toErase)
 	m_Target = nullptr;
 	m_NextShot = 0u;
 
+	if (!m_Invisible)
+		PlayAnim("Idle");
+
+	if (m_OccupiedTower->IsAnimated())
+		m_OccupiedTower->PlayAnim("Idle");
+}
+
+void Attacker::ValidTarget()
+{
+	if (m_Target->IsActive())
+		return;
+
+	// Do partially stuff of StopAttacking()
+	std::erase(m_Target->m_Attackers, this);
+	m_Target = nullptr;
+		
+	for (const auto &enemy : g_Enemies)
+	{
+		Enemy *e = dynamic_cast<Enemy*>(enemy);
+		if (!e->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
+			continue;
+
+		InitAttack(e, false);
+		break;
+	}
+
+	// Do the rest of StopAttacking() if couldn't find another target
 	if (!m_Invisible)
 		PlayAnim("Idle");
 

@@ -38,9 +38,7 @@ public:
 	inline Enemy& operator=(const Enemy &r)
 	{
 		if (this == &r)
-		{
 			return *this;
-		}
 
 		m_Texture = r.m_Texture;
 		m_Type = r.m_Type;
@@ -93,6 +91,8 @@ public:
 
 	void OnHit(uint16_t dmg);
 
+	// Verifies all possible attackers and forces them to attack the enemy if they should
+	// Or stops them from attackin if they are out of range
 	void ValidAttacker();
 
 	// Returns true if specific tower has been found in forwarded range
@@ -110,13 +110,13 @@ private:
 	IF_DEBUG(EnemyDebugSpeed m_Speedy = EnemyDebugSpeed::none;);
 	IF_DEBUG(float m_MovementDebugSpeed = 1.4f;);
 	float m_MovementSpeed = 1.4f;
-	SDL_Texture* m_Texture = nullptr;
-	EnemyType m_Type;
+	SDL_Texture *m_Texture = nullptr;
+	EnemyType m_Type = EnemyType::elf;
 
 	// m_Pos for Enemy is based on tiles' count and it's scaled with tiles' size only while rendering in destRect.x and destRect.y
 	// To get already scaled enemy's position use m_ScaledPos
-	Vector2D m_Pos;
-	Vector2D m_ScaledPos;
+	Vector2D m_Pos{};
+	Vector2D m_ScaledPos{};
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
 
@@ -128,7 +128,7 @@ private:
 
 	Tile *m_OccupiedTile = nullptr;
 
-	RectHP m_RectHP;
+	RectHP m_RectHP{};
 	uint16_t m_HP = 0;
 	uint16_t m_MaxHP = 0;
 	float m_HPPercent = 100.0f;
