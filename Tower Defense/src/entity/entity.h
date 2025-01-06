@@ -13,7 +13,6 @@ enum class EntityGroup
 {
 	enemy = 0,
 	tower,
-	animatedTower,
 	attacker,
 	projectile,
 	size
@@ -62,14 +61,13 @@ public:
 			e->Update();
 		}
 
-		for (const auto &t : m_GroupedEntities.at((std::size_t)EntityGroup::animatedTower))
+		// Tower updates attacker
+		for (const auto &t : m_GroupedEntities.at((std::size_t)EntityGroup::tower))
 		{
-			t->Update();
-		}
+			if (!t->IsActive())
+				continue;
 
-		for (const auto &a : m_GroupedEntities.at((std::size_t)EntityGroup::attacker))
-		{
-			a->Update();
+			t->Update();
 		}
 
 		for (const auto &p : m_GroupedEntities.at((std::size_t)EntityGroup::projectile))

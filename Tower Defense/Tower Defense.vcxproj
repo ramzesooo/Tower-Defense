@@ -266,7 +266,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\app.cpp" />
-    <ClCompile Include="src\entity\attacker.cpp" />
+    <ClCompile Include="src\entity\attackers\attacker.cpp" />
+    <ClCompile Include="src\entity\attackers\classicAttacker.cpp" />
+    <ClCompile Include="src\entity\attackers\darkAttacker.cpp" />
     <ClCompile Include="src\entity\base.cpp" />
     <ClCompile Include="src\entity\enemy.cpp" />
     <ClCompile Include="src\entity\entity.cpp" />
@@ -285,6 +287,9 @@
   <ItemGroup>
     <ClInclude Include="src\app.h" />
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\entity\attackers\attackers_inc.h" />
+    <ClInclude Include="src\entity\attackers\classicAttacker.h" />
+    <ClInclude Include="src\entity\attackers\darkAttacker.h" />
     <ClInclude Include="src\entity\towers\classicTower.h" />
     <ClInclude Include="src\entity\towers\darkTower.h" />
     <ClInclude Include="src\entity\towers\towers_inc.h" />
@@ -293,7 +298,7 @@
     <ClInclude Include="src\entity\base.h" />
     <ClInclude Include="src\entity\health.h" />
     <ClInclude Include="src\entity\projectile.h" />
-    <ClInclude Include="src\entity\attacker.h" />
+    <ClInclude Include="src\entity\attackers\attacker.h" />
     <ClInclude Include="src\entity\enemy.h" />
     <ClInclude Include="src\entity\entity.h" />
     <ClInclude Include="src\entity\label.h" />

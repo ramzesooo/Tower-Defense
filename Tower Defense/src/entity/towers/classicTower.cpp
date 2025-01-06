@@ -1,6 +1,6 @@
 #include "classicTower.h"
 #include "../../app.h"
-#include "../attacker.h"
+#include "../attackers/attacker.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -19,21 +19,6 @@ ClassicTower::ClassicTower(float posX, float posY, TowerType type) : Tower(posX,
 
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }
-
-//void ClassicTower::Destroy()
-//{
-//	
-//}
-
-//void ClassicTower::Draw()
-//{
-//
-//}
-
-//void ClassicTower::AdjustToView()
-//{
-//
-//}
 
 void ClassicTower::Upgrade()
 {

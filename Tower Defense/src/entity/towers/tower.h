@@ -6,12 +6,11 @@
 
 #include "../entity.h"
 #include "../tile.h"
+#include "../attackers/attacker.h"
 
 #include "SDL_rect.h"
 
 #include <unordered_map>
-
-class Attacker;
 
 struct TowerAnimation
 {
@@ -27,9 +26,9 @@ public:
 public:
 	Tower() = delete;
 	Tower(float posX, float posY, TowerType type);
-	Tower(const Tower &r) : m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
+	/*Tower(const Tower &r) : m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
 		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker), m_Tier(r.m_Tier), m_MaxTier(r.m_MaxTier),
-		m_TowerWidth(r.m_TowerWidth), m_TowerHeight(r.m_TowerHeight), m_AnimData(r.m_AnimData), m_Type(r.m_Type) {}
+		m_TowerWidth(r.m_TowerWidth), m_TowerHeight(r.m_TowerHeight), m_AnimData(r.m_AnimData), m_Type(r.m_Type) {}*/
 	~Tower() = default;
 
 	inline Tower &operator=(const Tower &r)
@@ -55,7 +54,7 @@ public:
 
 	virtual void Destroy() override;
 
-	virtual void Update() override {};
+	virtual void Update() override { m_Attacker->Update(); };
 	virtual void Draw() override;
 
 	virtual void AdjustToView() override;
@@ -63,11 +62,11 @@ public:
 	Vector2D GetPos() const override { return m_Pos; }
 	const SDL_Rect &GetRect() const { return destRect; }
 
-	void AssignAttacker(Attacker* attacker) { m_Attacker = attacker; }
+	void AssignAttacker(Attacker *attacker) { m_Attacker = attacker; }
 	Attacker* GetAttacker() const { return m_Attacker; }
 
 	// Upgrades by one tier up
-	virtual void Upgrade() {}
+	virtual void Upgrade();
 	uint16_t GetTier() const { return m_Tier; }
 	uint16_t CanUpgrade() const { return m_Tier < m_MaxTier; }
 

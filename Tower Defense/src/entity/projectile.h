@@ -25,6 +25,7 @@ struct ProjectileLifetime
 class Projectile : public Entity
 {
 public:
+	Projectile() = delete;
 	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
 	Projectile(const Projectile &r) : srcRect(r.srcRect), m_Texture(r.m_Texture), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
 		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner), 

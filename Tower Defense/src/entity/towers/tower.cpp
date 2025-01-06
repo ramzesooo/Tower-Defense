@@ -1,5 +1,4 @@
 #include "tower.h"
-#include "../attacker.h"
 #include "../../level.h"
 #include "../../textureManager.h"
 #include "../../app.h"
@@ -67,6 +66,13 @@ void Tower::AdjustToView()
 
 	if (m_Attacker)
 		m_Attacker->AdjustToView();
+}
+
+void Tower::Upgrade()
+{
+	App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
+	App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
+	App::s_Building.towerToUpgrade = nullptr;
 }
 
 Tile *Tower::GetOccupiedTile(uint16_t ID) const

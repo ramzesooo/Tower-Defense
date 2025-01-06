@@ -213,7 +213,7 @@ Level::Level(uint16_t levelID)
 	m_MapData[4] = m_MapData.at(1) * m_ScaledTileSize;
 }
 
-void Level::Setup(std::ifstream& mapFile, uint16_t layerID)
+void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 {
 	if (layerID >= m_Layers.size())
 	{
@@ -343,6 +343,7 @@ void Level::Clean()
 Tower *Level::AddTower(float posX, float posY, TowerType type)
 {
 	Tower *tower = nullptr;
+
 	switch (type)
 	{
 	case TowerType::classic:
@@ -355,10 +356,11 @@ Tower *Level::AddTower(float posX, float posY, TowerType type)
 		App::s_Logger.AddLog(std::format("Level::AddTower: TowerType {} is invalid", static_cast<std::size_t>(type)));
 		break;
 	}
+
 	return tower;
 }
 
-void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
+void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 {
 	if (!assignedTower || assignedTower->GetAttacker())
 	{
@@ -375,31 +377,30 @@ void Level::AddAttacker(Tower* assignedTower, AttackerType type, uint16_t scale)
 	{
 	case AttackerType::archer:
 		shotCooldown = 315u;
-		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::hunter:
 		shotCooldown = 280u;
-		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::musketeer:
 		shotCooldown = 250u;
-		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
 		break;
 	case AttackerType::darkTower:
 		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11;
-		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, nullptr, shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<DarkAttacker>(assignedTower, type, nullptr, shotCooldown, scale);
 		break;
 	default:
-		shotCooldown = 300u;
-		attacker = App::s_Manager.NewEntity<Attacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
-		break;
+		App::s_Logger.AddLog(std::format("Level::AddAttacker: AttackerType {} is invalid", static_cast<std::size_t>(type)));
+		return;
 	}
 
 	attacker->AddToGroup(EntityGroup::attacker);
 	assignedTower->AssignAttacker(attacker);
 }
 
-Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale) const
+Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale) const
 {
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddToGroup(EntityGroup::enemy);
@@ -411,7 +412,7 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture* text
 	return enemy;
 }
 
-void Level::AddProjectile(ProjectileType type, Attacker* projectileOwner, Enemy* target)
+void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target)
 {
 	if (!target->IsActive())
 		return;
@@ -429,7 +430,21 @@ void Level::HandleMouseButtonEvent()
 		{
 			if (App::s_Building.canBuild)
 			{
-				Tower* tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				IF_DEBUG(
+					Tower *tower = nullptr;
+					if (App::s_SwapTowerType)
+					{
+						tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+					}
+					else
+					{
+						tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+					}
+				);
+
+				IF_NDEBUG(
+					Tower *tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				);
 				if (!tower)
 				{
 					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");

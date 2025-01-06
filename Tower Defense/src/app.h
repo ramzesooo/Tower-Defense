@@ -95,6 +95,7 @@ public:
 	IF_DEBUG(static Label *s_FrameDelay;);
 
 	IF_DEBUG(static EnemyDebugSpeed s_Speedy;);
+	IF_DEBUG(static bool s_SwapTowerType;);
 public:
 	App();
 	~App();

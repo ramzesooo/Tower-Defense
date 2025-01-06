@@ -66,7 +66,9 @@ Vector2D CameraMovement::realVelocity{ 0.0f, 0.0f };
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
 IF_DEBUG(Label *App::s_FrameDelay = nullptr;);
+
 IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
+IF_DEBUG(bool App::s_SwapTowerType = false;);
 // class App STATIC VARIABLES
 
 SDL_Texture *BuildingState::originalTexture = nullptr;
@@ -357,6 +359,12 @@ void App::EventHandler()
 		case SDLK_b: // switch between building state
 			SwitchBuildingState();
 			return;
+		IF_DEBUG(
+		case SDLK_n:
+			s_SwapTowerType = !s_SwapTowerType;
+			App::s_Logger.AddLog(std::format("App::s_SwapTowerType: {}", static_cast<int32_t>(s_SwapTowerType)));
+			return;
+		);
 		case SDLK_y: // lock/unlock camera movement
 			SwitchCameraMode();
 			return;
@@ -405,6 +413,9 @@ void App::EventHandler()
 
 				for (const auto &e : g_Enemies)
 				{
+					if (!e->IsActive())
+						continue;
+
 					dynamic_cast<Enemy*>(e)->DebugSpeed();
 				}
 

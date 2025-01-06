@@ -1,6 +1,6 @@
 #include "darkTower.h"
 #include "../../app.h"
-#include "../attacker.h"
+#include "../attackers/attacker.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -21,34 +21,12 @@ DarkTower::DarkTower(float posX, float posY, TowerType type) : Tower(posX, posY,
 	m_AnimData.animations.emplace("Idle", Animation("Idle", 0, 13, 75));
 	m_AnimData.animations.emplace("Attack", Animation("Attack", 1, 11, 75));
 	PlayAnim("Idle");
-	AddToGroup(EntityGroup::animatedTower);
 
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }
 
-//void DarkTower::Destroy()
-//{
-//	
-//}
-
 void DarkTower::Update()
 {
 	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
-}
-
-//void DarkTower::Draw()
-//{
-//
-//}
-
-//void DarkTower::AdjustToView()
-//{
-//
-//}
-
-void DarkTower::Upgrade()
-{
-	App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
-	App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
-	App::s_Building.towerToUpgrade = nullptr;
+	m_Attacker->Update();
 }

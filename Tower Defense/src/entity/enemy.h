@@ -3,7 +3,7 @@
 #include "typesEnums.h"
 
 #include "entity.h"
-#include "attacker.h"
+#include "attackers/attacker.h"
 #include "projectile.h"
 #include "health.h"
 #include "tile.h"

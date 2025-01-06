@@ -149,20 +149,14 @@ public:
 		return *this;
 	}
 
-	inline Vector2D &Roundf()
+	inline Vector2D Roundf() const
 	{
-		this->x = std::roundf(this->x);
-		this->y = std::roundf(this->y);
-
-		return *this;
+		return Vector2D(std::roundf(x), std::roundf(y));
 	}
 
-	inline Vector2D &Trunc()
+	inline Vector2D Trunc() const
 	{
-		this->x = std::trunc(this->x);
-		this->y = std::trunc(this->y);
-
-		return *this;
+		return Vector2D(std::trunc(x), std::trunc(y));
 	}
 
 	inline bool IsEqualZero() const
