@@ -90,20 +90,23 @@ void ClassicAttacker::StopAttacking(bool toErase)
 
 bool ClassicAttacker::ValidTarget()
 {
-	if (IsAttacking() && m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
-		return true;
-
 	// Do partially stuff of StopAttacking()
 	if (m_Target)
 	{
+		if (m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower))
+			return true;
+
 		std::erase(m_Target->m_Attackers, this);
 		m_Target = nullptr;
 	}
 
 	for (const auto &enemy : g_Enemies)
 	{
+		if (!enemy->IsActive())
+			continue;
+
 		Enemy *e = dynamic_cast<Enemy*>(enemy);
-		if (!e->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
+		if (!e->IsTowerInRange(m_OccupiedTower))
 			continue;
 
 		InitAttack(e, false);

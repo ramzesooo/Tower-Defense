@@ -66,7 +66,7 @@ public:
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile
 	// And searches towers from x: -range, y: -range to: x: range, y: range
-	bool IsTowerInRange(Tower *tower, uint16_t range = 2) const;
+	bool IsTowerInRange(Tower *tower) const;
 
 	void SetOccupiedTile(Tile *newOccupiedTile) { m_OccupiedTile = newOccupiedTile; }
 	Tile* GetOccupiedTile() const { return m_OccupiedTile; }

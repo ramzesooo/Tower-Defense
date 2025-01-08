@@ -31,9 +31,10 @@ struct CameraMovement
 
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
-	float moveX = 0.0f;
-	float moveY = 0.0f;
-	Vector2D border;
+	//float moveX = 0.0f;
+	//float moveY = 0.0f;
+	Vector2D move{};
+	Vector2D border{};
 };
 
 //struct BuildingState contains all needed informations and it's one static variable in App class
@@ -103,7 +104,8 @@ public:
 	inline void PrepareUI()
 	{
 		static TTF_Font *font = App::s_Textures.GetFont("default");
-		static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
+		//static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
+		static SDL_Rect destRect{ 0, 0, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
 
 		s_UIElements.at(0).m_DefaultText = "Wave: 1/1";
 		s_UIElements.at(1).m_DefaultText = "100";
@@ -166,6 +168,12 @@ public:
 			s_Building.coordinates.x,
 			s_Building.coordinates.y)
 		);
+
+		if (s_Building.coordinates.x >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)) - 1.0f)
+			s_Building.coordinates.x--;
+
+		if (s_Building.coordinates.y >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)) - 1.0f)
+			s_Building.coordinates.y--;
 #endif
 
 		switch (s_UIState)
@@ -221,8 +229,9 @@ public:
 		else
 		{
 			s_IsCameraLocked = true;
-			s_CameraMovement.moveX = 0.0f;
-			s_CameraMovement.moveY = 0.0f;
+			//s_CameraMovement.moveX = 0.0f;
+			//s_CameraMovement.moveY = 0.0f;
+			s_CameraMovement.move = { 0.0f, 0.0f };
 		}
 	}
 
@@ -232,23 +241,27 @@ public:
 		if (s_Camera.x < 0.0f)
 		{
 			s_Camera.x = 0.0f;
-			s_CameraMovement.moveX = 0.0f;
+			//s_CameraMovement.moveX = 0.0f;
+			s_CameraMovement.move.x = 0.0f;
 		}
 		else if (s_Camera.x > s_CameraMovement.border.x)
 		{
 			s_Camera.x = s_CameraMovement.border.x;
-			s_CameraMovement.moveX = 0.0f;
+			//s_CameraMovement.moveX = 0.0f;
+			s_CameraMovement.move.x = 0.0f;
 		}
 
 		if (s_Camera.y < 0.0f)
 		{
 			s_Camera.y = 0.0f;
-			s_CameraMovement.moveY = 0.0f;
+			//s_CameraMovement.moveY = 0.0f;
+			s_CameraMovement.move.y = 0.0f;
 		}
 		else if (s_Camera.y > s_CameraMovement.border.y)
 		{
 			s_Camera.y = s_CameraMovement.border.y;
-			s_CameraMovement.moveY = 0.0f;
+			//s_CameraMovement.moveY = 0.0f;
+			s_CameraMovement.move.y = 0.0f;
 		}
 	}
 
@@ -256,13 +269,15 @@ public:
 	{
 		if (s_Camera.x > 0.0f && s_MouseX <= s_CameraMovement.rangeW)
 		{
-			s_CameraMovement.moveX = -s_CameraMovement.velocity;
+			//s_CameraMovement.moveX = -s_CameraMovement.velocity;
+			s_CameraMovement.move.x = -s_CameraMovement.velocity;
 			return;
 		}
 
 		if (s_Camera.x < s_CameraMovement.border.x && s_MouseX >= static_cast<int32_t>(s_Camera.w) - s_CameraMovement.rangeW)
 		{
-			s_CameraMovement.moveX = s_CameraMovement.velocity;
+			//s_CameraMovement.moveX = s_CameraMovement.velocity;
+			s_CameraMovement.move.x = s_CameraMovement.velocity;
 			return;
 		}
 	}
@@ -271,21 +286,24 @@ public:
 	{
 		if (s_Camera.y > 0.0f && s_MouseY <= s_CameraMovement.rangeH)
 		{
-			s_CameraMovement.moveY = -s_CameraMovement.velocity;
+			//s_CameraMovement.moveY = -s_CameraMovement.velocity;
+			s_CameraMovement.move.y = -s_CameraMovement.velocity;
 			return;
 		}
 
 		if (s_Camera.y < s_CameraMovement.border.y && s_MouseY >= static_cast<int32_t>(s_Camera.h) - s_CameraMovement.rangeH)
 		{
-			s_CameraMovement.moveY = s_CameraMovement.velocity;
+			//s_CameraMovement.moveY = s_CameraMovement.velocity;
+			s_CameraMovement.move.y = s_CameraMovement.velocity;
 			return;
 		}
 	}
 
 	inline void ManageCamera()
 	{
-		s_CameraMovement.moveX = 0.0f;
-		s_CameraMovement.moveY = 0.0f;
+		/*s_CameraMovement.moveX = 0.0f;
+		s_CameraMovement.moveY = 0.0f;*/
+		s_CameraMovement.move = { 0.0f, 0.0f };
 
 		ManageCameraX();
 		ManageCameraY();

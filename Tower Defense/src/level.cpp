@@ -19,12 +19,15 @@ constexpr uint16_t waveCooldown = 3500; // miliseconds
 
 constexpr char configName[] = ".config";
 
+
 extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
 extern std::vector<Entity*> &g_Attackers;
 extern std::vector<Entity*> &g_Enemies;
 
 extern std::default_random_engine g_Rng;
+
+extern uint32_t g_PausedTicks;
 
 static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goal)
 {
@@ -248,7 +251,7 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 	}
 
 	int32_t tileCode;
-	TileType tileType = (TileType)layerID;
+	TileType tileType = static_cast<TileType>(layerID);
 	/*TileTypes tileType;
 
 	switch (layers.size())
@@ -322,15 +325,15 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 	mapFile.close();
 }
 
-void Level::SetupBase(uint32_t posX, uint32_t posY)
+void Level::SetupBase()
 {
-	int32_t scaledPosX = posX * m_ScaledTileSize;
-	int32_t scaledPosY = posY * m_ScaledTileSize;
+	int32_t scaledPosX = static_cast<int32_t>(m_BasePos.x) * m_ScaledTileSize;
+	int32_t scaledPosY = static_cast<int32_t>(m_BasePos.y) * m_ScaledTileSize;
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
 	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
 	m_Base.m_Pos = { static_cast<float>(scaledPosX), static_cast<float>(scaledPosY) };
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
-	m_Base.m_Tile = GetTileFrom(posX, posY, 0);
+	m_Base.m_Tile = GetTileFrom(static_cast<uint32_t>(m_BasePos.x), static_cast<uint32_t>(m_BasePos.y), 0);
 
 	App::s_Logger.AddLog(std::format("Created base ({}, {})", scaledPosX, scaledPosY));
 }
@@ -414,7 +417,7 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 	assignedTower->AssignAttacker(attacker);
 }
 
-Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale) const
+Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale) const
 {
 	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
 	enemy->AddToGroup(EntityGroup::enemy);
@@ -428,7 +431,7 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *text
 
 void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target)
 {
-	// Probably don't need this anymore since Attacker is has now ValidTarget()
+	// Probably don't need this anymore since Attacker has now ValidTarget()
 	/*if (!target->IsActive())
 		return;*/
 
@@ -538,7 +541,7 @@ void Level::InitWave()
 		return;
 	}
 	
-	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown;
+	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown - g_PausedTicks;
 	m_SpawnedEnemies++;
 }
 
@@ -547,7 +550,7 @@ void Level::ManageWaves()
 	switch (m_WaveProgress)
 	{
 	case WaveProgress::OnCooldown:
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), m_WaveCooldown))
+		if (SDL_TICKS_PASSED(SDL_GetTicks() - g_PausedTicks, m_WaveCooldown))
 		{
 			if (m_Spawners.empty())
 			{
@@ -570,7 +573,7 @@ void Level::ManageWaves()
 		}
 		return;
 	case WaveProgress::Initializing:
-		if (SDL_GetTicks() >= m_NextSpawn)
+		if (SDL_GetTicks() - g_PausedTicks >= m_NextSpawn)
 			InitWave();
 		return;
 	case WaveProgress::InProgress:
@@ -586,7 +589,7 @@ void Level::ManageWaves()
 		{
 			m_CurrentWave = 0;
 		}
-		m_WaveCooldown = SDL_GetTicks() + waveCooldown;
+		m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
 		m_WaveProgress = WaveProgress::OnCooldown;
 		return;
 	}
@@ -608,11 +611,9 @@ void Level::Render()
 
 	m_Base.Draw();
 
+	// The tower triggers render for attackers
 	for (const auto &tower : g_Towers)
 		tower->Draw();
-
-	for (const auto &attacker : g_Attackers)
-		attacker->Draw();
 
 	App::s_Building.buildingPlace.Draw();
 
@@ -620,7 +621,7 @@ void Level::Render()
 		projectile->Draw();
 }
 
-Tile* Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
+Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 {
 	if (layer >= m_Layers.size())
 	{
@@ -682,3 +683,23 @@ void Level::OnUpdateCamera()
 		p->AdjustToView();
 	}
 }
+
+//void Level::HighlightRange(Tower *tower)
+//{
+//	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
+//	// So all we need to do is add +1 to the position
+//	static constexpr int32_t towerOffset = 1;
+//
+//	Vector2D origin{ tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize,
+//		tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize };
+//
+//	for (auto i = App::s_TowerRange; i > 0; i--)
+//	{
+//		Tile *tile = GetTileFrom(origin.x, origin.y);
+//		if (posX - i <= enemyX && posY - i <= enemyY
+//			&& posX + i + towerOffset >= enemyX && posY + i + towerOffset >= enemyY)
+//		{
+//			return true;
+//		}
+//	}
+//}

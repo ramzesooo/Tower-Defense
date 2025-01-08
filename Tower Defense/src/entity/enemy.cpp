@@ -358,18 +358,18 @@ void Enemy::ValidAttacker()
 		{
 			continue;
 		}
-		else if (attacker->GetTarget() == this && !IsTowerInRange(tower, App::s_TowerRange))
+		else if (attacker->GetTarget() == this && !IsTowerInRange(tower))
 		{
 			attacker->StopAttacking();
 		}
-		else if (!attacker->IsAttacking() && IsTowerInRange(tower, App::s_TowerRange))
+		else if (!attacker->IsAttacking() && IsTowerInRange(tower))
 		{
 			attacker->InitAttack(this);
 		}
 	}
 }
 
-bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
+bool Enemy::IsTowerInRange(Tower* tower) const
 {
 	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
 	// So all we need to do is add +1 to the position
@@ -381,7 +381,7 @@ bool Enemy::IsTowerInRange(Tower* tower, uint16_t range) const
 	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
 	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
 
-	for (auto i = range; i > 0; i--)
+	for (auto i = App::s_TowerRange; i > 0; i--)
 	{
 		if (posX - i <= enemyX && posY - i <= enemyY
 			&& posX + i + towerOffset >= enemyX && posY + i + towerOffset >= enemyY)

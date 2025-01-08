@@ -1,7 +1,7 @@
 #pragma once
 #include "typesEnums.h"
-#include "entity.h"
 
+#include "entity.h"
 #include "../Vector2D.h"
 
 #include "SDL_rect.h"
@@ -16,10 +16,12 @@ class Tower;
 class Tile : public Entity
 {
 public:
+	static SDL_Texture *s_RangeTexture;
+public:
 	Tile() = delete;
 	Tile(TileType type, int32_t tileScale);
-	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type = TileType::regular);
-	Tile(const Tile& r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type),
+	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture *texture, TileType type = TileType::regular);
+	Tile(const Tile &r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type),
 		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable) {}
 	~Tile() = default;
 
@@ -45,6 +47,8 @@ public:
 	void Update() override {};
 	void Draw() override;
 
+	void DrawHighlight() const;
+
 	void AdjustToView() override;
 
 	void SetTexture(SDL_Texture* texture) { m_Texture = texture; }
@@ -60,11 +64,11 @@ public:
 	int32_t GetHeight() const { return destRect.h; }
 
 	Entity* GetOccupyingEntity() const { return m_EntityOccupying; }
-	void SetOccupyingEntity(Entity* entity) { m_EntityOccupying = entity; }
+	void SetOccupyingEntity(Entity *entity) { m_EntityOccupying = entity; }
 
 	// if it's nullptr then it's not occupied by any tower
-	Tower* GetTowerOccupying() const { return m_TowerOnTile; }
-	void SetTowerOccupying(Tower* tower) { m_TowerOnTile = tower; }
+	Tower *GetTowerOccupying() const { return m_TowerOnTile; }
+	void SetTowerOccupying(Tower *tower) { m_TowerOnTile = tower; }
 
 	void SetWalkable() { m_IsWalkable = true; }
 	bool IsWalkable() const { return m_IsWalkable; }
@@ -75,9 +79,9 @@ private:
 	bool m_IsDrawable = true;
 	bool m_IsWalkable = false;
 	SDL_Rect srcRect{ 0, 0, 24, 24 }, destRect{ 0, 0, 24, 24 };
-	Vector2D m_Pos;
+	Vector2D m_Pos{};
 	SDL_Texture *m_Texture = nullptr;
-	TileType m_Type;
+	TileType m_Type = TileType::regular;
 
 	Entity *m_EntityOccupying = nullptr;
 	Tower *m_TowerOnTile = nullptr;

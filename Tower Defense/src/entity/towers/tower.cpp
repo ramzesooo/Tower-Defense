@@ -13,18 +13,60 @@ Tower::Tower(float posX, float posY, TowerType type)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
 	m_Type(type), m_Texture(s_TowerTextures.at(static_cast<std::size_t>(type)))
 {
-	uint16_t scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
+	static constexpr uint16_t towerOffset = 1;
 
+	Tile *tile = nullptr;
 	for (auto i = 0u; i < 4u; i++)
 	{
-		Tile *tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
+		tile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(posX) + i % 2, static_cast<uint32_t>(posY) + i / 2);
 		m_OccupiedTiles[i] = tile;
 		tile->SetTowerOccupying(this);
 	}
-	
+
+	tile = nullptr;
+
+	for (auto y = 0; y <= static_cast<int16_t>(App::s_TowerRange); y++)
+	{
+		for (auto x = y; x <= static_cast<int16_t>(App::s_TowerRange); x++)
+		{
+			// Loop for reaching mirror reflect
+			for (auto i = 1; i >= -1; i = i - 2)
+			{
+				// Left side
+				uint32_t tileX = static_cast<uint32_t>(posX - x + y);
+
+				// std::min(i, 0) lets to make the mirror reflect appropriate for Y position
+				// Since tower takes 4 tiles and basically loop considers only case of 0, 0,
+				// it's needed to be adjusted and look for position Y - 1
+				uint32_t tileY = static_cast<uint32_t>(posY - std::min(i, 0) - (y * i)); // posY - 1 - y or posY - 0 + y
+
+				tile = App::s_CurrentLevel->GetTileFrom(tileX, tileY);
+
+				if (tile)
+				{
+					// Probably don't need it anymore, but didn't check everything
+					if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+						m_TilesInRange.emplace_back(tile);
+				}
+
+				// Right side
+				// towerOffset should be changed only in case when the tower takes more than 4 tiles
+				tileX = static_cast<uint32_t>(posX + towerOffset + x - y);
+
+				tile = App::s_CurrentLevel->GetTileFrom(tileX, tileY);
+
+				if (tile)
+				{
+					if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+						m_TilesInRange.emplace_back(tile);
+				}
+			}
+		}
+	}
+
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
-	destRect.w = destRect.h = scaledTileSize * 2;
+	destRect.w = destRect.h = App::s_CurrentLevel->m_ScaledTileSize * 2;
 
 	AddToGroup(EntityGroup::tower);
 }
@@ -56,7 +98,13 @@ void Tower::Destroy()
 
 void Tower::Draw()
 {
+	for (const auto &tile : m_TilesInRange)
+		tile->DrawHighlight();
+
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+
+	if (m_Attacker)
+		m_Attacker->Draw();
 }
 
 void Tower::AdjustToView()

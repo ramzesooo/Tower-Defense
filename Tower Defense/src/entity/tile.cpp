@@ -3,13 +3,15 @@
 #include "../app.h"
 #include "../textureManager.h"
 
+SDL_Texture *Tile::s_RangeTexture = nullptr;
+
 Tile::Tile(TileType type, int32_t tileScale) : m_Type(type)
 {
 	destRect.w = srcRect.w * tileScale * 2;
 	destRect.h = srcRect.h * tileScale * 2;
 }
 
-Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture* texture, TileType type)
+Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture *texture, TileType type)
 	: m_Pos(static_cast<float>(posX), static_cast<float>(posY)), m_Texture(texture), m_Type(type)
 {
 	srcRect.x = srcX;
@@ -44,6 +46,12 @@ void Tile::Destroy()
 void Tile::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}
+
+void Tile::DrawHighlight() const
+{
+	static constexpr SDL_Rect localSrcRect{ 0, 0, 24, 24 };
+	TextureManager::DrawTexture(s_RangeTexture, localSrcRect, destRect);
 }
 
 void Tile::AdjustToView()

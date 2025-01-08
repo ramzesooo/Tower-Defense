@@ -62,13 +62,14 @@ public:
 protected:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;
-	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture *m_Texture = nullptr;
 	TowerType m_Type = TowerType::classic;
-	Vector2D m_Pos;
+	Vector2D m_Pos{};
 	SDL_Rect srcRect{ 0, 0, 144, 64 }, destRect{ 0, 0, 48, 21 };
 	std::array<Tile*, 4> m_OccupiedTiles;
 	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown on the tower
 	uint16_t m_Tier = 1;
 	uint16_t m_MaxTier = 3;
 	TowerAnimation m_AnimData;
+	std::vector<Tile*> m_TilesInRange; // TODO: Make it std::array
 };

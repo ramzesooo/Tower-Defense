@@ -64,11 +64,8 @@ public:
 	Level(uint16_t levelID);
 	~Level() = default;
 
-	void Setup(std::ifstream& mapFile, uint16_t layerID);
-
-	// Base is signed as a regular tile
-	void SetupBase(uint32_t posX, uint32_t posY);
-	void SetupBase(const Vector2D &pos) { SetupBase(static_cast<uint32_t>(pos.x), static_cast<uint32_t>(pos.y)); }
+	void Setup(std::ifstream &mapFile, uint16_t layerID);
+	void SetupBase();
 
 	void Clean();
 
@@ -118,6 +115,8 @@ public:
 
 		return false;
 	}
+
+	//void HighlightRange(Tower *tower); // Basically loop exactly the same as Enemy::IsTowerInRange()
 private:
 	bool m_FailedLoading = false;
 	std::string_view m_BaseTextureID = "base";

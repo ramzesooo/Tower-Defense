@@ -100,6 +100,7 @@ static constexpr TextureData textures[]
 	{ "canBuild", "assets/ui/tile_CanBuild.png" },
 	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
 	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
+	{ "highlightTowerRange", "assets/ui/highlightRange.png" },
 	{ "elementUI", "assets/ui/ui_element.png" },
 	{ "coinUI", "assets/ui/coin.png" },
 	{ "heartUI", "assets/ui/heart.png" },
@@ -178,6 +179,8 @@ App::App()
 	{
 		Tower::s_TowerTextures[i] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
 	}
+
+	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
@@ -478,7 +481,8 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	if (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f)
+	//if (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f)
+	if (!s_CameraMovement.move.IsEqualZero())
 	{
 		UpdateCamera();
 	}
@@ -529,8 +533,10 @@ void App::DrawUI()
 
 void App::UpdateCamera()
 {
-	CameraMovement::realVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
-	CameraMovement::realVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;
+	/*CameraMovement::realVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
+	CameraMovement::realVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;*/
+
+	CameraMovement::realVelocity = s_CameraMovement.move * App::s_ElapsedTime;
 
 	s_Camera.x += CameraMovement::realVelocity.x;
 	s_Camera.y += CameraMovement::realVelocity.y;
@@ -643,7 +649,7 @@ void App::LoadLevel()
 		s_CurrentLevel->Setup(mapFile, i);
 	}
 
-	s_CurrentLevel->SetupBase(s_CurrentLevel->m_BasePos);
+	s_CurrentLevel->SetupBase();
 
 	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 
@@ -694,6 +700,12 @@ void App::ManageBuildingState()
 	IF_NDEBUG(
 		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+		
+		if (s_Building.coordinates.x >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)) - 1.0f)
+			s_Building.coordinates.x--;
+
+		if (s_Building.coordinates.y >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)) - 1.0f)
+			s_Building.coordinates.y--;
 	);
 
 	s_Building.pointedTile = App::s_CurrentLevel->GetTileFrom(s_Building.coordinates.x, s_Building.coordinates.y, 0);

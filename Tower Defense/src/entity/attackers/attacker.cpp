@@ -24,8 +24,9 @@ void Attacker::Destroy()
 		p->Destroy();
 	}
 
-	// I have no idea is it necessary, works 100% fine without it
-	m_OccupiedTower->AssignAttacker(nullptr);
+	// It's unnecessary since tower already assigns nullptr by itself
+	// But might be safer as well
+	//m_OccupiedTower->AssignAttacker(nullptr);
 
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
@@ -91,20 +92,23 @@ void Attacker::StopAttacking(bool toErase)
 
 bool Attacker::ValidTarget()
 {
-	if (IsAttacking() && m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
-		return true;
-
 	// Do partially stuff of StopAttacking()
-	if (m_Target)
+	if (IsAttacking())
 	{
+		if (m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower))
+			return true;
+
 		std::erase(m_Target->m_Attackers, this);
 		m_Target = nullptr;
 	}
 
 	for (const auto &enemy : g_Enemies)
 	{
+		if (!enemy->IsActive())
+			continue;
+
 		Enemy *e = dynamic_cast<Enemy*>(enemy);
-		if (!e->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
+		if (!e->IsTowerInRange(m_OccupiedTower))
 			continue;
 
 		InitAttack(e, false);
