@@ -89,15 +89,18 @@ void Attacker::StopAttacking(bool toErase)
 		m_OccupiedTower->PlayAnim("Idle");
 }
 
-void Attacker::ValidTarget()
+bool Attacker::ValidTarget()
 {
-	if (m_Target->IsActive())
-		return;
+	if (IsAttacking() && m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
+		return true;
 
 	// Do partially stuff of StopAttacking()
-	std::erase(m_Target->m_Attackers, this);
-	m_Target = nullptr;
-		
+	if (m_Target)
+	{
+		std::erase(m_Target->m_Attackers, this);
+		m_Target = nullptr;
+	}
+
 	for (const auto &enemy : g_Enemies)
 	{
 		Enemy *e = dynamic_cast<Enemy*>(enemy);
@@ -105,7 +108,7 @@ void Attacker::ValidTarget()
 			continue;
 
 		InitAttack(e, false);
-		break;
+		return true;
 	}
 
 	// Do the rest of StopAttacking() if couldn't find another target
@@ -114,4 +117,6 @@ void Attacker::ValidTarget()
 
 	if (m_OccupiedTower->IsAnimated())
 		m_OccupiedTower->PlayAnim("Idle");
+
+	return false;
 }

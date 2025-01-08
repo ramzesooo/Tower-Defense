@@ -51,10 +51,8 @@ void ClassicAttacker::Update()
 	srcRect.x = srcRect.w * ((ticks / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Attacker::s_AttackerHeight;
 
-	if (!IsAttacking())
+	if (!ValidTarget())
 		return;
-
-	ValidTarget();
 
 	// Create new projectile if got target and passed the cooldown of attack
 	if (ticks >= m_NextShot)
@@ -67,7 +65,7 @@ void ClassicAttacker::Update()
 void ClassicAttacker::InitAttack(Enemy *target, bool updateShotCD)
 {
 	// Don't initialize more attacks than just one
-	if (m_Target)
+	if (IsAttacking())
 		return;
 
 	target->m_Attackers.emplace_back(this);
@@ -90,14 +88,17 @@ void ClassicAttacker::StopAttacking(bool toErase)
 	PlayAnim("Idle");
 }
 
-void ClassicAttacker::ValidTarget()
+bool ClassicAttacker::ValidTarget()
 {
-	if (m_Target->IsActive())
-		return;
+	if (IsAttacking() && m_Target->IsActive() && m_Target->IsTowerInRange(m_OccupiedTower, App::s_TowerRange))
+		return true;
 
 	// Do partially stuff of StopAttacking()
-	std::erase(m_Target->m_Attackers, this);
-	m_Target = nullptr;
+	if (m_Target)
+	{
+		std::erase(m_Target->m_Attackers, this);
+		m_Target = nullptr;
+	}
 
 	for (const auto &enemy : g_Enemies)
 	{
@@ -106,9 +107,10 @@ void ClassicAttacker::ValidTarget()
 			continue;
 
 		InitAttack(e, false);
-		break;
+		return true;
 	}
 
 	// Do the rest of StopAttacking() if couldn't find another target
 	PlayAnim("Idle");
+	return false;
 }

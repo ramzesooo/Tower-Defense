@@ -26,32 +26,7 @@ public:
 public:
 	Tower() = delete;
 	Tower(float posX, float posY, TowerType type);
-	/*Tower(const Tower &r) : m_Texture(r.m_Texture), m_Pos(r.m_Pos), srcRect(r.srcRect), destRect(r.destRect),
-		m_OccupiedTiles(r.m_OccupiedTiles), m_Attacker(r.m_Attacker), m_Tier(r.m_Tier), m_MaxTier(r.m_MaxTier),
-		m_TowerWidth(r.m_TowerWidth), m_TowerHeight(r.m_TowerHeight), m_AnimData(r.m_AnimData), m_Type(r.m_Type) {}*/
 	~Tower() = default;
-
-	inline Tower &operator=(const Tower &r)
-	{
-		printf("dupa\n");
-		if (this == &r)
-			return *this;
-
-		m_Texture = r.m_Texture;
-		m_Pos = r.m_Pos;
-		srcRect = r.srcRect;
-		destRect = r.destRect;
-		m_OccupiedTiles = r.m_OccupiedTiles;
-		m_Attacker = r.m_Attacker;
-		m_Tier = r.m_Tier;
-		m_MaxTier = r.m_MaxTier;
-		m_TowerWidth = r.m_TowerWidth;
-		m_TowerHeight = r.m_TowerHeight;
-		m_AnimData = r.m_AnimData;
-		m_Type = r.m_Type;
-
-		return *this;
-	}
 
 	virtual void Destroy() override;
 

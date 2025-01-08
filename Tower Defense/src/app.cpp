@@ -27,7 +27,7 @@ Manager App::s_Manager;
 
 SDL_Renderer *App::s_Renderer = nullptr;
 SDL_Event App::s_Event;
-SDL_FRect App::s_Camera { 0.0f, 0.0f, (float)App::WINDOW_WIDTH, (float)App::WINDOW_HEIGHT };
+SDL_FRect App::s_Camera { 0.0f, 0.0f, static_cast<float>(App::WINDOW_WIDTH), static_cast<float>(App::WINDOW_HEIGHT) };
 
 Level *App::s_CurrentLevel = nullptr;
 

@@ -267,10 +267,11 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 		break;
 	}*/
 
-	Layer* newLayer = &m_Layers.at(layerID);
-	newLayer->tiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
+	Layer *newLayer = &m_Layers.at(layerID);
+	newLayer->m_Tiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
+	newLayer->m_DrawableTiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
 
-	Tile* tile = nullptr;
+	Tile *tile = nullptr;
 	uint32_t srcX, srcY;
 	uint32_t x, y;
 
@@ -286,6 +287,8 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 
 		if (layerID == 2)
 		{
+			tile->SetDrawable(false);
+
 			if (tileCode == pathID)
 			{
 				tile->SetWalkable();
@@ -294,6 +297,7 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 			{
 				m_Spawners.reserve(m_Spawners.size() + 1);
 				m_Spawners.emplace_back(tile);
+				tile->SetDrawable(true);
 			}
 		}
 
@@ -301,10 +305,19 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 		{
 			m_FailedLoading = true;
 			App::s_Logger.AddLog(std::format("Couldn't load a tile in layer {} ({}, {})", layerID, x * m_ScaledTileSize, y * m_ScaledTileSize));
+			// We are storing nullptr in the vector even if the tile couldn't be created
+			// Because it hasn't been designed to expect any tile to be failed
+			// So then maybe if (tile) when needed, but probably something's just wrong if it can't be created
+			tile = nullptr; // Let's make sure it's nullptr, but idk if it's the correct way for this if statement
 		}
 
-		newLayer->tiles.emplace_back(tile);
+		newLayer->m_Tiles.emplace_back(tile);
+
+		if (tile->IsDrawable())
+			newLayer->m_DrawableTiles.emplace_back(tile);
 	}
+
+	newLayer->m_DrawableTiles.shrink_to_fit();
 
 	mapFile.close();
 }
@@ -328,7 +341,8 @@ void Level::Clean()
 
 	for (auto &layer : m_Layers)
 	{
-		layer.tiles.clear();
+		layer.m_Tiles.clear();
+		layer.m_DrawableTiles.clear();
 	}
 
 	m_Spawners.clear();
@@ -362,7 +376,7 @@ Tower *Level::AddTower(float posX, float posY, TowerType type)
 
 void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 {
-	if (!assignedTower || assignedTower->GetAttacker())
+	if (!assignedTower || assignedTower->GetAttacker() != nullptr)
 	{
 		App::s_Logger.AddLog(std::string_view("Tried to add attacker to non-existing tower or an attacker for the specific tower already exists."));
 		return;
@@ -414,10 +428,11 @@ Enemy* Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *text
 
 void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target)
 {
-	if (!target->IsActive())
-		return;
+	// Probably don't need this anymore since Attacker is has now ValidTarget()
+	/*if (!target->IsActive())
+		return;*/
 
-	Projectile* projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
+	Projectile *projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
 	projectile->AddToGroup(EntityGroup::projectile);
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }
@@ -581,7 +596,7 @@ void Level::Render()
 {
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
-		for (const auto &tile : m_Layers.at(i).tiles)
+		for (const auto &tile : m_Layers.at(i).m_DrawableTiles)
 		{
 			tile->Draw();
 		}
@@ -640,7 +655,7 @@ void Level::OnUpdateCamera()
 #if ASYNC_TILES == 0
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
-		for (const auto &tile : m_Layers.at(i).tiles)
+		for (const auto &tile : m_Layers.at(i).m_DrawableTiles)
 		{
 			tile->AdjustToView();
 		}

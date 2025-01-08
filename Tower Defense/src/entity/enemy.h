@@ -3,11 +3,8 @@
 #include "typesEnums.h"
 
 #include "entity.h"
-#include "attackers/attacker.h"
-#include "projectile.h"
 #include "health.h"
 #include "tile.h"
-#include "label.h"
 #include "anim.h"
 #include "../Vector2D.h"
 
@@ -18,6 +15,7 @@
 #include <unordered_map>
 
 class Tower;
+class Attacker;
 
 class Enemy : public Entity
 {
@@ -29,39 +27,9 @@ public:
 	// vector of attackers targeting this specific enemy
 	std::vector<Attacker*> m_Attackers;
 public:
+	Enemy() = delete;
 	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
-	Enemy(const Enemy &r) : destRect(r.destRect), m_RectHP(r.m_RectHP), m_OccupiedTile(r.m_OccupiedTile),
-		m_MovementSpeed(r.m_MovementSpeed), m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), animations(r.animations), m_Type(r.m_Type),
-		m_HP(r.m_HP), m_MaxHP(r.m_MaxHP), m_HPPercent(r.m_HPPercent), m_CurrentAnim(r.m_CurrentAnim) {}
 	~Enemy();
-
-	inline Enemy& operator=(const Enemy &r)
-	{
-		if (this == &r)
-			return *this;
-
-		m_Texture = r.m_Texture;
-		m_Type = r.m_Type;
-		m_Pos = r.m_Pos;
-		m_ScaledPos = r.m_ScaledPos;
-
-		m_OccupiedTile = r.m_OccupiedTile;
-
-		m_MovementSpeed = r.m_MovementSpeed;
-		m_Velocity = r.m_Velocity;
-		m_Destination = r.m_Destination;
-		srcRect = r.srcRect;
-		destRect = r.destRect;
-		m_Scale = r.m_Scale;
-		m_RectHP = r.m_RectHP;
-		m_HP = r.m_HP;
-		m_MaxHP = r.m_MaxHP;
-		m_HPPercent = r.m_HPPercent;
-		animations = r.animations;
-		m_CurrentAnim = r.m_CurrentAnim;
-
-		return *this;
-	}
 
 	void Destroy() override;
 

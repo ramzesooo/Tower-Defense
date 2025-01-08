@@ -68,13 +68,17 @@ public:
 
 	void SetWalkable() { m_IsWalkable = true; }
 	bool IsWalkable() const { return m_IsWalkable; }
+
+	void SetDrawable(bool drawable) { m_IsDrawable = drawable; }
+	bool IsDrawable() const { return m_IsDrawable; }
 private:
+	bool m_IsDrawable = true;
 	bool m_IsWalkable = false;
 	SDL_Rect srcRect{ 0, 0, 24, 24 }, destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos;
-	SDL_Texture* m_Texture = nullptr;
+	SDL_Texture *m_Texture = nullptr;
 	TileType m_Type;
 
-	Entity* m_EntityOccupying = nullptr;
-	Tower* m_TowerOnTile = nullptr;
+	Entity *m_EntityOccupying = nullptr;
+	Tower *m_TowerOnTile = nullptr;
 };

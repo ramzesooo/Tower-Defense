@@ -20,5 +20,5 @@ public:
 
 	// arg bool toErase is true by default
 	void StopAttacking(bool toErase = true) override;
-	void ValidTarget() override;
+	bool ValidTarget() override;
 };

@@ -1,4 +1,5 @@
 #include "enemy.h"
+#include "attackers/attacker.h"
 #include "towers/tower.h"
 #include "../app.h"
 #include "../level.h"
