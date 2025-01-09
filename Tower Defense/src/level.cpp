@@ -35,7 +35,6 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 	std::vector<Vector2D> result;
 
 	// Visited positions onto the origins from which they have been visited
-	//std::unordered_map<Vector2D, Vector2D> visited;
 	std::unordered_map<Vector2D, Vector2D> visited;
 
 	struct Node
@@ -442,64 +441,90 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 
 void Level::HandleMouseButtonEvent()
 {
-	//if (App::s_Event.button.type == SDL_MOUSEBUTTONDOWN)
-	//{
-		if (App::s_UIState == UIState::building)
+	if (App::s_UIState == UIState::building)
+	{
+		if (App::s_Building.canBuild)
 		{
-			if (App::s_Building.canBuild)
+			IF_DEBUG(
+				Tower *tower = nullptr;
+				if (App::s_SwapTowerType)
+				{
+					tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+				}
+				else
+				{
+					tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				}
+			);
+
+			IF_NDEBUG(
+				Tower *tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+			);
+			if (!tower)
 			{
-				IF_DEBUG(
-					Tower *tower = nullptr;
-					if (App::s_SwapTowerType)
-					{
-						tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
-					}
-					else
-					{
-						tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-					}
-				);
+				BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
+				App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+				App::s_Building.towerToUpgrade = nullptr;
+				App::s_Building.canBuild = false;
+				App::s_Logger.AddLog(std::string_view("Level::HandleMouseButtonEvent: Failed adding a tower"));
+				return;
+			}
 
-				IF_NDEBUG(
-					Tower *tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-				);
-				if (!tower)
-				{
-					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
-					App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-					App::s_Building.towerToUpgrade = nullptr;
-					App::s_Building.canBuild = false;
-					App::s_Logger.AddLog(std::string_view("Level::HandleMouseButtonEvent: Failed adding a tower"));
-					return;
-				}
-
-				if (!tower->CanUpgrade())
-				{
-					BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
-					App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-					App::s_Building.towerToUpgrade = nullptr;
-					App::s_Building.canBuild = false;
-					return;
-				}
-
-				App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
-				App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
-				App::s_Building.towerToUpgrade = tower;
+			if (!tower->CanUpgrade())
+			{
+				BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
+				App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+				App::s_Building.towerToUpgrade = nullptr;
 				App::s_Building.canBuild = false;
 				return;
 			}
 
-			if (App::s_Building.towerToUpgrade)
-			{
-				App::s_Building.towerToUpgrade->Upgrade();
-				return;
-			}
+			App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
+			App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
+			App::s_Building.towerToUpgrade = tower;
+			App::s_Building.canBuild = false;
+			return;
 		}
-	//}
-	//else if (App::s_Event.button.type == SDL_MOUSEBUTTONUP)
-	//{
 
-	//}
+		if (App::s_Building.towerToUpgrade)
+		{
+			App::s_Building.towerToUpgrade->Upgrade();
+			return;
+		}
+
+		return;
+	} // == s_UIState.building
+
+	auto posX = std::floorf((App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize));
+	auto posY = std::floorf((App::s_Camera.y / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(m_ScaledTileSize));
+
+	Tile *tile = GetTileFrom(posX, posY);
+	if (!tile)
+		return;
+
+	Tower *tower = tile->GetTowerOccupying();
+	if (!tower)
+		return;
+
+	if (m_HighlightedTower)
+	{
+		if (m_HighlightedTower == tower)
+		{
+			m_HighlightedTower->SetHighlight(false);
+			m_HighlightedTower = nullptr;
+		}
+		else if (m_HighlightedTower != tower)
+		{
+			m_HighlightedTower->SetHighlight(false);
+			m_HighlightedTower = tower;
+			tower->SetHighlight(true);
+		}
+	}
+	else
+	{
+		m_HighlightedTower = tower;
+		tower->SetHighlight(true);
+	}
 }
 
 void Level::InitWave()
@@ -521,12 +546,12 @@ void Level::InitWave()
 	// and use it after the for loop instead of casting the type to std::size_t
 	std::size_t enemyTypeIterator = 0u;
 	// for each enemy type
-	for (; enemyTypeIterator < (std::size_t)EnemyType::size; ++enemyTypeIterator)
+	for (; enemyTypeIterator < static_cast<std::size_t>(EnemyType::size); ++enemyTypeIterator)
 	{
 		// if currently iterated enemy type didn't reach still the expected amount of spawned enemies
 		if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave).container.at(enemyTypeIterator))
 		{
-			type = (EnemyType)enemyTypeIterator;
+			type = static_cast<EnemyType>(enemyTypeIterator);
 			m_SpecificEnemiesAmount[enemyTypeIterator]++;
 			break;
 		}

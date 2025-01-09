@@ -369,25 +369,16 @@ void Enemy::ValidAttacker()
 	}
 }
 
-bool Enemy::IsTowerInRange(Tower* tower) const
+bool Enemy::IsTowerInRange(Tower *tower) const
 {
-	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
-	// So all we need to do is add +1 to the position
-	static constexpr int32_t towerOffset = 1;
+	auto &tilesInRange = tower->GetTilesInRange();
 
-	int32_t posX = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize);
-	int32_t posY = static_cast<int32_t>(tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize);
-
-	int32_t enemyX = static_cast<int32_t>(m_Pos.x);
-	int32_t enemyY = static_cast<int32_t>(m_Pos.y);
-
-	for (auto i = App::s_TowerRange; i > 0; i--)
+	for (const auto &tile : tilesInRange)
 	{
-		if (posX - i <= enemyX && posY - i <= enemyY
-			&& posX + i + towerOffset >= enemyX && posY + i + towerOffset >= enemyY)
-		{
-			return true;
-		}
+		if (tile != m_OccupiedTile)
+			continue;
+
+		return true;
 	}
 
 	return false;

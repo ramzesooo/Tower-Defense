@@ -53,12 +53,15 @@ public:
 
 	// Returns reference to whole array m_OccupiedTiles
 	std::array<Tile*, 4> &GetOccupiedTiles() { return m_OccupiedTiles; }
+	auto &GetTilesInRange() { return m_TilesInRange; }
 
 	void PlayAnim(std::string_view animID);
 
 	bool IsAnimated() const { return m_AnimData.animated; }
 	void UpdateAnimSpeed(std::string_view animID, int32_t newSpeed);
 	int32_t GetAnimSpeed(std::string_view animID);
+
+	void SetHighlight(bool highlight) { m_IsHighlighted = highlight; }
 protected:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;
@@ -71,5 +74,7 @@ protected:
 	uint16_t m_Tier = 1;
 	uint16_t m_MaxTier = 3;
 	TowerAnimation m_AnimData;
-	std::vector<Tile*> m_TilesInRange; // TODO: Make it std::array
+
+	std::vector<Tile*> m_TilesInRange;
+	bool m_IsHighlighted = false;
 };

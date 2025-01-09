@@ -25,6 +25,9 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 	tile = nullptr;
 
+	// Squared triangle * 4 for all sides
+	m_TilesInRange.reserve(static_cast<std::size_t>((App::s_TowerRange + 1) * (App::s_TowerRange + 2) / 2 * 4));
+
 	for (auto y = 0; y <= static_cast<int16_t>(App::s_TowerRange); y++)
 	{
 		for (auto x = y; x <= static_cast<int16_t>(App::s_TowerRange); x++)
@@ -44,9 +47,15 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 				if (tile)
 				{
-					// Probably don't need it anymore, but didn't check everything
-					if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+					// Probably don't need it anymore, but gotta make sure
+					//if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+					//{
 						m_TilesInRange.emplace_back(tile);
+					//}
+					/*else
+					{
+						App::s_Logger.AddLog(std::format("Tower::Tower(): Tried to emplace a tile from {}, {} into m_TilesInRange, but it's already there", tileX, tileY));
+					}*/
 				}
 
 				// Right side
@@ -57,12 +66,20 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 				if (tile)
 				{
-					if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+					//if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
+					//{
 						m_TilesInRange.emplace_back(tile);
+					//}
+					/*else
+					{
+						App::s_Logger.AddLog(std::format("Tower::Tower(): Tried to emplace a tile from {}, {} into m_TilesInRange, but it's already there", tileX, tileY));
+					}*/
 				}
-			}
-		}
-	}
+			} // for loop i = 1; i = i - 2
+		} // for loop x = y
+	} // for loop y = 0
+
+	m_TilesInRange.shrink_to_fit();
 
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
@@ -98,8 +115,11 @@ void Tower::Destroy()
 
 void Tower::Draw()
 {
-	for (const auto &tile : m_TilesInRange)
-		tile->DrawHighlight();
+	if (m_IsHighlighted)
+	{
+		for (const auto &tile : m_TilesInRange)
+			tile->DrawHighlight();
+	}
 
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 

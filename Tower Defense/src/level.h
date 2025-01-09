@@ -137,6 +137,8 @@ private:
 	uint32_t m_WaveCooldown = 0u;
 	uint32_t m_NextSpawn = 0u;
 
+	Tower *m_HighlightedTower = nullptr;
+
 #if ASYNC_TILES == 1
 	std::vector<std::future<void>> m_Futures;
 #endif
