@@ -229,8 +229,6 @@ public:
 		else
 		{
 			s_IsCameraLocked = true;
-			//s_CameraMovement.moveX = 0.0f;
-			//s_CameraMovement.moveY = 0.0f;
 			s_CameraMovement.move = { 0.0f, 0.0f };
 		}
 	}
@@ -247,20 +245,17 @@ public:
 		else if (s_Camera.x > s_CameraMovement.border.x)
 		{
 			s_Camera.x = s_CameraMovement.border.x;
-			//s_CameraMovement.moveX = 0.0f;
 			s_CameraMovement.move.x = 0.0f;
 		}
 
 		if (s_Camera.y < 0.0f)
 		{
 			s_Camera.y = 0.0f;
-			//s_CameraMovement.moveY = 0.0f;
 			s_CameraMovement.move.y = 0.0f;
 		}
 		else if (s_Camera.y > s_CameraMovement.border.y)
 		{
 			s_Camera.y = s_CameraMovement.border.y;
-			//s_CameraMovement.moveY = 0.0f;
 			s_CameraMovement.move.y = 0.0f;
 		}
 	}
@@ -269,14 +264,12 @@ public:
 	{
 		if (s_Camera.x > 0.0f && s_MouseX <= s_CameraMovement.rangeW)
 		{
-			//s_CameraMovement.moveX = -s_CameraMovement.velocity;
 			s_CameraMovement.move.x = -s_CameraMovement.velocity;
 			return;
 		}
 
 		if (s_Camera.x < s_CameraMovement.border.x && s_MouseX >= static_cast<int32_t>(s_Camera.w) - s_CameraMovement.rangeW)
 		{
-			//s_CameraMovement.moveX = s_CameraMovement.velocity;
 			s_CameraMovement.move.x = s_CameraMovement.velocity;
 			return;
 		}
@@ -286,14 +279,12 @@ public:
 	{
 		if (s_Camera.y > 0.0f && s_MouseY <= s_CameraMovement.rangeH)
 		{
-			//s_CameraMovement.moveY = -s_CameraMovement.velocity;
 			s_CameraMovement.move.y = -s_CameraMovement.velocity;
 			return;
 		}
 
 		if (s_Camera.y < s_CameraMovement.border.y && s_MouseY >= static_cast<int32_t>(s_Camera.h) - s_CameraMovement.rangeH)
 		{
-			//s_CameraMovement.moveY = s_CameraMovement.velocity;
 			s_CameraMovement.move.y = s_CameraMovement.velocity;
 			return;
 		}
@@ -301,9 +292,7 @@ public:
 
 	inline void ManageCamera()
 	{
-		/*s_CameraMovement.moveX = 0.0f;
-		s_CameraMovement.moveY = 0.0f;*/
-		s_CameraMovement.move = { 0.0f, 0.0f };
+		s_CameraMovement.move.Zero();
 
 		ManageCameraX();
 		ManageCameraY();
@@ -347,8 +336,6 @@ public:
 		{
 		case ProjectileType::arrow:
 			return "projectileArrow";
-		//case ProjectileType::dark:
-			//return "projectileDarkTower";
 		case ProjectileType::thunder:
 			return "projectileDarkTower";
 		}

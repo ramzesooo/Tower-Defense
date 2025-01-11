@@ -55,10 +55,7 @@ public:
 
 	// Position for Tile class is already scaled tile size with map scale
 	Vector2D GetPos() const override { return m_Pos; }
-	void SetPos(Vector2D newPos) { m_Pos = newPos; }
-	void SetPos(float x, float y) { m_Pos = { x, y }; }
-	void SetPosX(float x) { m_Pos.x = x; }
-	void SetPosY(float y) { m_Pos.y = y; }
+	void SetPos(const Vector2D &newPos) { m_Pos = newPos; }
 
 	int32_t GetWidth() const { return destRect.w; }
 	int32_t GetHeight() const { return destRect.h; }

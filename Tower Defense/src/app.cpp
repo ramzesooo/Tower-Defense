@@ -481,7 +481,6 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	//if (s_CameraMovement.moveX != 0.0f || s_CameraMovement.moveY != 0.0f)
 	if (!s_CameraMovement.move.IsEqualZero())
 	{
 		UpdateCamera();
@@ -533,9 +532,6 @@ void App::DrawUI()
 
 void App::UpdateCamera()
 {
-	/*CameraMovement::realVelocity.x = s_CameraMovement.moveX * App::s_ElapsedTime;
-	CameraMovement::realVelocity.y = s_CameraMovement.moveY * App::s_ElapsedTime;*/
-
 	CameraMovement::realVelocity = s_CameraMovement.move * App::s_ElapsedTime;
 
 	s_Camera.x += CameraMovement::realVelocity.x;
@@ -642,6 +638,8 @@ void App::SetUIState(UIState state)
 
 void App::LoadLevel()
 {
+	Layer::s_MapWidth = s_CurrentLevel->m_MapData.at(0);
+
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{
 		std::ifstream mapFile(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));

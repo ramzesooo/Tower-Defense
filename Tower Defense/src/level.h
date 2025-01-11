@@ -20,15 +20,17 @@ struct WaveContainer
 	std::array<uint16_t, (std::size_t)EnemyType::size> container{};
 };
 
-//Layer references to just map's layer
+//Layer references to just map's layer of tiles
 class Layer
 {
 public:
+	static uint16_t s_MapWidth; // App::LoadLevel assign the correct map width situable for current level
+
 	std::vector<Tile*> m_Tiles;
 	std::vector<Tile*> m_DrawableTiles;
 public:
 	// returns a tile from specific coordinates
-	Tile *GetTileFrom(std::size_t posX, std::size_t posY, uint16_t mapWidth) const { return m_Tiles.at(posY * mapWidth + posX); }
+	Tile *GetTileFrom(std::size_t posX, std::size_t posY) const { return m_Tiles.at(posY * Layer::s_MapWidth + posX); }
 };
 
 enum class WaveProgress
@@ -109,14 +111,14 @@ public:
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
 	inline bool IsTileWalkable(const Vector2D &pos) const
 	{
-		const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y), m_MapData.at(0));
+		//const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y), m_MapData.at(0));
+		//const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y));
+		const Tile *tile = GetTileFrom(pos.x, pos.y, 2u);
 		if (tile && tile->IsWalkable())
 			return true;
 
 		return false;
 	}
-
-	//void HighlightRange(Tower *tower); // Basically loop exactly the same as Enemy::IsTowerInRange()
 private:
 	bool m_FailedLoading = false;
 	std::string_view m_BaseTextureID = "base";

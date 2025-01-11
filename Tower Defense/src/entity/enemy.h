@@ -17,6 +17,18 @@
 class Tower;
 class Attacker;
 
+struct DamageInfo
+{
+public:
+	static constexpr uint32_t lifespan = 3000u;
+	static constexpr uint32_t updatePosTime = 30u;
+
+	Label label;
+	uint32_t lifespanTicks;
+	uint32_t updateTicks;
+	int32_t updatedPosY = 0;
+};
+
 class Enemy : public Entity
 {
 public:
@@ -60,7 +72,7 @@ public:
 	void OnHit(uint16_t dmg);
 
 	// Verifies all possible attackers and forces them to attack the enemy if they should
-	// Or stops them from attackin if they are out of range
+	// Or stops them from attacking if they are out of range
 	void ValidAttacker();
 
 	// Returns true if specific tower has been found in forwarded range
@@ -100,6 +112,8 @@ private:
 	uint16_t m_HP = 0;
 	uint16_t m_MaxHP = 0;
 	float m_HPPercent = 100.0f;
+
+	std::vector<DamageInfo> m_TakenDamages;
 
 	uint16_t m_Coins = 1; // coins granted for killing the enemy
 

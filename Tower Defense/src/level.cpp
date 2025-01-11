@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <queue>
 
+uint16_t Layer::s_MapWidth = 0u;
+
 SDL_Texture *Level::s_Texture = nullptr;
 
 constexpr uint16_t pathID = 1026;
@@ -18,7 +20,6 @@ constexpr uint16_t spawnerID = 305;
 constexpr uint16_t waveCooldown = 3500; // miliseconds
 
 constexpr char configName[] = ".config";
-
 
 extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
@@ -628,7 +629,6 @@ void Level::Render()
 		{
 			tile->Draw();
 		}
-			
 	}
 
 	for (const auto &enemy : g_Enemies)
@@ -657,7 +657,7 @@ Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 	if (posX >= m_MapData.at(0) || posY >= m_MapData.at(1))
 		return nullptr;
 
-	return m_Layers.at(layer).GetTileFrom(posX, posY, m_MapData.at(0));
+	return m_Layers.at(layer).GetTileFrom(posX, posY);
 }
 
 #if ASYNC_TILES == 1
@@ -708,23 +708,3 @@ void Level::OnUpdateCamera()
 		p->AdjustToView();
 	}
 }
-
-//void Level::HighlightRange(Tower *tower)
-//{
-//	// Towers occupies 4 tiles (from x: 0, y: 0 to x: +1, y: +1)
-//	// So all we need to do is add +1 to the position
-//	static constexpr int32_t towerOffset = 1;
-//
-//	Vector2D origin{ tower->GetOccupiedTile(0u)->GetPos().x / App::s_CurrentLevel->m_ScaledTileSize,
-//		tower->GetOccupiedTile(0u)->GetPos().y / App::s_CurrentLevel->m_ScaledTileSize };
-//
-//	for (auto i = App::s_TowerRange; i > 0; i--)
-//	{
-//		Tile *tile = GetTileFrom(origin.x, origin.y);
-//		if (posX - i <= enemyX && posY - i <= enemyY
-//			&& posX + i + towerOffset >= enemyX && posY + i + towerOffset >= enemyY)
-//		{
-//			return true;
-//		}
-//	}
-//}

@@ -47,15 +47,7 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 				if (tile)
 				{
-					// Probably don't need it anymore, but gotta make sure
-					//if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
-					//{
-						m_TilesInRange.emplace_back(tile);
-					//}
-					/*else
-					{
-						App::s_Logger.AddLog(std::format("Tower::Tower(): Tried to emplace a tile from {}, {} into m_TilesInRange, but it's already there", tileX, tileY));
-					}*/
+					m_TilesInRange.emplace_back(tile);
 				}
 
 				// Right side
@@ -66,14 +58,7 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 				if (tile)
 				{
-					//if (std::find(m_TilesInRange.begin(), m_TilesInRange.end(), tile) == m_TilesInRange.end())
-					//{
-						m_TilesInRange.emplace_back(tile);
-					//}
-					/*else
-					{
-						App::s_Logger.AddLog(std::format("Tower::Tower(): Tried to emplace a tile from {}, {} into m_TilesInRange, but it's already there", tileX, tileY));
-					}*/
+					m_TilesInRange.emplace_back(tile);
 				}
 			} // for loop i = 1; i = i - 2
 		} // for loop x = y
@@ -118,7 +103,9 @@ void Tower::Draw()
 	if (m_IsHighlighted)
 	{
 		for (const auto &tile : m_TilesInRange)
+		{
 			tile->DrawHighlight();
+		}
 	}
 
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);

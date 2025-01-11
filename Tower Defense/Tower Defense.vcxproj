@@ -138,6 +138,10 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,7 +161,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -182,7 +186,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -206,6 +210,10 @@
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -225,7 +233,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -250,7 +258,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)dep\SDL2\include\;$(ProjectDir)dep\SDL2_image\include\;$(ProjectDir)dep\SDL2_ttf\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

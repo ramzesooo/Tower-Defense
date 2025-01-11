@@ -30,3 +30,16 @@ void DarkTower::Update()
 	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
 	m_Attacker->Update();
 }
+
+void DarkTower::Draw()
+{
+	if (m_IsHighlighted)
+	{
+		for (const auto &tile : m_TilesInRange)
+		{
+			tile->DrawHighlight();
+		}
+	}
+
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+}

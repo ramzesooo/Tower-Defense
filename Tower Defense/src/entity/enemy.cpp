@@ -8,6 +8,8 @@
 #include <format>
 #include <string_view>
 
+extern uint32_t g_PausedTicks;
+
 extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
 IF_DEBUG(extern std::vector<Entity*> &g_Enemies;);
@@ -147,6 +149,27 @@ void Enemy::Update()
 
 	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
+
+	for (auto it = m_TakenDamages.begin(); it != m_TakenDamages.end();)
+	{
+		uint32_t currentTicks = SDL_GetTicks() - g_PausedTicks;
+		if (SDL_TICKS_PASSED(currentTicks, (*it).lifespanTicks))
+		{
+			it = m_TakenDamages.erase(it);
+			continue;
+		}
+
+		if (SDL_TICKS_PASSED(currentTicks, (*it).updateTicks + DamageInfo::updatePosTime))
+		{
+			(*it).updatedPosY--;
+			(*it).updateTicks = currentTicks;
+		}
+
+		const SDL_Rect &rect = m_RectHP.labelHP.GetRect();
+		(*it).label.UpdatePos(rect.x - rect.w / 2, rect.y + (*it).updatedPosY);
+
+		it++;
+	}
 }
 
 void Enemy::Draw()
@@ -160,6 +183,12 @@ void Enemy::Draw()
 		TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
 		TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
 		m_RectHP.labelHP.Draw();
+		
+		for (auto &dmg : m_TakenDamages)
+		{
+			dmg.label.Draw();
+		}
+
 		return;
 	}
 
@@ -224,7 +253,7 @@ void Enemy::UpdateMovement()
 	{
 		if (!nextTile)
 		{
-			App::s_Logger.AddLog(std::string_view("Enemy tried to walk into a non-exising tile, enemy has been destroyed!"));
+			App::s_Logger.AddLog(std::string_view("Enemy tried to walk into a non-existing tile, enemy has been destroyed!"));
 			Destroy();
 			return;
 		}
@@ -322,11 +351,7 @@ void Enemy::AdjustToView()
 
 void Enemy::OnHit(uint16_t dmg)
 {
-	if (m_HP > dmg)
-	{
-		m_HP -= dmg;
-	}
-	else
+	if (m_HP <= dmg)
 	{
 		App::Instance().AddCoins(m_Coins);
 
@@ -334,6 +359,24 @@ void Enemy::OnHit(uint16_t dmg)
 		Destroy();
 		return;
 	}
+
+	static TTF_Font *defaultFont = App::s_Textures.GetFont("default");
+	static constexpr SDL_Color takenDamageColor{ 210, 0, 0, 255 };
+
+	m_HP -= dmg;
+
+	const Vector2D &pos = m_RectHP.labelHP.GetPos();
+
+	DamageInfo newTakenDamage;
+
+	newTakenDamage.label = Label(static_cast<int32_t>(pos.x), static_cast<int32_t>(pos.y), std::format("-{}", dmg), defaultFont, takenDamageColor);
+	const SDL_Rect &rect = newTakenDamage.label.GetRect();
+	newTakenDamage.label.UpdatePos(rect.x - rect.w / 2, rect.y);
+
+	newTakenDamage.lifespanTicks = SDL_GetTicks() - g_PausedTicks + newTakenDamage.lifespan;
+	newTakenDamage.updateTicks = SDL_GetTicks() - g_PausedTicks;
+
+	m_TakenDamages.emplace_back(newTakenDamage);
 
 	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 	

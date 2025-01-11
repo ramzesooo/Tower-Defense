@@ -9,4 +9,5 @@ public:
 	~DarkTower() = default;
 
 	virtual void Update() override;
+	virtual void Draw() override;
 };
