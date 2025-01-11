@@ -3,7 +3,8 @@ Tower Defense is one of my first projects in C++ as well as using SDL2.
 Tower Defense is 2D game using SDL2:
 - **SDL2 version 2.30.8**
 - **SDL2_image version 2.8.2**
-- **SDL2_ttf version 2.22.0.**
+- **SDL2_ttf version 2.22.0**
+- **SDL2_mixer version 2.8.0**
   
 At the moment I'm focused on releasing it only for Windows (as well as source code in Visual Studio) but it might change in future.
 
