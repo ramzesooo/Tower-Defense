@@ -34,7 +34,7 @@ public:
 
 	virtual void AdjustToView() = 0;
 
-	virtual Vector2D GetPos() const { return Vector2D(0.0f, 0.0f); }
+	virtual Vector2D GetPos() const { return { 0.0f, 0.0f }; }
 
 	virtual void Destroy() { m_IsActive = false; }
 	bool IsActive() const { return m_IsActive; }

@@ -73,7 +73,7 @@ public:
 
 	// All methods adding entities (such as tower, attacker and enemy) call AddGroup inside of them
 
-	// Position passed in parameters referes to left-upper square
+	// Position passed in parameters referees to left-upper square
 	// Towers take 4 tiles in this scheme:
 	// [0][1]
 	// [2][3]
@@ -99,8 +99,8 @@ public:
 	Base *GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
-	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0) const;
-	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0) const { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
+	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0u) const;
+	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0u) const { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();
@@ -111,8 +111,6 @@ public:
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
 	inline bool IsTileWalkable(const Vector2D &pos) const
 	{
-		//const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y), m_MapData.at(0));
-		//const Tile *tile = m_Layers.at(2).GetTileFrom(static_cast<std::size_t>(pos.x), static_cast<std::size_t>(pos.y));
 		const Tile *tile = GetTileFrom(pos.x, pos.y, 2u);
 		if (tile && tile->IsWalkable())
 			return true;

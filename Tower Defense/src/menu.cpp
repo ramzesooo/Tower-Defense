@@ -4,6 +4,7 @@
 #include "entity/label.h"
 
 #include "SDL_rect.h"
+#include "SDL_mixer.h"
 
 #include <format>
 
@@ -36,6 +37,8 @@ void MainMenu::HandleMouseButtonEvent()
 		return;
 
 	App::s_Logger.AddLog(std::format("Pressed button {}", m_HoveredButton->m_Label.GetText()));
+
+	Mix_PlayChannel(-1, App::s_Textures.GetSound("selectButton"), 0);
 
 	switch (s_State)
 	{
@@ -75,11 +78,9 @@ void MainMenu::OnCursorMove()
 		{
 			return;
 		}
-		else
-		{
-			m_HoveredButton->m_IsHovered = false;
-			m_HoveredButton = nullptr;
-		}
+
+		m_HoveredButton->m_IsHovered = false;
+		m_HoveredButton = nullptr;
 	}
 
 	switch (s_State)
@@ -94,6 +95,7 @@ void MainMenu::OnCursorMove()
 			{
 				m_PrimaryButtons.at(i).m_IsHovered = true;
 				m_HoveredButton = &m_PrimaryButtons.at(i);
+				Mix_PlayChannel(-1, App::s_Textures.GetSound("hoverButton"), 0);
 				return;
 			}
 		}

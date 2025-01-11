@@ -18,11 +18,18 @@ TextureManager::~TextureManager()
 		SDL_DestroyTexture(texture.second);
 	}
 
+	for (const auto &sound : sounds)
+	{
+		Mix_FreeChunk(sound.second);
+	}
+
 	TTF_Quit();
 
 	IF_DEBUG(App::s_Logger.AddLog(std::string_view("TextureManager::~TextureManager: Destroyed all fonts and textures and triggered TTF_Quit()")););
 	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
 }
+
+// TEXTURES
 
 void TextureManager::AddTexture(const std::string &textureID, const char* path)
 {
@@ -72,6 +79,10 @@ SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
 	return it->second;
 }
 
+// TEXTURES
+
+// FONTS
+
 void TextureManager::AddFont(std::string_view fontID, const char* path, uint16_t fontSize)
 {
 	TTF_Font *font = TTF_OpenFont(path, fontSize);
@@ -97,3 +108,34 @@ TTF_Font* TextureManager::GetFont(std::string_view fontID) const
 
 	return it->second;
 }
+
+// FONTS
+
+// SOUNDS
+
+void TextureManager::LoadSound(const std::string &soundID, const char *path)
+{
+	Mix_Chunk *sound = Mix_LoadWAV(path);
+	if (!sound)
+	{
+		App::s_Logger.AddLog(std::format("TextureManager::LoadSound: Couldn't load sound from \"{}\"", path));
+		return;
+	}
+
+	sounds.emplace(soundID, sound);
+}
+
+Mix_Chunk *TextureManager::GetSound(std::string_view soundID)
+{
+	auto it = sounds.find(soundID);
+	if (it == sounds.end())
+	{
+		App::s_Logger.AddLog(std::string_view("TextureManager::GetSound: Missing sound "), false);
+		App::s_Logger.AddLog(soundID);
+		return nullptr;
+	}
+
+	return it->second;
+}
+
+// SOUNDS

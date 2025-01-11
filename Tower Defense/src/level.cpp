@@ -11,25 +11,6 @@
 #include <unordered_map>
 #include <queue>
 
-uint16_t Layer::s_MapWidth = 0u;
-
-SDL_Texture *Level::s_Texture = nullptr;
-
-constexpr uint16_t pathID = 1026;
-constexpr uint16_t spawnerID = 305;
-constexpr uint16_t waveCooldown = 3500; // miliseconds
-
-constexpr char configName[] = ".config";
-
-extern std::vector<Entity*> &g_Projectiles;
-extern std::vector<Entity*> &g_Towers;
-extern std::vector<Entity*> &g_Attackers;
-extern std::vector<Entity*> &g_Enemies;
-
-extern std::default_random_engine g_Rng;
-
-extern uint32_t g_PausedTicks;
-
 static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goal)
 {
 	const Level &currentLevel = *App::s_CurrentLevel;
@@ -63,7 +44,6 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 			} };
 		}
 	};
-
 
 	// we use std::greater because by default, queue.top() returns the greatest element,
 	// and by using std::greater instead of std::less (the default) we flip this,
@@ -115,6 +95,25 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 	return result;
 }
 
+uint16_t Layer::s_MapWidth = 0u;
+
+SDL_Texture *Level::s_Texture = nullptr;
+
+static constexpr uint16_t pathID = 1026u;
+static constexpr uint16_t spawnerID = 305u;
+static constexpr uint16_t waveCooldown = 3500u; // milliseconds
+
+static constexpr char configName[] = ".config";
+
+extern std::vector<Entity*> &g_Projectiles;
+extern std::vector<Entity*> &g_Towers;
+extern std::vector<Entity*> &g_Attackers;
+extern std::vector<Entity*> &g_Enemies;
+
+extern std::default_random_engine g_Rng;
+
+extern uint32_t g_PausedTicks;
+
 Level::Level(uint16_t levelID)
 	: m_LevelID(levelID)
 {
@@ -163,10 +162,8 @@ Level::Level(uint16_t levelID)
 				m_BasePos.x = 0.0f;
 				continue;
 			}
-			else
-			{
-				m_BasePos.x = std::stof(value);
-			}
+
+			m_BasePos.x = std::stof(value);
 
 			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
 			{
@@ -194,8 +191,6 @@ Level::Level(uint16_t levelID)
 			continue;
 		}
 
-		m_Waves.reserve(1);
-
 		WaveContainer newWave{};
 
 		for (std::size_t i = 0u; i < newWave.container.size(); ++i)
@@ -206,8 +201,10 @@ Level::Level(uint16_t levelID)
 			newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
 		}
 
-		m_Waves.emplace_back(std::move(newWave));
+		m_Waves.emplace_back(newWave);
 	}
+
+	m_Waves.shrink_to_fit();
 	// LOAD CONFIG
 
 	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
@@ -434,7 +431,7 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 	/*if (!target->IsActive())
 		return;*/
 
-	Projectile *projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
+	auto *projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
 	projectile->AddToGroup(EntityGroup::projectile);
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }

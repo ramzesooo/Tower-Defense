@@ -182,6 +182,9 @@ App::App()
 
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
+	App::s_Textures.LoadSound("hoverButton", "assets\\sounds\\hover_button.wav");
+	App::s_Textures.LoadSound("selectButton", "assets\\sounds\\select_button.wav");
+
 	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
 	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);

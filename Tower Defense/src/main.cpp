@@ -34,9 +34,15 @@ int main(int argc, char** arg)
 		}
 	);
 
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0 || TTF_Init() != 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0 || TTF_Init() < 0)
 	{
 		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		return -1;
+	}
+
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+	{
+		App::s_Logger.AddLog(std::string_view(Mix_GetError()));
 		return -1;
 	}
 
