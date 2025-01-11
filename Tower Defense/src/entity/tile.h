@@ -19,10 +19,10 @@ public:
 	static SDL_Texture *s_RangeTexture;
 public:
 	Tile() = delete;
-	Tile(TileType type, int32_t tileScale);
-	Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture *texture, TileType type = TileType::regular);
+	Tile(TileType type);
+	Tile(int32_t srcX, int32_t srcY, int32_t posX, int32_t posY, SDL_Texture *texture, TileType type = TileType::regular);
 	Tile(const Tile &r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type),
-		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable) {}
+		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable), m_IsDrawable(r.m_IsDrawable) {}
 	~Tile() = default;
 
 	inline Tile &operator=(const Tile &r)
@@ -38,9 +38,12 @@ public:
 		m_EntityOccupying = r.m_EntityOccupying;
 		m_TowerOnTile = r.m_TowerOnTile;
 		m_IsWalkable = r.m_IsWalkable;
+		m_IsDrawable = r.m_IsDrawable;
 
 		return *this;
 	}
+
+	void InitSpecialTile();
 
 	void Destroy() override;
 

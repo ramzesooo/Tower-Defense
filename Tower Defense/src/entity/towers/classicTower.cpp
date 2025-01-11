@@ -3,7 +3,6 @@
 #include "../attackers/attacker.h"
 
 #include "SDL_rect.h"
-#include "SDL_render.h"
 
 ClassicTower::ClassicTower(float posX, float posY, TowerType type) : Tower(posX, posY, type)
 {

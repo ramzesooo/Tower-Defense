@@ -1,26 +1,24 @@
 #include "tile.h"
 #include "towers/tower.h"
 #include "../app.h"
+#include "../level.h"
 #include "../textureManager.h"
 
 SDL_Texture *Tile::s_RangeTexture = nullptr;
 
-Tile::Tile(TileType type, int32_t tileScale) : m_Type(type)
-{
-	destRect.w = srcRect.w * tileScale * 2;
-	destRect.h = srcRect.h * tileScale * 2;
-}
+Tile::Tile(TileType type) : srcRect{ 0, 0, Level::s_TileSize, Level::s_TileSize }, m_Type(type) {}
 
-Tile::Tile(uint32_t srcX, uint32_t srcY, uint32_t posX, uint32_t posY, int32_t tileSize, int32_t tileScale, SDL_Texture *texture, TileType type)
-	: m_Pos(static_cast<float>(posX), static_cast<float>(posY)), m_Texture(texture), m_Type(type)
-{
-	srcRect.x = srcX;
-	srcRect.y = srcY;
-	srcRect.w = srcRect.h = tileSize; // 24 by default
+Tile::Tile(int32_t srcX, int32_t srcY, int32_t posX, int32_t posY, SDL_Texture *texture, TileType type)
+	: srcRect{ srcX, srcY, Level::s_TileSize, Level::s_TileSize },
+	destRect{ static_cast<int32_t>(posX - App::s_Camera.x), static_cast<int32_t>(posY - App::s_Camera.y), Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2), Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2) },
+	m_Pos(static_cast<float>(posX), static_cast<float>(posY)), m_Texture(texture), m_Type(type)
+{}
 
-	destRect.x = static_cast<int32_t>(posX - App::s_Camera.x);
-	destRect.y = static_cast<int32_t>(posY - App::s_Camera.y);
-	destRect.w = destRect.h = tileSize * tileScale;
+void Tile::InitSpecialTile()
+{
+	// default tile's size * scale * 2
+	// times 2 because towers take 4 tiles
+	destRect.w = destRect.h = Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2) * 2;
 }
 
 void Tile::Destroy()

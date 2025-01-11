@@ -20,8 +20,8 @@ class Attacker;
 struct DamageInfo
 {
 public:
-	static constexpr uint32_t lifespan = 3000u;
-	static constexpr uint32_t updatePosTime = 30u;
+	static constexpr uint32_t lifespan = 1100u;
+	static constexpr uint32_t updatePosTime = 40u;
 
 	Label label;
 	uint32_t lifespanTicks;
@@ -54,15 +54,13 @@ public:
 	Vector2D GetScaledPos() const { return m_ScaledPos; }
 	const SDL_Rect &GetRect() const { return destRect; }
 
-	// Vector2D destination is a difference between current position
-	// For example it should be x: 1.0f, y: -1.0f to move one tile left and 1 tile up
+	// Vector2D destination is a difference between current position and next tile
+	// For example it should be x: 1.0f, y: -1.0f to move one tile left and 1 tile up (rendering from left-upper corner)
 	// Enemy's position is calculated appropriate to tiles count
 	// And rendering is properly calculated to tiles' size
 	// So for example its position will be like Vector2D(1.0f, 1.0f)
 	// And it will be rendered on x * tile size, y * tile size
-	/*void Move(Vector2D destination);
-	void Move(float destinationX, float destinationY);*/
-	bool IsMoving() const { return m_Velocity.x != 0.0f || m_Velocity.y != 0.0f; }
+	bool IsMoving() const { return !m_Velocity.IsEqualZero(); }
 	void UpdateMovement();
 	void Move();
 	

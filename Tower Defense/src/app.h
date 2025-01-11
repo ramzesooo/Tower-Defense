@@ -31,8 +31,6 @@ struct CameraMovement
 
 	int32_t rangeW = 800 / 6;
 	int32_t rangeH = 600 / 6;
-	//float moveX = 0.0f;
-	//float moveY = 0.0f;
 	Vector2D move{};
 	Vector2D border{};
 };
@@ -44,9 +42,9 @@ struct BuildingState
 	static SDL_Texture *originalTexture;
 
 	bool canBuild = false;
-	Tile buildingPlace{ TileType::special, 2 };
+	Tile buildingPlace{ TileType::special };
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
-	Vector2D coordinates;
+	Vector2D coordinates{};
 	Tower *towerToUpgrade = nullptr;
 };
 
@@ -239,7 +237,6 @@ public:
 		if (s_Camera.x < 0.0f)
 		{
 			s_Camera.x = 0.0f;
-			//s_CameraMovement.moveX = 0.0f;
 			s_CameraMovement.move.x = 0.0f;
 		}
 		else if (s_Camera.x > s_CameraMovement.border.x)

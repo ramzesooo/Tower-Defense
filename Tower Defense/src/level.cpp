@@ -275,8 +275,8 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 	newLayer->m_DrawableTiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
 
 	Tile *tile = nullptr;
-	uint32_t srcX, srcY;
-	uint32_t x, y;
+	int32_t srcX, srcY;
+	int32_t x, y;
 
 	for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
 	{
@@ -286,7 +286,7 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
 
-		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_TileSize, m_MapData.at(2), s_Texture, tileType);
+		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
 
 		if (layerID == 2)
 		{
@@ -311,7 +311,6 @@ void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
 			// We are storing nullptr in the vector even if the tile couldn't be created
 			// Because it hasn't been designed to expect any tile to be failed
 			// So then maybe if (tile) when needed, but probably something's just wrong if it can't be created
-			tile = nullptr; // Let's make sure it's nullptr, but idk if it's the correct way for this if statement
 		}
 
 		newLayer->m_Tiles.emplace_back(tile);
@@ -333,7 +332,7 @@ void Level::SetupBase()
 	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
 	m_Base.m_Pos = { static_cast<float>(scaledPosX), static_cast<float>(scaledPosY) };
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
-	m_Base.m_Tile = GetTileFrom(static_cast<uint32_t>(m_BasePos.x), static_cast<uint32_t>(m_BasePos.y), 0);
+	m_Base.m_Tile = GetTileFrom(m_BasePos.x, m_BasePos.y, 0);
 
 	App::s_Logger.AddLog(std::format("Created base ({}, {})", scaledPosX, scaledPosY));
 }

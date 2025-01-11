@@ -3,7 +3,6 @@
 #include "../attackers/attacker.h"
 
 #include "SDL_rect.h"
-#include "SDL_render.h"
 
 extern uint32_t g_PausedTicks;
 

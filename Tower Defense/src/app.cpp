@@ -220,6 +220,8 @@ App::App()
 	{
 		s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
 		s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+
+		s_Building.buildingPlace.InitSpecialTile();
 	}
 	
 	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);

@@ -361,7 +361,7 @@ void Enemy::OnHit(uint16_t dmg)
 	}
 
 	static TTF_Font *defaultFont = App::s_Textures.GetFont("default");
-	static constexpr SDL_Color takenDamageColor{ 210, 0, 0, 255 };
+	static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
 
 	m_HP -= dmg;
 
