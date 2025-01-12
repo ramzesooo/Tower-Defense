@@ -99,5 +99,12 @@ int main(int argc, char** arg)
 		app.Render();
 	}
 
+	Mix_CloseAudio();
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view("Triggered Mix_CloseAudio()")););
+
+	// TTF_Quit() is called in ~TextureManager()
+	SDL_Quit();
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("Triggered SDL_Quit()")););
+
 	return 0;
 }

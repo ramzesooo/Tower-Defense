@@ -12,6 +12,8 @@ public:
 	void AddLog(std::string_view newLog, bool endLine = true);
 	void AddLog(const std::string &newLog, bool endLine = true);
 #ifdef DEBUG
+	void AddInstantLog(std::string_view newLog, bool endLine = true);
+	void AddInstantLog(const std::string &newLog, bool endLine = true);
 	void PrintQueuedLogs();
 	inline void ClearLogs() { logs.clear(); }
 #endif

@@ -68,8 +68,7 @@ struct FontData
 static constexpr FontData fontsToLoad[]
 {
 	{ "default",		"F25_Bank_Printer.ttf", 15u },
-	{ "enemyHealth",	"Rostack.otf", 13u },
-	{ "baseHealth",		"Rostack.otf", 26u }
+	{ "enemyHealth",	"Rostack.otf", 13u }
 };
 
 // FONTS
@@ -107,8 +106,7 @@ TextureManager::~TextureManager()
 
 	TTF_Quit();
 
-	IF_DEBUG(App::s_Logger.AddLog(std::string_view("TextureManager::~TextureManager: Destroyed all assets and triggered TTF_Quit()")););
-	IF_DEBUG(App::s_Logger.PrintQueuedLogs(););
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view("TextureManager::~TextureManager: Destroyed all assets and triggered TTF_Quit()")););
 }
 
 void TextureManager::LoadAssets() // Initialize
@@ -129,31 +127,6 @@ void TextureManager::LoadAssets() // Initialize
 	}
 }
 
-// TEXTURES
-
-void TextureManager::AddTexture(const std::string &textureID, const char *path)
-{
-	SDL_Surface *tempSurface = IMG_Load(path);
-	if (!tempSurface)
-	{
-		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
-		return;
-	}
-
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(App::s_Renderer, tempSurface);
-	if (!texture)
-	{
-		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
-		SDL_FreeSurface(tempSurface);
-		return;
-	}
-	SDL_FreeSurface(tempSurface);
-
-	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded texture \"{}\" from \"{}\"", textureID, path)););
-
-	textures.emplace(textureID, texture);
-}
-
 void TextureManager::DrawTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dest, double angle, SDL_RendererFlip flip)
 {
 	SDL_RenderCopyEx(App::s_Renderer, texture, &src, &dest, angle, nullptr, flip);
@@ -164,6 +137,33 @@ void TextureManager::DrawTextureF(SDL_Texture *texture, const SDL_Rect &src, con
 	SDL_RenderCopyExF(App::s_Renderer, texture, &src, &dest, angle, nullptr, flip);
 	// Basically could be if (SDL_RenderCopyExF(...) != 0) to print errors as well as TextureManager::DrawTexture
 	// But already GetTexture() throws log about missing texture or whatever
+}
+
+// TEXTURES
+
+void TextureManager::AddTexture(const std::string &textureID, const char *path)
+{
+	SDL_Surface *tempSurface = IMG_Load(path);
+	if (!tempSurface)
+	{
+		IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view(SDL_GetError())););
+		IF_NDEBUG(App::s_Logger.AddLog(std::string_view(SDL_GetError())););
+		return;
+	}
+
+	SDL_Texture *texture = SDL_CreateTextureFromSurface(App::s_Renderer, tempSurface);
+	if (!texture)
+	{
+		IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view(SDL_GetError())););
+		IF_NDEBUG(App::s_Logger.AddLog(std::string_view(SDL_GetError())););
+		SDL_FreeSurface(tempSurface);
+		return;
+	}
+	SDL_FreeSurface(tempSurface);
+
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::format("Loaded texture \"{}\" from \"{}\"", textureID, path)););
+
+	textures.emplace(textureID, texture);
 }
 
 SDL_Texture* TextureManager::GetTexture(std::string_view textureID) const
@@ -189,11 +189,12 @@ void TextureManager::AddFont(std::string_view fontID, const char *path, uint16_t
 
 	if (!font)
 	{
-		App::s_Logger.AddLog(std::format("TextureManager::GetFont: Couldn't open font {}", path));
+		IF_DEBUG(App::s_Logger.AddInstantLog(std::format("TextureManager::GetFont: Couldn't open font {}", path)););
+		IF_NDEBUG(App::s_Logger.AddLog(std::format("TextureManager::GetFont: Couldn't open font {}", path)););
 		return;
 	}
 
-	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded font \"{}\" (size: {}) from \"{}\"", fontID, fontSize, path)););
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::format("Loaded font \"{}\" (size: {}) from \"{}\"", fontID, fontSize, path)););
 
 	fonts.emplace(fontID, font);
 }
@@ -220,11 +221,12 @@ void TextureManager::LoadSound(const std::string &soundID, const char *path)
 	Mix_Chunk *sound = Mix_LoadWAV(path);
 	if (!sound)
 	{
-		App::s_Logger.AddLog(std::format("TextureManager::LoadSound: Couldn't load sound from \"{}\"", path));
+		IF_DEBUG(App::s_Logger.AddInstantLog(std::format("TextureManager::LoadSound: Couldn't load sound from \"{}\"", path)););
+		IF_NDEBUG(App::s_Logger.AddLog(std::format("TextureManager::LoadSound: Couldn't load sound from \"{}\"", path)););
 		return;
 	}
 
-	IF_DEBUG(App::s_Logger.AddLog(std::format("Loaded sound \"{}\" from \"{}\"", soundID, path)););
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::format("Loaded sound \"{}\" from \"{}\"", soundID, path)););
 
 	sounds.emplace(soundID, sound);
 }

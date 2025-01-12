@@ -20,8 +20,6 @@ public:
 
 	void LoadAssets();
 
-	void AddTexture(const std::string &textureID, const char *path);
-
 	// DrawTexture is responsible for drawing rectangles with integer values
 	// angle is NULL and flip is SDL_FLIP_NONE by default
 	static void DrawTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
@@ -30,6 +28,7 @@ public:
 	// angle is NULL and flip is SDL_FLIP_NONE by default
 	static void DrawTextureF(SDL_Texture* texture, const SDL_Rect& src, const SDL_FRect& dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
+	void AddTexture(const std::string &textureID, const char *path);
 	SDL_Texture* GetTexture(std::string_view textureID) const;
 
 	void AddFont(std::string_view fontID, const char* path, uint16_t fontSize);

@@ -100,6 +100,8 @@ public:
 	App();
 	~App();
 
+	void AssignStaticAssets();
+
 	inline void PrepareUI()
 	{
 		static TTF_Font *font = App::s_Textures.GetFont("default");

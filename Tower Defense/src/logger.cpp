@@ -41,6 +41,36 @@ void Logger::AddLog(const std::string &newLog, bool endLine)
 	}
 }
 
+void Logger::AddInstantLog(std::string_view newLog, bool endLine)
+{
+	logFile << newLog;
+
+	if (endLine)
+	{
+		logFile << "\n";
+		std::cout << newLog << "\n";
+	}
+	else
+	{
+		std::cout << newLog;
+	}
+}
+
+void Logger::AddInstantLog(const std::string &newLog, bool endLine)
+{
+	logFile << newLog;
+
+	if (endLine)
+	{
+		logFile << "\n";
+		std::cout << newLog << "\n";
+	}
+	else
+	{
+		std::cout << newLog;
+	}
+}
+
 void Logger::PrintQueuedLogs()
 {
 	for (const auto &log : logs)
