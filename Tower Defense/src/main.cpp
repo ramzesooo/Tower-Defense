@@ -1,6 +1,9 @@
 #include "common.h"
-#include "app.h"
+
+#ifdef DEBUG
 #include "entity/label.h"
+#endif
+#include "app.h"
 
 #include "SDL.h"
 #include "SDL_ttf.h"

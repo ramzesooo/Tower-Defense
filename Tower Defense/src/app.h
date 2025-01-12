@@ -14,6 +14,7 @@
 #include "SDL_render.h"
 #include "SDL_events.h"
 #include "SDL_ttf.h"
+#include "SDL_mixer.h"
 
 #include <string>
 #include <random>
@@ -227,7 +228,7 @@ public:
 		else
 		{
 			s_IsCameraLocked = true;
-			s_CameraMovement.move = { 0.0f, 0.0f };
+			s_CameraMovement.move.Zero();
 		}
 	}
 
@@ -417,8 +418,12 @@ public:
 	// Arg is not required, takes 1 by default
 	static inline void TakeLifes(uint16_t lifes = 1)
 	{
+		static Mix_Chunk *hurtSound = App::s_Textures.GetSound("hurt");
+
 		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
 			return;
+
+		Mix_PlayChannel(-1, hurtSound, 0);
 
 		if (lifes >= s_CurrentLevel->GetBase()->m_Lifes)
 		{

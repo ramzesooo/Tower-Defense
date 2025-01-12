@@ -13,7 +13,12 @@ class TextureManager // wrong name, but too lazy for change it everywhere
 {
 public:
 	TextureManager() = default;
+	TextureManager(const TextureManager &) = delete;
 	~TextureManager();
+
+	TextureManager &operator=(const TextureManager &) = delete;
+
+	void LoadAssets();
 
 	void AddTexture(const std::string &textureID, const char *path);
 

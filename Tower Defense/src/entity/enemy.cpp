@@ -132,8 +132,10 @@ void Enemy::Update()
 			return;
 	);
 
+	// Check if the enemy has stopped
 	if (m_Velocity.IsEqualZero())
 	{
+		// Check if the enemy has already done its last step (has reached destination) and destroy it if true
 		if (m_MoveCount == m_Path.size())
 		{
 			Destroy();
@@ -141,24 +143,31 @@ void Enemy::Update()
 			return;
 		}
 
+		// Look for next step to destination if not reached
 		Move();
 		m_MoveCount++;
 	}
 
 	UpdateMovement();
 
+	// Animation
 	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
 
+	// Iterate through all info about damage associated with the enemy
 	for (auto it = m_TakenDamages.begin(); it != m_TakenDamages.end();)
 	{
-		uint32_t currentTicks = SDL_GetTicks() - g_PausedTicks;
+		uint32_t currentTicks = SDL_GetTicks() - g_PausedTicks; // g_PausedTicks referees to spent ticks on paused state
+
+		// Check if the damage info should be already deleted
 		if (SDL_TICKS_PASSED(currentTicks, (*it).lifespanTicks))
 		{
+			// Erase from vector and skip the rest
 			it = m_TakenDamages.erase(it);
 			continue;
 		}
 
+		// Check if height of the info should be already decreased (should go more to top)
 		if (SDL_TICKS_PASSED(currentTicks, (*it).updateTicks + DamageInfo::updatePosTime))
 		{
 			(*it).updatedPosY--;
@@ -249,8 +258,10 @@ void Enemy::UpdateMovement()
 {
 	Tile *nextTile = App::s_CurrentLevel->GetTileFrom(uint32_t(m_Pos.x + (m_Velocity.x * App::s_ElapsedTime)), uint32_t(m_Pos.y + (m_Velocity.y * App::s_ElapsedTime)));
 
+	// Check if the enemy is about to reach next tile
 	if (nextTile != m_OccupiedTile)
 	{
+		// Check if the next tile doesn't exist
 		if (!nextTile)
 		{
 			App::s_Logger.AddLog(std::string_view("Enemy tried to walk into a non-existing tile, enemy has been destroyed!"));
@@ -278,19 +289,21 @@ void Enemy::UpdateMovement()
 		m_OccupiedTile = nextTile;
 		m_OccupiedTile->SetOccupyingEntity(this);
 
+		// Probably it's not needed anymore since attackers check by themselves if they should switch the target
 		ValidAttacker();
 	}
 
+	// Updated position and scale it to tiles' size
 	m_Pos += m_Velocity * App::s_ElapsedTime;
-
 	m_ScaledPos = m_Pos * App::s_CurrentLevel->m_ScaledTileSize;
 
 	destRect.x = static_cast<int32_t>(m_ScaledPos.x - App::s_Camera.x) - destRect.w / 8;
 	destRect.y = static_cast<int32_t>(m_ScaledPos.y - App::s_Camera.y) - destRect.h / 8;
 
+	// Check if distance between current position and next step's (tile's) position is less than enemy's movement speed
+	// Basically just predict if in next frame the position will be equal to destination (next tile)
 	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.x = 0.0f;
-
 	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.y = 0.0f;
 
@@ -309,8 +322,10 @@ void Enemy::UpdateMovement()
 
 void Enemy::Move()
 {
+	// Assign position of next tile to m_Destination to let enemy reach it
 	m_Destination = m_Path.at(m_MoveCount);
 
+	// Check the direction
 	if (m_Destination.x > m_Pos.x)
 		m_Velocity.x = m_MovementSpeed;
 	else if (m_Destination.x < m_Pos.x)
@@ -398,10 +413,9 @@ void Enemy::ValidAttacker()
 		attacker = tower->GetAttacker();
 
 		if (!attacker)
-		{
 			continue;
-		}
-		else if (attacker->GetTarget() == this && !IsTowerInRange(tower))
+
+		if (attacker->GetTarget() == this && !IsTowerInRange(tower))
 		{
 			attacker->StopAttacking();
 		}

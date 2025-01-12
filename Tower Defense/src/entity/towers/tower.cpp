@@ -3,6 +3,8 @@
 #include "../../textureManager.h"
 #include "../../app.h"
 
+#include "SDL_mixer.h"
+
 #include <format>
 
 extern uint32_t g_PausedTicks;
@@ -13,6 +15,7 @@ Tower::Tower(float posX, float posY, TowerType type)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
 	m_Type(type), m_Texture(s_TowerTextures.at(static_cast<std::size_t>(type)))
 {
+	static Mix_Chunk *buildSound = App::s_Textures.GetSound("finishBuild");
 	static constexpr uint16_t towerOffset = 1;
 
 	Tile *tile = nullptr;
@@ -65,6 +68,8 @@ Tower::Tower(float posX, float posY, TowerType type)
 	} // for loop y = 0
 
 	m_TilesInRange.shrink_to_fit();
+
+	Mix_PlayChannel(-1, buildSound, 0); // play sound
 
 	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
 	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);

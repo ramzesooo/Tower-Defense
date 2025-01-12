@@ -2,6 +2,7 @@
 #include "../towers/tower.h"
 #include "../../app.h"
 
+#include "SDL_mixer.h"
 
 extern uint32_t g_PausedTicks;
 extern std::vector<Entity*> &g_Enemies;
@@ -19,6 +20,8 @@ DarkAttacker::DarkAttacker(Tower *occupiedTower, AttackerType type, SDL_Texture 
 
 void DarkAttacker::Update()
 {
+	static Mix_Chunk *attackSound = App::s_Textures.GetSound("thunderAttack");
+
 	uint32_t ticks = SDL_GetTicks() - g_PausedTicks;
 
 	// Create new projectile if got target and passed the cooldown of attack
@@ -30,6 +33,7 @@ void DarkAttacker::Update()
 	{
 		m_NextShot = ticks + m_ShotCooldown;
 		App::s_CurrentLevel->AddProjectile(m_ProjectileType, this, m_Target);
+		Mix_PlayChannel(-1, attackSound, 0);
 	}
 }
 

@@ -1,6 +1,5 @@
 #include "label.h"
 #include "entity.h"
-#include "enemy.h"
 #include "../app.h"
 #include "../logger.h"
 

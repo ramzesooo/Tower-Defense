@@ -61,7 +61,7 @@ Label App::s_UICoinsNotification(1000);
 bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement;
-Vector2D CameraMovement::realVelocity{ 0.0f, 0.0f };
+Vector2D CameraMovement::realVelocity{};
 
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
@@ -86,46 +86,46 @@ uint32_t g_PausedTicks = 0;
 
 extern SDL_DisplayMode displayInfo;
 
-struct TextureData
-{
-	std::string_view id, path;
-};
-
-static constexpr TextureData textures[]
-{
-	{ "mapSheet", "assets/tileset.png" },
-	{ "szpaku", "assets/szpaku.jpg" },
-	{ "buttonUI", "assets/ui/ui_button.png" },
-	{ "hoveredButtonUI", "assets/ui/ui_button_hovered.png" },
-	{ "canBuild", "assets/ui/tile_CanBuild.png" },
-	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
-	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
-	{ "highlightTowerRange", "assets/ui/highlightRange.png" },
-	{ "elementUI", "assets/ui/ui_element.png" },
-	{ "coinUI", "assets/ui/coin.png" },
-	{ "heartUI", "assets/ui/heart.png" },
-
-	{ "base", "assets/base.png" },
-	{ "square", "assets/square_32x32.png" },
-	{ "green", "assets/green_32x32.png" },
-	{ "transparent", "assets/transparent.png" },
-	{ "grayArrow", "assets/grayArrow_32x32.png" },
-
-	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
-	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
-
-	{ App::TextureOf(ProjectileType::arrow), "assets/projectiles/arrow_16x16.png" },
-	{ App::TextureOf(ProjectileType::thunder), "assets/projectiles/thunder.png" },
-
-	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
-	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
-	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
-
-	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
-	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
-	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },
-	{ App::TextureOf(EnemyType::dwarfKing), "assets/entities/enemy/enemyDwarfKing.png" }
-};
+//struct TextureData
+//{
+//	std::string_view id, path;
+//};
+//
+//static constexpr TextureData textures[]
+//{
+//	{ "mapSheet", "assets/tileset.png" },
+//	{ "szpaku", "assets/szpaku.jpg" },
+//	{ "buttonUI", "assets/ui/ui_button.png" },
+//	{ "hoveredButtonUI", "assets/ui/ui_button_hovered.png" },
+//	{ "canBuild", "assets/ui/tile_CanBuild.png" },
+//	{ "cantBuild", "assets/ui/tile_CantBuild.png" },
+//	{ "upgradeTower", "assets/ui/tile_Upgrade.png" },
+//	{ "highlightTowerRange", "assets/ui/highlightRange.png" },
+//	{ "elementUI", "assets/ui/ui_element.png" },
+//	{ "coinUI", "assets/ui/coin.png" },
+//	{ "heartUI", "assets/ui/heart.png" },
+//
+//	{ "base", "assets/base.png" },
+//	{ "square", "assets/square_32x32.png" },
+//	{ "green", "assets/green_32x32.png" },
+//	{ "transparent", "assets/transparent.png" },
+//	{ "grayArrow", "assets/grayArrow_32x32.png" },
+//
+//	{ App::TextureOf(TowerType::classic), "assets/towers/classic/tower.png"},
+//	{ App::TextureOf(TowerType::dark), "assets/towers/dark/DarkTower-Sheet.png"},
+//
+//	{ App::TextureOf(ProjectileType::arrow), "assets/projectiles/arrow_16x16.png" },
+//	{ App::TextureOf(ProjectileType::thunder), "assets/projectiles/thunder.png" },
+//
+//	{ App::TextureOf(AttackerType::archer), "assets/entities/friendly/attackerArcher.png" },
+//	{ App::TextureOf(AttackerType::hunter), "assets/entities/friendly/attackerHunter.png"},
+//	{ App::TextureOf(AttackerType::musketeer), "assets/entities/friendly/attackerMusketeer.png" },
+//
+//	{ App::TextureOf(EnemyType::elf), "assets/entities/enemy/enemyElf.png" },
+//	{ App::TextureOf(EnemyType::goblinWarrior), "assets/entities/enemy/enemyGoblinWarrior.png" },
+//	{ App::TextureOf(EnemyType::dwarfSoldier), "assets/entities/enemy/enemyDwarfSoldier.png" },
+//	{ App::TextureOf(EnemyType::dwarfKing), "assets/entities/enemy/enemyDwarfKing.png" }
+//};
 
 App::App()
 {
@@ -145,7 +145,7 @@ App::App()
 		initialized = false;
 	}
 
-	SDL_Surface *iconSurface = IMG_Load("assets\\gugu.png");
+	SDL_Surface *iconSurface = IMG_Load("assets/gugu.png");
 	if (!iconSurface)
 	{
 		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
@@ -170,10 +170,12 @@ App::App()
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
 
-	for (const auto &[id, path] : textures)
+	/*for (const auto &[id, path] : textures)
 	{
 		App::s_Textures.AddTexture(std::string(id), std::string(path).c_str());
-	}
+	}*/
+
+	s_Textures.LoadAssets();
 
 	for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
 	{
@@ -182,12 +184,16 @@ App::App()
 
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
-	App::s_Textures.LoadSound("hoverButton", "assets\\sounds\\hover_button.wav");
-	App::s_Textures.LoadSound("selectButton", "assets\\sounds\\select_button.wav");
+	//App::s_Textures.LoadSound("hoverButton", "assets\\sounds\\hover_button.wav");
+	//App::s_Textures.LoadSound("selectButton", "assets\\sounds\\select_button.wav");
+	//App::s_Textures.LoadSound("thunderAttack", "assets\\sounds\\thunder_attack.wav");
+	//App::s_Textures.LoadSound("arrowAttack", "assets\\sounds\\arrow_attack.wav");
+	//App::s_Textures.LoadSound("hurt", "assets\\sounds\\hurt.wav");
+	//App::s_Textures.LoadSound("finishBuild", "assets\\sounds\\finish_build.wav");
 
-	App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
+	/*App::s_Textures.AddFont("default", "assets\\F25_Bank_Printer.ttf", 15);
 	App::s_Textures.AddFont("enemyHealth", "assets\\Rostack.otf", 13);
-	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);
+	App::s_Textures.AddFont("baseHealth", "assets\\Rostack.otf", 26);*/
 
 	defaultFont = App::s_Textures.GetFont("default");
 
@@ -303,6 +309,9 @@ App::~App()
 		m_Window = nullptr;
 		IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Window has been destroyed")););
 	}
+
+	Mix_CloseAudio();
+	IF_DEBUG(App::s_Logger.AddLog(std::string_view("App::~App: Triggered Mix_CloseAudio()")););
 
 	// TTF_Quit() is called in ~TextureManager()
 	SDL_Quit();
