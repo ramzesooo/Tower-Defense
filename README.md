@@ -17,6 +17,11 @@ For making some assets I've mostly used **Pyxel Edit**, but some of them have be
 - [**"Survival - Tower Defense" *by FkgCluster***](https://fkgcluster.itch.io/survivaltowerdefense)
 - [**"UI Bars" *by guilemus***](https://guilemus.itch.io/ui-bars)
 - [**"Dark Tower" *by CreativeKind***](https://creativekind.itch.io/dark-tower)
+- [**Part of sound effects *made by Nathan Gibson***](https://nathangibson.myportfolio.com)
+- [**Part of sound effects *made by JDSherbert***](https://jdsherbert.itch.io/)
+- [**Part of sound effects *made by FALLENBLOOD***](https://fallenblood.itch.io/50-sfx)
+
+If someone has been not mentioned, then I'm sorry, but that's probably because of lack of the source - couldn't find it once more to mention them here.
 
 ## Idea of the game
 Basically, while making the game I've got more than just one idea of designing it, but at the moment I ended up with specifying amount of levels in *app.cpp* to prepare all of them at the start of the game, but the main job is done in App::LoadLevel(), I tried to make all of it to be done automatically and I tried to avoid hard-coding anything to make it easier to be adjusted if somehow anybody tried to have some fun with the game and make some adjustments/changes/tests, whatever.
