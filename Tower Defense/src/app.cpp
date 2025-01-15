@@ -9,8 +9,6 @@
 #include <fstream>
 #include <cmath>
 
-static constexpr uint16_t levelsToLoad = 1;
-
 // class App STATIC VARIABLES
 App *App::s_Instance = nullptr;
 
@@ -136,9 +134,9 @@ App::App()
 
 	AssignStaticAssets();
 
-	m_Levels.reserve(levelsToLoad);
+	m_Levels.reserve(MainMenu::s_LevelsToLoad);
 
-	for (uint16_t i = 0u; i < levelsToLoad; i++)
+	for (uint16_t i = 0u; i < MainMenu::s_LevelsToLoad; i++)
 	{
 		m_Levels.emplace_back(i);
 	}
@@ -176,45 +174,7 @@ App::App()
 	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", defaultFont););
 	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(500, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 }););
 
-	int32_t centerX = App::WINDOW_WIDTH / 2;
-	int32_t centerY = App::WINDOW_HEIGHT / 2;
-
-	// MAIN MENU
-	Button *btn = nullptr;
-
-	for (std::size_t i = 0u; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(i);
-		btn->destRect.w = App::WINDOW_WIDTH / 7;
-		btn->destRect.h = App::WINDOW_HEIGHT / 14;
-		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
-	}
-
-	// Button "Play"
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-
-	// Button "Options"
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(1);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-
-	// Button "Exit"
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(2);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-	// MAIN MENU
+	InitMainMenu();
 
 	App::s_IsRunning = initialized;
 }
@@ -254,7 +214,11 @@ void App::AssignStaticAssets()
 	App::s_Square = App::s_Textures.GetTexture("square");
 
 	Button::s_DefaultButton = App::s_Textures.GetTexture("buttonUI");
+	Button::s_DefaultButtonChecked = App::s_Textures.GetTexture("checkedButtonUI");
+	Button::s_DefaultButtonUnchecked = App::s_Textures.GetTexture("uncheckedButtonUI");
 	Button::s_HoveredButton = App::s_Textures.GetTexture("hoveredButtonUI");
+	Button::s_HoveredButtonChecked = App::s_Textures.GetTexture("checkedHoveredButtonUI");
+	Button::s_HoveredButtonUnchecked = App::s_Textures.GetTexture("uncheckedHoveredButtonUI");
 
 	UIElement::s_BgTexture = App::s_Textures.GetTexture("elementUI");
 	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
@@ -263,6 +227,95 @@ void App::AssignStaticAssets()
 	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
 	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
+}
+
+void App::InitMainMenu()
+{
+	TTF_Font *defaultFont = App::s_Textures.GetFont("default");
+
+	int32_t centerX = App::WINDOW_WIDTH / 2;
+	int32_t centerY = App::WINDOW_HEIGHT / 2;
+
+	MainMenu::s_GapBetweenButtons = (App::WINDOW_HEIGHT / 14) + ((App::WINDOW_HEIGHT / 14) / 4);
+
+	Button *btn = nullptr;
+
+	// Return button
+	{
+		btn = &s_MainMenu.m_ReturnButton;
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + static_cast<int32_t>(s_MainMenu.m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Return button
+
+	// Title screen
+	for (std::size_t i = 0u; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
+	}
+
+	// Button "Play"
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(0);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+
+	// Button "Options"
+	{
+		btn = &s_MainMenu.m_PrimaryButtons.at(1);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Title screen
+
+	// Options
+	for (std::size_t i = 0u; i < s_MainMenu.m_OptionsButtons.size(); ++i)
+	{
+		btn = &s_MainMenu.m_OptionsButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
+	}
+
+	// Button "V-Sync"
+	{
+		btn = &s_MainMenu.m_OptionsButtons.at(0);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "V-Sync", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+
+		btn->m_Type = ButtonType::check;
+		btn->m_IsChecked = SDL_GetHintBoolean(SDL_HINT_RENDER_VSYNC, SDL_FALSE);
+	}
+	// Options
+
+	// Levels
+	for (std::size_t i = 0u; i < s_MainMenu.m_LevelsButtons.size(); ++i)
+	{
+		btn = &s_MainMenu.m_LevelsButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
+
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, std::format("Level #{}", i + 1), defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Levels
 }
 
 void App::EventHandler()
@@ -306,7 +359,7 @@ void App::EventHandler()
 		if (s_UIState == UIState::mainMenu)
 			s_MainMenu.HandleMouseButtonEvent();
 		else
-			App::s_CurrentLevel->HandleMouseButtonEvent();
+			App::s_CurrentLevel->HandleMouseButtonEvent(s_Event.button.button);
 		return;
 	// END OF MOUSE EVENTS
 
@@ -596,6 +649,10 @@ void App::SetUIState(UIState state)
 void App::LoadLevel()
 {
 	Layer::s_MapWidth = s_CurrentLevel->m_MapData.at(0);
+	s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
+	s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+
+	s_Building.buildingPlace.InitSpecialTile();
 
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{

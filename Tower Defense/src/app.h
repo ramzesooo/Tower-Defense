@@ -101,6 +101,7 @@ public:
 	~App();
 
 	void AssignStaticAssets();
+	void InitMainMenu();
 
 	inline void PrepareUI()
 	{
@@ -217,6 +218,18 @@ public:
 
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
+	[[nodiscard]] bool SetCurrentLevel(std::size_t level)
+	{
+		if (level >= m_Levels.size())
+		{
+			// Levels are displayed in-game with +1, but counting starts from 0
+			s_Logger.AddLog(std::format("App::SetCurrentLevel: Level #{} can't be assigned. It's equal or higher than amount of levels ({})", level, m_Levels.size()));
+			return false;
+		}
+
+		s_CurrentLevel = &m_Levels.at(level);
+		return true;
+	}
 
 	void SwitchBuildingState();
 	void ManageBuildingState();

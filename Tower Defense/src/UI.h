@@ -26,7 +26,7 @@ public:
 
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 	Label m_Label;
-	std::string m_DefaultText = "";
+	std::string m_DefaultText;
 
 	inline void Draw()
 	{
@@ -35,19 +35,63 @@ public:
 	}
 };
 
+enum class ButtonType
+{
+	classic = 0,
+	check
+};
+
 class Button
 {
 public:
 	static constexpr SDL_Rect srcRect{ 0, 0, 30, 14 };
+	static constexpr SDL_Rect checkSrcRect{ 0, 0, 32, 32 };
 	static SDL_Texture *s_DefaultButton;
+	static SDL_Texture *s_DefaultButtonChecked;
+	static SDL_Texture *s_DefaultButtonUnchecked;
 	static SDL_Texture *s_HoveredButton;
+	static SDL_Texture *s_HoveredButtonChecked;
+	static SDL_Texture *s_HoveredButtonUnchecked;
+
+	ButtonType m_Type = ButtonType::classic;
 
 	Label m_Label;
-	bool m_IsHovered = false;
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 
+	bool m_IsHovered = false;
+	bool m_IsChecked = false;
+public:
 	inline void Draw()
 	{
+		if (m_Type == ButtonType::check)
+		{
+			if (m_IsHovered)
+			{
+				if (m_IsChecked)
+				{
+					TextureManager::DrawTexture(s_HoveredButtonChecked, srcRect, destRect);
+				}
+				else
+				{
+					TextureManager::DrawTexture(s_HoveredButtonUnchecked, srcRect, destRect);
+				}
+			}
+			else
+			{
+				if (m_IsChecked)
+				{
+					TextureManager::DrawTexture(s_DefaultButtonChecked, srcRect, destRect);
+				}
+				else
+				{
+					TextureManager::DrawTexture(s_DefaultButtonUnchecked, srcRect, destRect);
+				}
+			}
+
+			m_Label.Draw();
+			return;
+		}
+
 		if (m_IsHovered)
 			TextureManager::DrawTexture(s_HoveredButton, srcRect, destRect);
 		else

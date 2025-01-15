@@ -7,22 +7,35 @@ class App;
 
 enum class MenuState
 {
-	primary = 0
+	primary = 0,
+	options,
+	levels
 };
 
+// Menu is initialized in App::App()
 class MainMenu
 {
 public:
+	static constexpr std::size_t s_LevelsToLoad = 1u;
+	static int32_t s_GapBetweenButtons;
 	static MenuState s_State;
 	static SDL_Rect s_BgDestRect;
 
 	Button *m_HoveredButton = nullptr;
-	// [0] = Play, [1] = Options, [2] = Exit
-	std::array<Button, 3> m_PrimaryButtons;
+
+	Button m_ReturnButton;
+	
+	std::array<Button, 2> m_PrimaryButtons; // [0] = Play, [1] = Options, [2] = Exit
+	std::array<Button, 1> m_OptionsButtons; // [0] = V-Sync, [1] = Return
+	std::array<Button, s_LevelsToLoad> m_LevelsButtons;
 public:
 	void Render();
 
 	void HandleMouseButtonEvent();
+	void HandleTitleButtons(); // Primary
+	void HandleOptionsButtons(); // Options
+	void HandleLevelsButtons(); // Levels
+
 	void OnCursorMove();
 	void OnResolutionChange();
 };

@@ -85,7 +85,19 @@ public:
 	Enemy *AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale = 2) const;
 	void AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target);
 
-	void HandleMouseButtonEvent();
+	void LMBEvent(); // Left mouse button event
+	//void RMBEvent(); // Right mouse button event
+	inline void HandleMouseButtonEvent(uint8_t button)
+	{
+		if (button == SDL_BUTTON_LEFT)
+		{
+			LMBEvent();
+		}
+		/*else if (button == SDL_BUTTON_RIGHT)
+		{
+
+		}*/
+	}
 
 	void InitWave();
 	void ManageWaves();

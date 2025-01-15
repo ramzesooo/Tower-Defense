@@ -436,26 +436,26 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }
 
-void Level::HandleMouseButtonEvent()
+void Level::LMBEvent()
 {
 	if (App::s_UIState == UIState::building)
 	{
 		if (App::s_Building.canBuild)
 		{
 			IF_DEBUG(
-				Tower *tower = nullptr;
-				if (App::s_SwapTowerType)
-				{
-					tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
-				}
-				else
-				{
-					tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-				}
-			);
+				Tower * tower = nullptr;
+			if (App::s_SwapTowerType)
+			{
+				tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+			}
+			else
+			{
+				tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+			}
+				);
 
 			IF_NDEBUG(
-				Tower *tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				Tower * tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
 			);
 			if (!tower)
 			{
@@ -523,6 +523,12 @@ void Level::HandleMouseButtonEvent()
 		tower->SetHighlight(true);
 	}
 }
+
+// Un-used at the moment, and not sure if it's needed also in future
+//void Level::RMBEvent()
+//{
+//	
+//}
 
 void Level::InitWave()
 {
