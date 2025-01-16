@@ -132,11 +132,13 @@ public:
 				s_UICoinsNotification.SetAlpha(0);
 				break;
 			case 2: // lifes
-				UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w, destRect.h - UIElement::heartRect.h / 2 };
+				UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w - UIElement::heartRect.w / 4, destRect.h - UIElement::heartRect.h / 2 };
+				break;
+			case 3: // timer
+				UIElement::timerDestRect = { destRect.x + UIElement::timerRect.w / 4, destRect.y + destRect.h / 4, UIElement::timerRect.w, UIElement::timerRect.h };
 				break;
 			// Do nothing for the rest
 			case 0:
-			case 3:
 			default:
 				break;
 			}

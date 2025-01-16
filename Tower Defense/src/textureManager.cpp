@@ -42,6 +42,7 @@ static constexpr AssetData texturesToLoad[]
 	{ "elementUI",					"ui/ui_element.png" },
 	{ "coinUI",						"ui/coin.png" },
 	{ "heartUI",					"ui/heart.png" },
+	{ "timerUI",					"ui/timer.png" },
 
 	{ App::TextureOf(TowerType::classic),		"towers/classic/tower.png"},
 	{ App::TextureOf(TowerType::dark),			"towers/dark/DarkTower-Sheet.png"},

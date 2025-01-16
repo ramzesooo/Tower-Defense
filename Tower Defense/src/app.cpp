@@ -71,9 +71,11 @@ SDL_Texture *BuildingState::originalTexture = nullptr;
 SDL_Texture *UIElement::s_BgTexture = nullptr;
 SDL_Texture *UIElement::s_CoinTexture = nullptr;
 SDL_Texture *UIElement::s_HeartTexture = nullptr;
+SDL_Texture *UIElement::s_TimerTexture = nullptr;
 
 SDL_Rect UIElement::coinDestRect{};
 SDL_Rect UIElement::heartDestRect{};
+SDL_Rect UIElement::timerDestRect{};
 
 // class App GLOBAL VARIABLES
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -233,6 +235,7 @@ void App::AssignStaticAssets()
 	UIElement::s_BgTexture = App::s_Textures.GetTexture("elementUI");
 	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
 	UIElement::s_HeartTexture = App::s_Textures.GetTexture("heartUI");
+	UIElement::s_TimerTexture = App::s_Textures.GetTexture("timerUI");
 
 	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
@@ -546,6 +549,7 @@ void App::DrawUI()
 
 	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);
 	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
+	TextureManager::DrawTexture(UIElement::s_TimerTexture, UIElement::timerRect, UIElement::timerDestRect);
 
 	s_UICoinsNotification.Draw();
 }

@@ -32,6 +32,13 @@ public:
 
 	virtual void Update() override { m_Attacker->Update(); };
 	virtual void Draw() override;
+	inline void DrawHighlight() const
+	{
+		for (const auto &tile : m_TilesInRange)
+		{
+			tile->DrawHighlight();
+		}
+	}
 
 	virtual void AdjustToView() override;
 

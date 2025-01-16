@@ -17,12 +17,15 @@ class UIElement
 public:
 	static constexpr SDL_Rect srcRect{ 0, 0, 38, 12 }; // background rectangle
 	static constexpr SDL_Rect coinRect{ 0, 0, 5, 6 }; // coin rectangle
-	static constexpr SDL_Rect heartRect{ 0, 0, 32, 29 };
+	static constexpr SDL_Rect heartRect{ 0, 0, 32, 29 }; // heart rectangle
+	static constexpr SDL_Rect timerRect{ 0, 0, 19, 22 }; // clock rectangle
 	static SDL_Rect coinDestRect;
 	static SDL_Rect heartDestRect;
+	static SDL_Rect timerDestRect;
 	static SDL_Texture *s_BgTexture;
 	static SDL_Texture *s_CoinTexture;
 	static SDL_Texture *s_HeartTexture;
+	static SDL_Texture *s_TimerTexture;
 
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 	Label m_Label;

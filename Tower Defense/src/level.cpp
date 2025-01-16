@@ -635,6 +635,9 @@ void Level::Render()
 		}
 	}
 
+	if (m_HighlightedTower)
+		m_HighlightedTower->DrawHighlight();
+
 	for (const auto &enemy : g_Enemies)
 		enemy->Draw();
 
