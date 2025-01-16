@@ -541,8 +541,9 @@ void Level::InitWave()
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
 	const Tile *spawner = m_Spawners.at(spawnerDistr(g_Rng));
+	const Vector2D &spawnerPos = spawner->GetPos();
 
-	const Vector2D spawnPos(spawner->GetPos().x / static_cast<float>(m_ScaledTileSize), spawner->GetPos().y / static_cast<float>(m_ScaledTileSize));
+	const Vector2D spawnPos(spawnerPos.x / static_cast<float>(m_ScaledTileSize), spawnerPos.y / static_cast<float>(m_ScaledTileSize));
 
 	EnemyType type = EnemyType::elf;
 	// It might be as well casual variable defined in for loop, but maybe it's better to store it here
@@ -625,6 +626,7 @@ void Level::ManageWaves()
 
 void Level::Render()
 {
+	// Seems to be faster in this case than for-each
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).m_DrawableTiles)

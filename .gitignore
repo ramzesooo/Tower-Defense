@@ -402,3 +402,4 @@ FodyWeavers.xsd
 /docs
 /Tower Defense/assets/sounds/_select_button.wav
 /Tower Defense/SDL2_mixer.dll
+/Tower Defense/assets/__

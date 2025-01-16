@@ -9,6 +9,8 @@
 #include <fstream>
 #include <cmath>
 
+static constexpr uint32_t coinsCooldownNotification = 1000u;
+
 // class App STATIC VARIABLES
 App *App::s_Instance = nullptr;
 
@@ -45,21 +47,13 @@ bool App::s_IsWindowMinimized = false;
 SDL_Texture *App::s_GreenTex = nullptr;
 SDL_Texture *App::s_Square = nullptr;
 
-SDL_Texture *UIElement::s_BgTexture = nullptr;
-SDL_Texture *UIElement::s_CoinTexture = nullptr;
-SDL_Texture *UIElement::s_HeartTexture = nullptr;
-
-SDL_Rect UIElement::coinDestRect{};
-SDL_Rect UIElement::heartDestRect{};
-
 // [0] = waves, [1] = coins, [2] = lifes, [3] = time
 std::array<UIElement, 4> App::s_UIElements{};
-Label App::s_UICoinsNotification(1000);
+Label App::s_UICoinsNotification(coinsCooldownNotification);
 
 bool App::s_IsCameraLocked = true;
 
-CameraMovement App::s_CameraMovement;
-Vector2D CameraMovement::realVelocity{};
+CameraMovement App::s_CameraMovement{};
 
 IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
 IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
@@ -69,7 +63,17 @@ IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
 IF_DEBUG(bool App::s_SwapTowerType = false;);
 // class App STATIC VARIABLES
 
+Vector2D CameraMovement::realVelocity{};
+
+SDL_Texture *BuildingState::transparentTexture = nullptr;
 SDL_Texture *BuildingState::originalTexture = nullptr;
+
+SDL_Texture *UIElement::s_BgTexture = nullptr;
+SDL_Texture *UIElement::s_CoinTexture = nullptr;
+SDL_Texture *UIElement::s_HeartTexture = nullptr;
+
+SDL_Rect UIElement::coinDestRect{};
+SDL_Rect UIElement::heartDestRect{};
 
 // class App GLOBAL VARIABLES
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -88,47 +92,14 @@ App::App()
 {
 	TTF_Font *defaultFont = nullptr;
 
-	bool initialized = true;
-
 	if (!App::s_Instance)
 		App::s_Instance = this;
 	else
-		initialized = false;
+		m_Initialized = false;
 
-	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
-	if (!m_Window)
-	{
-		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
-		initialized = false;
-	}
-
-	SDL_Surface *iconSurface = IMG_Load("assets/gugu.png");
-	if (!iconSurface)
-	{
-		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
-	}
-	else
-	{
-		SDL_SetWindowIcon(m_Window, iconSurface);
-		SDL_FreeSurface(iconSurface);
-	}
-
-#ifdef DEBUG
-	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
-#else
-	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
-#endif
-	if (!App::s_Renderer)
-	{
-		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
-		initialized = false;
-	}
-
-	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
-	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
+	InitWindowAndRenderer();
 
 	s_Textures.LoadAssets();
-	IF_DEBUG(App::s_Logger.AddLog(std::string_view("\n### FINISHED LOADING ASSETS ###\n")););
 
 	defaultFont = App::s_Textures.GetFont("default");
 
@@ -146,7 +117,7 @@ App::App()
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
 	{
 		App::s_Logger.AddLog(std::string_view("First level couldn't be loaded properly."));
-		initialized = false;
+		m_Initialized = false;
 	}
 	else
 	{
@@ -161,8 +132,7 @@ App::App()
 
 	PrepareUI();
 
-	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
-	s_Building.buildingPlace.SetTexture(s_Textures.GetTexture("transparent"));
+	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
 	m_PauseLabel = Label(int32_t(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
 	m_PauseLabel.m_Drawable = false;
@@ -176,7 +146,7 @@ App::App()
 
 	InitMainMenu();
 
-	App::s_IsRunning = initialized;
+	App::s_IsRunning = m_Initialized;
 }
 
 App::~App()
@@ -201,6 +171,43 @@ App::~App()
 	IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view("App::~App: Application has been cleared")););
 }
 
+void App::InitWindowAndRenderer()
+{
+	// Window
+	m_Window = SDL_CreateWindow("Tower Defense", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, App::WINDOW_WIDTH, App::WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
+	if (!m_Window)
+	{
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		m_Initialized = false;
+	}
+
+	SDL_Surface *iconSurface = IMG_Load("assets/gugu.png");
+	if (!iconSurface)
+	{
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+	}
+	else
+	{
+		SDL_SetWindowIcon(m_Window, iconSurface);
+		SDL_FreeSurface(iconSurface);
+	}
+
+	// Renderer
+#ifdef DEBUG
+	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+#else
+	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
+#endif
+	if (!App::s_Renderer)
+	{
+		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
+		m_Initialized = false;
+	}
+
+	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
+	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
+}
+
 void App::AssignStaticAssets()
 {
 	for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
@@ -209,6 +216,9 @@ void App::AssignStaticAssets()
 	}
 
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
+
+	BuildingState::transparentTexture = App::s_Textures.GetTexture("transparent");
+	BuildingState::originalTexture = App::s_Textures.GetTexture("canBuild");
 
 	App::s_GreenTex = App::s_Textures.GetTexture("green");
 	App::s_Square = App::s_Textures.GetTexture("square");
@@ -247,7 +257,7 @@ void App::InitMainMenu()
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + static_cast<int32_t>(s_MainMenu.m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Exit", defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Quit", defaultFont);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -562,7 +572,7 @@ void App::UpdateCamera()
 
 	s_CurrentLevel->OnUpdateCamera();
 
-	CameraMovement::realVelocity = { 0.0f, 0.0f };
+	CameraMovement::realVelocity.Zero();
 }
 
 void App::OnResolutionChange()
@@ -606,44 +616,39 @@ void App::SetUIState(UIState state)
 
 	std::string_view newState;
 
-	m_PreviousUIState = s_UIState;
 	s_UIState = state;
 
 	static uint32_t startPausedTicks = 0u;
 
+	// Check if there is already a counting of ticks
 	if (startPausedTicks == 0u)
 	{
 		if (IsGamePaused(state))
 		{
+			// Assign current ticks if the game is paused (so as well it should count the ticks on pause state)
 			startPausedTicks = SDL_GetTicks();
 		}
 	}
-	else if (!IsGamePaused(state))
+	else if (!IsGamePaused(state)) // If it should count the ticks in pause state and it's about to leave the pause
 	{
-		g_PausedTicks += SDL_GetTicks() - startPausedTicks;
-		startPausedTicks = 0u;
+		g_PausedTicks += SDL_GetTicks() - startPausedTicks; // Add the difference between old ticks and current ticks to g_PausedTicks
+		startPausedTicks = 0u; // Assign 0 to startPausedTicks, so next time it'll be possible to say is it already counting ticks
 	}
 
-	switch (state)
+	m_PauseLabel.m_Drawable = IsGamePaused(state);
+
+	// I'm not sure if using switch-case matters here
+	if (state == UIState::building)
 	{
-	case UIState::mainMenu:
-		newState = "mainMenu";
-		m_PauseLabel.m_Drawable = false;
-		App::Instance().OnResolutionChange();
-		break;
-	case UIState::none:
-		newState = "none";
-		m_PauseLabel.m_Drawable = false;
-		break;
-	case UIState::building:
-		newState = "building";
-		m_PauseLabel.m_Drawable = true;
 		ManageBuildingState();
-		break;
+		return;
 	}
 
-	App::s_Logger.AddLog(std::string_view("App::SetUIState: "), false);
-	App::s_Logger.AddLog(newState);
+	if (state == UIState::mainMenu)
+	{
+		App::Instance().OnResolutionChange();
+		return;
+	}
 }
 
 void App::LoadLevel()
@@ -668,19 +673,17 @@ void App::LoadLevel()
 	s_Camera.x = basePos.x - s_Camera.w / 2.0f;
 	s_Camera.y = basePos.y - s_Camera.h / 2.0f;
 
-	App::Instance().SetCoins(5);
+	App::Instance().SetCoins(5u);
 
 	App::s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
 }
 
 void App::SwitchBuildingState()
 {
-	static SDL_Texture *transparentTexture = s_Textures.GetTexture("transparent");
-
 	switch (s_UIState)
 	{
 	case UIState::building:
-		s_Building.buildingPlace.SetTexture(transparentTexture);
+		s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 		SetUIState(UIState::none);
 		return;
 	case UIState::none:
@@ -709,13 +712,15 @@ void App::SwitchBuildingState()
 
 void App::ManageBuildingState()
 {
+	// Do this only if DEBUG is undefined, because if it's defined, it's already done in App::OnCursorMove()
 	IF_NDEBUG(
 		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		
+		// Disallows to set a tower in the right edge (where 2 from 4 tiles are outside of the map border)
+		// It's helpful with avoiding an issue about tiles in towers' range
 		if (s_Building.coordinates.x >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)) - 1.0f)
 			s_Building.coordinates.x--;
-
 		if (s_Building.coordinates.y >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)) - 1.0f)
 			s_Building.coordinates.y--;
 	);

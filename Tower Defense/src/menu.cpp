@@ -49,6 +49,7 @@ void MainMenu::Render()
 
 void MainMenu::HandleMouseButtonEvent()
 {
+	// Don't do anything if mouse isn't pointing at any button
 	if (!m_HoveredButton)
 		return;
 
@@ -56,13 +57,14 @@ void MainMenu::HandleMouseButtonEvent()
 
 	Mix_PlayChannel(-1, App::s_Textures.GetSound("selectButton"), 0);
 
+	// Check if the pointed button is the one for returning/quitting
 	if (m_HoveredButton == &m_ReturnButton)
 	{
 		auto centerY = App::WINDOW_HEIGHT / 2;
 
 		switch (s_State)
 		{
-		case MenuState::primary: // Exit
+		case MenuState::primary: // Quit
 			m_HoveredButton->m_IsHovered = false;
 			m_HoveredButton = nullptr;
 			App::s_IsRunning = false;
@@ -70,7 +72,7 @@ void MainMenu::HandleMouseButtonEvent()
 		case MenuState::options: // Return to primary
 		case MenuState::levels: // Return to primary
 			m_HoveredButton->destRect.y = centerY - m_HoveredButton->destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
-			m_HoveredButton->m_Label.UpdateText("Exit");
+			m_HoveredButton->m_Label.UpdateText("Quit");
 			const SDL_Rect &labelRect = m_HoveredButton->m_Label.GetRect();
 			m_HoveredButton->m_Label.UpdatePos((m_HoveredButton->destRect.x + m_HoveredButton->destRect.w / 2) - labelRect.w / 2,
 				m_HoveredButton->destRect.y + m_HoveredButton->destRect.h / 4);
@@ -104,14 +106,6 @@ void MainMenu::HandleTitleButtons()
 
 	if (m_HoveredButton == &m_PrimaryButtons.at(0))
 	{
-		/*App::LoadLevel();
-		App::Instance().SetUIState(UIState::none);
-		App::UpdateWaves();
-		App::UpdateLifes();
-		App::s_CurrentLevel->GetBase()->m_IsActive = true;
-
-		App::Instance().OnResolutionChange();
-		App::Instance().UpdateCamera();*/
 		m_ReturnButton.destRect.y = centerY - m_ReturnButton.destRect.h / 2 + static_cast<int32_t>(m_LevelsButtons.size()) * MainMenu::s_GapBetweenButtons;
 		m_ReturnButton.m_Label.UpdateText("Return");
 		const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
@@ -171,7 +165,7 @@ void MainMenu::HandleLevelsButtons()
 	App::Instance().OnResolutionChange();
 	App::Instance().UpdateCamera();
 
-	MainMenu::s_State == MenuState::primary;
+	MainMenu::s_State = MenuState::primary;
 }
 
 void MainMenu::OnCursorMove()
@@ -181,9 +175,12 @@ void MainMenu::OnCursorMove()
 	{
 		const SDL_Rect &destRect = m_HoveredButton->destRect;
 
+		// Check if mouse is still pointing at the same button as before
 		if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
 			&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
 		{
+			// If true, then don't do anything, because it's unnecessary
+			// Since all we have to do here is just get the button which the mouse points at
 			return;
 		}
 
@@ -205,6 +202,7 @@ void MainMenu::OnCursorMove()
 		}
 	}
 
+	// Check for every button for specific menu state if it's the one mouse is pointing
 	switch (s_State)
 	{
 	case MenuState::primary:
@@ -260,8 +258,11 @@ void MainMenu::OnResolutionChange()
 	int32_t centerX = App::WINDOW_WIDTH / 2;
 	int32_t centerY = App::WINDOW_HEIGHT / 2;
 
+	// Adjust return button's X position to the new resolution
 	m_ReturnButton.destRect.x = centerX - m_ReturnButton.destRect.w / 2;
 
+	// Adjust return button's Y position to the new resolution for specific menu state
+	// Have to look at current menu state, because of different amount of buttons
 	switch (s_State)
 	{
 	case MenuState::primary:
@@ -275,6 +276,7 @@ void MainMenu::OnResolutionChange()
 		break;
 	}
 	
+	// Update text's position from return button
 	{
 		const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
 		m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
@@ -315,7 +317,6 @@ void MainMenu::OnResolutionChange()
 	}
 	// Levels
 
-	// old s_BgDestRect holds old resolution, so it's usable for other variables
 	s_BgDestRect.w = App::WINDOW_WIDTH;
 	s_BgDestRect.h = App::WINDOW_HEIGHT;
 }

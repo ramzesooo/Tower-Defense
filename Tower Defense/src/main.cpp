@@ -1,8 +1,5 @@
 #include "common.h"
 
-#ifdef DEBUG
-#include "entity/label.h"
-#endif
 #include "app.h"
 
 #include "SDL.h"
@@ -104,7 +101,7 @@ int main(int argc, char** arg)
 
 	// TTF_Quit() is called in ~TextureManager()
 	SDL_Quit();
-	IF_DEBUG(App::s_Logger.AddLog(std::string_view("Triggered SDL_Quit()")););
+	IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view("Triggered SDL_Quit()")););
 
 	return 0;
 }

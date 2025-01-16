@@ -16,6 +16,7 @@ enum class MenuState
 class MainMenu
 {
 public:
+	// I'm not sure where should I leave it, so let's leave it here at the moment as static
 	static constexpr std::size_t s_LevelsToLoad = 1u;
 	static int32_t s_GapBetweenButtons;
 	static MenuState s_State;

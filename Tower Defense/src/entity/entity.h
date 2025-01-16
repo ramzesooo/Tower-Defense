@@ -26,7 +26,7 @@ public:
 public:
 	Entity() = default;
 	Entity(const Entity&) = delete;
-	Entity& operator=(const Entity&) = delete;
+	Entity &operator=(const Entity&) = delete;
 	virtual ~Entity() { m_IsActive = false; };
 
 	virtual void Update() = 0;

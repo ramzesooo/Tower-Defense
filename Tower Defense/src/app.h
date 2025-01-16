@@ -40,6 +40,7 @@ struct CameraMovement
 //It helps to avoid duplicating code
 struct BuildingState
 {
+	static SDL_Texture *transparentTexture;
 	static SDL_Texture *originalTexture;
 
 	bool canBuild = false;
@@ -100,6 +101,7 @@ public:
 	App();
 	~App();
 
+	void InitWindowAndRenderer();
 	void AssignStaticAssets();
 	void InitMainMenu();
 
@@ -158,6 +160,8 @@ public:
 
 	inline void OnCursorMove()
 	{
+		// Do this only if DEBUG is defined, because if it's undefined, it's already done in App::ManageBuildingState()
+		// Basically it's about the label s_PointedPosition for debugging
 #ifdef DEBUG
 		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
@@ -171,10 +175,11 @@ public:
 			s_Building.coordinates.y)
 		);
 
-		if (s_Building.coordinates.x >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)) - 1.0f)
+		// Disallows to set a tower in the right edge (where 2 from 4 tiles are outside of the map border)
+		// It's helpful with avoiding an issue about tiles in towers' range
+		if (s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)))
 			s_Building.coordinates.x--;
-
-		if (s_Building.coordinates.y >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)) - 1.0f)
+		if (s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)))
 			s_Building.coordinates.y--;
 #endif
 
@@ -186,13 +191,13 @@ public:
 		case UIState::building:
 			ManageBuildingState();
 			return;
+		case UIState::none:
 		default:
-			break;
-		}
-
-		if (!s_IsCameraLocked)
-		{
-			ManageCamera();
+			if (!s_IsCameraLocked)
+			{
+				ManageCamera();
+				return;
+			}
 			return;
 		}
 	}
@@ -477,15 +482,16 @@ public:
 private:
 	static App *s_Instance;
 
+	bool m_Initialized = true;
 	bool m_IsFullscreen = false;
 
 	SDL_Window *m_Window = nullptr;
 
-	UIState m_PreviousUIState = UIState::none;
-
 	std::vector<Level> m_Levels;
+	// TODO: Should be an array like this
+	//std::array<Level, MainMenu::s_LevelsToLoad> m_Levels;
 
 	Label m_PauseLabel;
 
-	uint16_t m_Coins = 0;
+	uint16_t m_Coins = 0u;
 };
