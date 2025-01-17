@@ -353,7 +353,7 @@ void Level::Clean()
 	m_SpecificEnemiesAmount = {};
 }
 
-Tower *Level::AddTower(float posX, float posY, TowerType type)
+void Level::AddTower(float posX, float posY, TowerType type)
 {
 	Tower *tower = nullptr;
 
@@ -370,7 +370,10 @@ Tower *Level::AddTower(float posX, float posY, TowerType type)
 		break;
 	}
 
-	return tower;
+	if (!tower)
+	{
+		App::s_Logger.AddLog(std::format("Level::AddTower: Failed adding a tower (type #{}) ({}, {})", static_cast<std::size_t>(type), posX, posY));
+	}
 }
 
 void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
@@ -440,57 +443,50 @@ void Level::LMBEvent()
 {
 	if (App::s_UIState == UIState::building)
 	{
-		if (App::s_Building.canBuild)
-		{
-			IF_DEBUG(
-				Tower * tower = nullptr;
+		if (!App::s_Building.canBuild)
+			return;
+
+		IF_DEBUG(
 			if (App::s_SwapTowerType)
 			{
-				tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
+				AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
 			}
 			else
 			{
-				tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+				AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
 			}
-				);
+		);
 
-			IF_NDEBUG(
-				Tower * tower = AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-			);
-			if (!tower)
-			{
-				BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
-				App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-				App::s_Building.towerToUpgrade = nullptr;
-				App::s_Building.canBuild = false;
-				App::s_Logger.AddLog(std::string_view("Level::HandleMouseButtonEvent: Failed adding a tower"));
-				return;
-			}
+		IF_NDEBUG(
+			AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
+		);
 
-			if (!tower->CanUpgrade())
-			{
-				BuildingState::originalTexture = App::s_Textures.GetTexture("cantBuild");
-				App::s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-				App::s_Building.towerToUpgrade = nullptr;
-				App::s_Building.canBuild = false;
-				return;
-			}
-
-			App::s_Building.originalTexture = App::s_Textures.GetTexture("upgradeTower");
-			App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
-			App::s_Building.towerToUpgrade = tower;
-			App::s_Building.canBuild = false;
-			return;
-		}
-
-		if (App::s_Building.towerToUpgrade)
-		{
-			App::s_Building.towerToUpgrade->Upgrade();
-			return;
-		}
+		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+		App::s_Building.towerToUpgradeOrSell = nullptr;
+		App::s_Building.canBuild = false;
 
 		return;
 	} // == s_UIState.building
+
+	if (App::s_UIState == UIState::upgrading)
+	{
+		return;
+	}
+
+	if (App::s_UIState == UIState::selling)
+	{
+		if (!App::s_Building.canBuild)
+			return;
+
+		App::Instance().AddCoins(App::s_Building.towerToUpgradeOrSell->GetSellPrice());
+		App::s_Building.towerToUpgradeOrSell->Destroy();
+
+		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+		App::s_Building.towerToUpgradeOrSell = nullptr;
+		App::s_Building.canBuild = false;
+
+		return;
+	}
 
 	auto posX = std::floorf((App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize));
 	auto posY = std::floorf((App::s_Camera.y / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(m_ScaledTileSize));
@@ -606,7 +602,7 @@ void Level::ManageWaves()
 			InitWave();
 		return;
 	case WaveProgress::InProgress:
-		if (g_Enemies.size() == 0)
+		if (g_Enemies.empty())
 		{
 			m_WaveProgress = WaveProgress::Finished;
 			m_SpecificEnemiesAmount = {};
@@ -645,7 +641,12 @@ void Level::Render()
 
 	// The tower triggers render for attackers
 	for (const auto &tower : g_Towers)
+	{
+		if (!tower->IsActive())
+			continue;
+
 		tower->Draw();
+	}
 
 	App::s_Building.buildingPlace.Draw();
 

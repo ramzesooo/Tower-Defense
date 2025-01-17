@@ -69,6 +69,8 @@ public:
 	int32_t GetAnimSpeed(std::string_view animID);
 
 	void SetHighlight(bool highlight) { m_IsHighlighted = highlight; }
+
+	uint16_t GetSellPrice() const { return m_SellPrice; }
 protected:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;
@@ -84,4 +86,6 @@ protected:
 
 	std::vector<Tile*> m_TilesInRange;
 	bool m_IsHighlighted = false;
+
+	uint16_t m_SellPrice = 5u;
 };

@@ -42,12 +42,15 @@ struct BuildingState
 {
 	static SDL_Texture *transparentTexture;
 	static SDL_Texture *originalTexture;
+	static SDL_Texture *cantBuildTexture;
+	static SDL_Texture *upgradingTexture;
+	static SDL_Texture *sellingTexture;
 
 	bool canBuild = false;
 	Tile buildingPlace{ TileType::special };
 	Tile *pointedTile = nullptr; // tile pointed by a mouse
 	Vector2D coordinates{};
-	Tower *towerToUpgrade = nullptr;
+	Tower *towerToUpgradeOrSell = nullptr;
 };
 
 class App
@@ -105,48 +108,6 @@ public:
 	void AssignStaticAssets();
 	void InitMainMenu();
 
-	inline void PrepareUI()
-	{
-		static TTF_Font *font = App::s_Textures.GetFont("default");
-		//static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
-		static SDL_Rect destRect{ 0, 0, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
-
-		s_UIElements.at(0).m_DefaultText = "Wave: 1/1";
-		s_UIElements.at(1).m_DefaultText = "100";
-		s_UIElements.at(2).m_DefaultText = "100";
-		s_UIElements.at(3).m_DefaultText = "0:00";
-
-		for (std::size_t i = 0u; i < s_UIElements.size(); i++)
-		{
-			UIElement &element = s_UIElements.at(i);
-			element.destRect = destRect;
-			element.m_Label = Label(destRect.x, destRect.y, element.m_DefaultText, font);
-			const SDL_Rect &labelRect = element.m_Label.GetRect();
-			element.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
-
-			switch (i)
-			{
-			case 1: // coins
-				UIElement::coinDestRect = { destRect.x + UIElement::coinRect.w, destRect.y + destRect.h / 4, UIElement::coinRect.w * 3, element.destRect.h / 2 };
-				s_UICoinsNotification = Label(labelRect.x + labelRect.w + labelRect.w / 2, labelRect.y, "+0", font);
-				s_UICoinsNotification.SetAlpha(0);
-				break;
-			case 2: // lifes
-				UIElement::heartDestRect = { destRect.x, destRect.y + destRect.h / 4, UIElement::heartRect.w - UIElement::heartRect.w / 4, destRect.h - UIElement::heartRect.h / 2 };
-				break;
-			case 3: // timer
-				UIElement::timerDestRect = { destRect.x + UIElement::timerRect.w / 4, destRect.y + destRect.h / 4, UIElement::timerRect.w, UIElement::timerRect.h };
-				break;
-			// Do nothing for the rest
-			case 0:
-			default:
-				break;
-			}
-
-			destRect.y += destRect.h;
-		}
-	}
-
 	static App &Instance() { return *s_Instance; }
 	bool IsRunning() const { return s_IsRunning; }
 
@@ -154,11 +115,21 @@ public:
 	void Update();
 	void Render();
 
-	void DrawUI();
+	void HandleWindowEvent();
+	void HandleKeyboardEvent();
 
 	void UpdateCamera();
 
 	void OnResolutionChange();
+
+	void LMBEvent();
+	inline void HandleMouseButtonEvent(uint8_t mouseButton)
+	{
+		if (mouseButton == SDL_BUTTON_LEFT)
+		{
+			LMBEvent();
+		}
+	}
 
 	inline void OnCursorMove()
 	{
@@ -191,6 +162,8 @@ public:
 			s_MainMenu.OnCursorMove();
 			return;
 		case UIState::building:
+		case UIState::upgrading:
+		case UIState::selling:
 			ManageBuildingState();
 			return;
 		case UIState::none:
@@ -211,6 +184,8 @@ public:
 		{
 		case UIState::mainMenu:
 		case UIState::building:
+		case UIState::upgrading:
+		case UIState::selling:
 			return true;
 		case UIState::none:
 		default:
@@ -238,8 +213,10 @@ public:
 		return true;
 	}
 
-	void SwitchBuildingState();
+	void SwitchBuildingState(UIState newState);
 	void ManageBuildingState();
+
+	static uint16_t GetDamageOf(ProjectileType type);
 
 	inline void SwitchCameraMode() {
 		if (s_IsCameraLocked)
@@ -373,8 +350,6 @@ public:
 		}
 		return "";
 	}
-
-	static uint16_t GetDamageOf(ProjectileType type);
 
 	inline void SetCoins(uint16_t coins, bool notify = false)
 	{

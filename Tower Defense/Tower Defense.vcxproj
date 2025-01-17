@@ -293,6 +293,7 @@
     <ClCompile Include="src\textureManager.cpp" />
     <ClCompile Include="src\entity\tile.cpp" />
     <ClCompile Include="src\entity\towers\tower.cpp" />
+    <ClCompile Include="src\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app.h" />

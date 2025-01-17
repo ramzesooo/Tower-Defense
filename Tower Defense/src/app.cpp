@@ -67,15 +67,9 @@ Vector2D CameraMovement::realVelocity{};
 
 SDL_Texture *BuildingState::transparentTexture = nullptr;
 SDL_Texture *BuildingState::originalTexture = nullptr;
-
-SDL_Texture *UIElement::s_BgTexture = nullptr;
-SDL_Texture *UIElement::s_CoinTexture = nullptr;
-SDL_Texture *UIElement::s_HeartTexture = nullptr;
-SDL_Texture *UIElement::s_TimerTexture = nullptr;
-
-SDL_Rect UIElement::coinDestRect{};
-SDL_Rect UIElement::heartDestRect{};
-SDL_Rect UIElement::timerDestRect{};
+SDL_Texture *BuildingState::cantBuildTexture = nullptr;
+SDL_Texture *BuildingState::upgradingTexture = nullptr;
+SDL_Texture *BuildingState::sellingTexture = nullptr;
 
 // class App GLOBAL VARIABLES
 std::default_random_engine g_Rng(App::s_Rnd());
@@ -132,7 +126,7 @@ App::App()
 	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
 	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
 
-	PrepareUI();
+	UIElement::InitUI();
 
 	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
@@ -143,8 +137,12 @@ App::App()
 	m_PauseLabel.UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
 	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", defaultFont););
-	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(150, 10, " ", defaultFont););
-	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(500, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 }););
+	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(0, App::WINDOW_HEIGHT, " ", defaultFont););
+	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(400, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 }););
+
+	IF_DEBUG(
+		s_PointedPosition->UpdatePos({ 0.0f, static_cast<float>(App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h) });
+	);
 
 	InitMainMenu();
 
@@ -220,7 +218,11 @@ void App::AssignStaticAssets()
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
 	BuildingState::transparentTexture = App::s_Textures.GetTexture("transparent");
-	BuildingState::originalTexture = App::s_Textures.GetTexture("canBuild");
+	//BuildingState::originalTexture = App::s_Textures.GetTexture("canBuild");
+	BuildingState::originalTexture = App::s_Textures.GetTexture("upgradeIcon");
+	BuildingState::cantBuildTexture = App::s_Textures.GetTexture("cantBuild");
+	BuildingState::upgradingTexture = App::s_Textures.GetTexture("canUpgrade");
+	BuildingState::sellingTexture = App::s_Textures.GetTexture("sellIcon");
 
 	App::s_GreenTex = App::s_Textures.GetTexture("green");
 	App::s_Square = App::s_Textures.GetTexture("square");
@@ -236,6 +238,9 @@ void App::AssignStaticAssets()
 	UIElement::s_CoinTexture = App::s_Textures.GetTexture("coinUI");
 	UIElement::s_HeartTexture = App::s_Textures.GetTexture("heartUI");
 	UIElement::s_TimerTexture = App::s_Textures.GetTexture("timerUI");
+	UIElement::s_HammerTexture = App::s_Textures.GetTexture("buildHammer");
+	UIElement::s_HammerGreenTexture = App::s_Textures.GetTexture("buildHammerGreen");
+	UIElement::s_SellTexture = App::s_Textures.GetTexture("sellIcon");
 
 	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
@@ -333,32 +338,13 @@ void App::InitMainMenu()
 
 void App::EventHandler()
 {
-	static uint32_t windowMinimizedTicks = 0u;
-
 	SDL_PollEvent(&s_Event);
 
 	switch (s_Event.type)
 	{
-	// WINDOW EVENTS
 	case SDL_WINDOWEVENT:
-		switch (s_Event.window.event)
-		{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				OnResolutionChange();
-				return;
-			case SDL_WINDOWEVENT_MINIMIZED:
-				windowMinimizedTicks = SDL_GetTicks();
-				s_IsWindowMinimized = true;
-				return;
-			case SDL_WINDOWEVENT_RESTORED:
-				g_PausedTicks += SDL_GetTicks() - windowMinimizedTicks;
-				windowMinimizedTicks = 0u;
-				s_IsWindowMinimized = false;
-				return;
-			default:
-				return;
-		}
-	// END OF WINDOW EVENTS
+		HandleWindowEvent();
+		return;
 	
 	// MOUSE EVENTS
 	case SDL_MOUSEMOTION:
@@ -370,125 +356,20 @@ void App::EventHandler()
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
 		if (s_UIState == UIState::mainMenu)
+		{
 			s_MainMenu.HandleMouseButtonEvent();
+		}
 		else
+		{
+			HandleMouseButtonEvent(s_Event.button.button);
 			App::s_CurrentLevel->HandleMouseButtonEvent(s_Event.button.button);
+		}
 		return;
 	// END OF MOUSE EVENTS
 
 	// KEYBOARD EVENTS
 	case SDL_KEYDOWN:
-		switch (App::s_Event.key.keysym.sym)
-		{
-		case SDLK_b: // switch between building state
-			SwitchBuildingState();
-			return;
-		IF_DEBUG(
-		case SDLK_n:
-			s_SwapTowerType = !s_SwapTowerType;
-			App::s_Logger.AddLog(std::format("App::s_SwapTowerType: {}", static_cast<int32_t>(s_SwapTowerType)));
-			return;
-		);
-		case SDLK_y: // lock/unlock camera movement
-			SwitchCameraMode();
-			return;
-		case SDLK_TAB: // move the camera to the primary point (base)
-			{
-				const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
-
-				s_Camera.x = basePos.x - s_Camera.w / 2.0f;
-				s_Camera.y = basePos.y - s_Camera.h / 2.0f;
-
-				UpdateCamera();
-			}
-			return;
-		// Function keys
-		case SDLK_F1: // resolution 800x600
-			SDL_SetWindowSize(m_Window, 800, 600);
-			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			return;
-		case SDLK_F2: // resolution 1280x720
-			SDL_SetWindowSize(m_Window, 1280, 720);
-			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			return;
-		case SDLK_F3:
-			SDL_MaximizeWindow(m_Window);
-			return;
-#ifdef DEBUG
-		case SDLK_F4: // Speed up enemies' movement speed
-			{
-				static std::string_view debugSpeedName;
-
-				switch (s_Speedy)
-				{
-				case EnemyDebugSpeed::none:
-					s_Speedy = EnemyDebugSpeed::faster;
-					debugSpeedName = "EnemyDebugSpeed::faster";
-					break;
-				case EnemyDebugSpeed::faster:
-					s_Speedy = EnemyDebugSpeed::stay;
-					debugSpeedName = "EnemyDebugSpeed::stay";
-					break;
-				case EnemyDebugSpeed::stay:
-					s_Speedy = EnemyDebugSpeed::none;
-					debugSpeedName = "EnemyDebugSpeed::none";
-					break;
-				}
-
-				for (const auto &e : g_Enemies)
-				{
-					if (!e->IsActive())
-						continue;
-
-					dynamic_cast<Enemy*>(e)->DebugSpeed();
-				}
-
-				s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
-				s_Logger.AddLog(debugSpeedName);
-			}
-			return;
-#endif
-		case SDLK_F5: // Add life
-			AddLifes();
-			return;
-		case SDLK_F6: // Take life
-			TakeLifes();
-			return;
-		case SDLK_F7: // Add coin
-			AddCoins();
-			return;
-		case SDLK_F8: // Take coin
-			TakeCoins();
-			return;
-#ifdef DEBUG
-		case SDLK_F9: // Refresh attack (in case of EnemyDebugSpeed::stay)
-			for (const auto &e : g_Enemies)
-				dynamic_cast<Enemy*>(e)->ValidAttacker();
-			return;
-#endif
-		case SDLK_F10: // Destroy all enemies
-			for (const auto &e : g_Enemies)
-				e->Destroy();
-			return;
-		case SDLK_F11: // Switch full screen mode
-			if (m_IsFullscreen)
-			{
-				SDL_SetWindowFullscreen(m_Window, 0);
-				SDL_MaximizeWindow(m_Window);
-				SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
-			}
-			else
-			{
-				SDL_SetWindowSize(m_Window, displayInfo.w, displayInfo.h); // Set the highest resolution before turning into full screen
-				SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN);
-			}
-			m_IsFullscreen = !m_IsFullscreen;
-			return;
-		// End of function keys
-		case SDLK_ESCAPE:
-			s_IsRunning = false;
-			return;
-		}
+		HandleKeyboardEvent();
 		return;
 	// END OF KEYBOARD EVENTS
 	case SDL_QUIT:
@@ -527,31 +408,154 @@ void App::Render()
 	{
 		App::s_CurrentLevel->Render();
 
-		DrawUI();
+		IF_DEBUG(s_EnemiesAmountLabel->Draw(););
+
+		m_PauseLabel.Draw();
+
+		UIElement::DrawUI();
 	}
 
+	IF_DEBUG(s_FrameDelay->Draw(););
 	IF_DEBUG(s_PointedPosition->Draw(););
 
 	SDL_RenderPresent(App::s_Renderer);
 }
 
-void App::DrawUI()
+void App::HandleWindowEvent()
 {
-	IF_DEBUG(s_EnemiesAmountLabel->Draw(););
-	IF_DEBUG(s_FrameDelay->Draw(););
+	static uint32_t windowMinimizedTicks = 0u;
 
-	m_PauseLabel.Draw();
-
-	for (std::size_t i = 0u; i < s_UIElements.size(); i++)
+	switch (s_Event.window.event)
 	{
-		s_UIElements.at(i).Draw();
+	case SDL_WINDOWEVENT_SIZE_CHANGED:
+		OnResolutionChange();
+		return;
+	case SDL_WINDOWEVENT_MINIMIZED:
+		windowMinimizedTicks = SDL_GetTicks();
+		s_IsWindowMinimized = true;
+		return;
+	case SDL_WINDOWEVENT_RESTORED:
+		g_PausedTicks += SDL_GetTicks() - windowMinimizedTicks;
+		windowMinimizedTicks = 0u;
+		s_IsWindowMinimized = false;
+		return;
+	default:
+		return;
 	}
+}
 
-	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);
-	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
-	TextureManager::DrawTexture(UIElement::s_TimerTexture, UIElement::timerRect, UIElement::timerDestRect);
+void App::HandleKeyboardEvent()
+{
+	switch (App::s_Event.key.keysym.sym)
+	{
+IF_DEBUG(
+	case SDLK_n:
+		s_SwapTowerType = !s_SwapTowerType;
+		App::s_Logger.AddLog(std::format("App::s_SwapTowerType: {}", static_cast<int32_t>(s_SwapTowerType)));
+		return;
+);
+	case SDLK_y: // lock/unlock camera movement
+		SwitchCameraMode();
+		return;
+	case SDLK_TAB: // move the camera to the primary point (base)
+	{
+		const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
 
-	s_UICoinsNotification.Draw();
+		s_Camera.x = basePos.x - s_Camera.w / 2.0f;
+		s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+
+		UpdateCamera();
+	}
+	return;
+	// Function keys
+	case SDLK_F1: // resolution 800x600
+		SDL_SetWindowSize(m_Window, 800, 600);
+		SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+		return;
+	case SDLK_F2: // resolution 1280x720
+		SDL_SetWindowSize(m_Window, 1280, 720);
+		SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+		return;
+	case SDLK_F3:
+		SDL_MaximizeWindow(m_Window);
+		return;
+#ifdef DEBUG
+	case SDLK_F4: // Speed up enemies' movement speed
+	{
+		static std::string_view debugSpeedName;
+
+		switch (s_Speedy)
+		{
+		case EnemyDebugSpeed::none:
+			s_Speedy = EnemyDebugSpeed::faster;
+			debugSpeedName = "EnemyDebugSpeed::faster";
+			break;
+		case EnemyDebugSpeed::faster:
+			s_Speedy = EnemyDebugSpeed::stay;
+			debugSpeedName = "EnemyDebugSpeed::stay";
+			break;
+		case EnemyDebugSpeed::stay:
+			s_Speedy = EnemyDebugSpeed::none;
+			debugSpeedName = "EnemyDebugSpeed::none";
+			break;
+		}
+
+		for (const auto &e : g_Enemies)
+		{
+			if (!e->IsActive())
+				continue;
+
+			dynamic_cast<Enemy *>(e)->DebugSpeed();
+		}
+
+		s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
+		s_Logger.AddLog(debugSpeedName);
+	}
+	return;
+#endif
+	case SDLK_F5: // Add life
+		AddLifes();
+		return;
+	case SDLK_F6: // Take life
+		TakeLifes();
+		return;
+	case SDLK_F7: // Add coin
+		AddCoins();
+		return;
+	case SDLK_F8: // Take coin
+		TakeCoins();
+		return;
+#ifdef DEBUG
+	case SDLK_F9: // Refresh attack (in case of EnemyDebugSpeed::stay)
+		for (const auto &e : g_Enemies)
+			dynamic_cast<Enemy *>(e)->ValidAttacker();
+		return;
+#endif
+	case SDLK_F10: // Destroy all enemies
+		for (const auto &e : g_Enemies)
+			e->Destroy();
+		return;
+	case SDLK_F11: // Switch full screen mode
+		if (m_IsFullscreen)
+		{
+			SDL_SetWindowFullscreen(m_Window, 0);
+			SDL_MaximizeWindow(m_Window);
+			SDL_SetWindowPosition(m_Window, (SDL_WINDOWPOS_CENTERED | (0)), (SDL_WINDOWPOS_CENTERED | (0)));
+		}
+		else
+		{
+			SDL_SetWindowSize(m_Window, displayInfo.w, displayInfo.h); // Set the highest resolution before turning into full screen
+			SDL_SetWindowFullscreen(m_Window, SDL_WINDOW_FULLSCREEN);
+		}
+		m_IsFullscreen = !m_IsFullscreen;
+		return;
+		// End of function keys
+	case SDLK_ESCAPE:
+		s_IsRunning = false;
+		return;
+	default:
+		return;
+	}
 }
 
 void App::UpdateCamera()
@@ -583,6 +587,10 @@ void App::OnResolutionChange()
 {
 	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
+	IF_DEBUG(
+		s_PointedPosition->UpdatePos({ 0.0f, static_cast<float>(App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h) });
+	);
+
 	if (s_UIState == UIState::mainMenu)
 	{
 		s_MainMenu.OnResolutionChange();
@@ -613,12 +621,44 @@ void App::OnResolutionChange()
 	s_CurrentLevel->OnUpdateCamera();
 }
 
+void App::LMBEvent()
+{
+	// Check if mouse is pointing at hammer for building
+	if (s_MouseX >= UIElement::hammerDestRect.x && s_MouseX <= UIElement::hammerDestRect.x + UIElement::hammerDestRect.w
+		&& s_MouseY >= UIElement::hammerDestRect.y && s_MouseY <= UIElement::hammerDestRect.y + UIElement::hammerDestRect.h)
+	{
+		// UIElement::s_IsHammerPressed == true should always mean s_UIState == UIState::building
+		UIElement::s_IsHammerPressed = !UIElement::s_IsHammerPressed;
+		SwitchBuildingState(UIElement::s_IsHammerPressed ? UIState::building : UIState::none);
+		return;
+	}
+
+	// Check if mouse is pointing at sell tower icon
+	if (s_MouseX >= UIElement::sellDestRect.x && s_MouseX <= UIElement::sellDestRect.x + UIElement::sellDestRect.w
+		&& s_MouseY >= UIElement::sellDestRect.y && s_MouseY <= UIElement::sellDestRect.y + UIElement::sellDestRect.h)
+	{
+		// Check if hammer is pressed and if true, then cancel building
+		if (UIElement::s_IsHammerPressed)
+		{
+			SwitchBuildingState(UIState::none);
+			UIElement::s_IsHammerPressed = false;
+		}
+		else if (s_UIState == UIState::selling)
+		{
+			SwitchBuildingState(UIState::none);
+			return;
+		}
+
+		SwitchBuildingState(UIState::selling);
+
+		return;
+	}
+}
+
 void App::SetUIState(UIState state)
 {
 	if (s_UIState == state)
 		return;
-
-	std::string_view newState;
 
 	s_UIState = state;
 
@@ -642,16 +682,13 @@ void App::SetUIState(UIState state)
 	m_PauseLabel.m_Drawable = IsGamePaused(state);
 
 	// I'm not sure if using switch-case matters here
-	if (state == UIState::building)
+	if (state == UIState::building || state == UIState::upgrading || state == UIState::selling)
 	{
 		ManageBuildingState();
-		return;
 	}
-
-	if (state == UIState::mainMenu)
+	else if (state == UIState::mainMenu)
 	{
 		App::Instance().OnResolutionChange();
-		return;
 	}
 }
 
@@ -682,36 +719,27 @@ void App::LoadLevel()
 	App::s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
 }
 
-void App::SwitchBuildingState()
+void App::SwitchBuildingState(UIState newState)
 {
-	switch (s_UIState)
+	switch (newState)
 	{
-	case UIState::building:
-		s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
-		SetUIState(UIState::none);
-		return;
 	case UIState::none:
+		s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
+		break;
+	case UIState::building:
 		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		SetUIState(UIState::building);
-		return;
+		break;
+	case UIState::upgrading:
+		s_Building.buildingPlace.SetTexture(BuildingState::upgradingTexture);
+		break;
+	case UIState::selling:
+		s_Building.buildingPlace.SetTexture(BuildingState::sellingTexture);
+		break;
 	default:
 		return;
 	}
 
-	/*if (s_UIState == UIState::building)
-	{
-		s_Building.buildingPlace.SetTexture(transparentTexture);
-		SetUIState(UIState::none);
-	}
-	else if (s_UIState == UIState::none)
-	{
-		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		SetUIState(UIState::building);
-	}
-	else
-	{
-		return;
-	}*/
+	SetUIState(newState);
 }
 
 void App::ManageBuildingState()
@@ -733,49 +761,75 @@ void App::ManageBuildingState()
 	if (!s_Building.pointedTile)
 		return;
 
-	if (App::s_CurrentLevel->IsTileWalkable(s_Building.coordinates))
+	s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
+	s_Building.canBuild = true;
+	s_Building.towerToUpgradeOrSell = nullptr;
+	s_Building.buildingPlace.AdjustToView();
+
+	if (s_UIState == UIState::building)
 	{
-		s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
-		BuildingState::originalTexture = s_Textures.GetTexture("cantBuild");
+		if (App::s_CurrentLevel->IsTileWalkable(s_Building.coordinates))
+		{
+			s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
+			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+			s_Building.canBuild = false;
+			s_Building.buildingPlace.AdjustToView();
+			return;
+		}
+
 		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		s_Building.canBuild = false;
-		s_Building.buildingPlace.AdjustToView();
+
+		// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
+		Tile *pointedTile = s_Building.pointedTile;
+
+		/*
+		// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
+		{
+			Tower *tower = pointedTile->GetTowerOccupying();
+			if (tower && tower->CanUpgrade() && pointedTile == tower->GetOccupiedTile(0u))
+			{
+				s_Building.buildingPlace.SetTexture(BuildingState::upgradingTexture);
+				s_Building.canBuild = false;
+				s_Building.towerToUpgradeOrSell = tower;
+				return;
+			}
+		}
+		*/
+
+		for (auto i = 0u; i < 4u; i++)
+		{
+			pointedTile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(s_Building.coordinates.x) + i % 2, static_cast<uint32_t>(s_Building.coordinates.y) + i / 2, 0);
+			if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
+				continue;
+
+			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+			s_Building.canBuild = false;
+			return;
+		}
+
+		return;
+	}
+	
+	if (s_UIState == UIState::upgrading)
+	{
 		return;
 	}
 
-	s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
-	BuildingState::originalTexture = s_Textures.GetTexture("canBuild");
-	s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-	s_Building.canBuild = true;
-	s_Building.towerToUpgrade = nullptr;
-	
-	s_Building.buildingPlace.AdjustToView();
-
-	// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
-	Tile *pointedTile = s_Building.pointedTile;
-
-	// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
+	if (s_UIState == UIState::selling)
 	{
-		Tower *tower = pointedTile->GetTowerOccupying();
-		if (tower && tower->CanUpgrade() && pointedTile == tower->GetOccupiedTile(0))
+		Tower *tower = s_Building.pointedTile->GetTowerOccupying();
+		if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u))
 		{
-			BuildingState::originalTexture = s_Textures.GetTexture("upgradeTower");
-			s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 			s_Building.canBuild = false;
-			s_Building.towerToUpgrade = tower;
+			s_Building.towerToUpgradeOrSell = nullptr;
 			return;
 		}
-	}
 
-	for (auto i = 0u; i < 4u; i++)
-	{
-		pointedTile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(s_Building.coordinates.x) + i % 2, static_cast<uint32_t>(s_Building.coordinates.y) + i / 2, 0);
-		if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
-			continue;
+		s_Building.buildingPlace.SetTexture(BuildingState::sellingTexture);
+		s_Building.canBuild = true;
+		s_Building.towerToUpgradeOrSell = tower;
 
-		BuildingState::originalTexture = s_Textures.GetTexture("cantBuild");
-		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		s_Building.canBuild = false;
 		return;
 	}
 }

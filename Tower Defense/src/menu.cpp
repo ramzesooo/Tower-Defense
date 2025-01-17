@@ -20,6 +20,9 @@ int32_t MainMenu::s_GapBetweenButtons = 0u;
 MenuState MainMenu::s_State = MenuState::primary;
 SDL_Rect MainMenu::s_BgDestRect{ 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT };
 
+static constexpr char returnText[] = "Return";
+static constexpr char quitText[] = "Quit";
+
 void MainMenu::Render()
 {
 	static constexpr SDL_Rect srcRect{ 0, 0, 1500, 1500 };
@@ -53,9 +56,11 @@ void MainMenu::HandleMouseButtonEvent()
 	if (!m_HoveredButton)
 		return;
 
+	static Mix_Chunk *clickSound = App::s_Textures.GetSound("selectButton");
+
 	App::s_Logger.AddLog(std::format("Pressed button {} (Menu state: {})", m_HoveredButton->m_Label.GetText(), static_cast<std::size_t>(s_State)));
 
-	Mix_PlayChannel(-1, App::s_Textures.GetSound("selectButton"), 0);
+	Mix_PlayChannel(-1, clickSound, 0);
 
 	// Check if the pointed button is the one for returning/quitting
 	if (m_HoveredButton == &m_ReturnButton)
@@ -72,7 +77,7 @@ void MainMenu::HandleMouseButtonEvent()
 		case MenuState::options: // Return to primary
 		case MenuState::levels: // Return to primary
 			m_HoveredButton->destRect.y = centerY - m_HoveredButton->destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
-			m_HoveredButton->m_Label.UpdateText("Quit");
+			m_HoveredButton->m_Label.UpdateText(quitText);
 			const SDL_Rect &labelRect = m_HoveredButton->m_Label.GetRect();
 			m_HoveredButton->m_Label.UpdatePos((m_HoveredButton->destRect.x + m_HoveredButton->destRect.w / 2) - labelRect.w / 2,
 				m_HoveredButton->destRect.y + m_HoveredButton->destRect.h / 4);
@@ -107,7 +112,7 @@ void MainMenu::HandleTitleButtons()
 	if (m_HoveredButton == &m_PrimaryButtons.at(0))
 	{
 		m_ReturnButton.destRect.y = centerY - m_ReturnButton.destRect.h / 2 + static_cast<int32_t>(m_LevelsButtons.size()) * MainMenu::s_GapBetweenButtons;
-		m_ReturnButton.m_Label.UpdateText("Return");
+		m_ReturnButton.m_Label.UpdateText(returnText);
 		const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
 		m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
 			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
@@ -120,7 +125,7 @@ void MainMenu::HandleTitleButtons()
 	else if (m_HoveredButton == &m_PrimaryButtons.at(1))
 	{
 		m_ReturnButton.destRect.y = centerY - m_ReturnButton.destRect.h / 2 + static_cast<int32_t>(m_OptionsButtons.size()) * MainMenu::s_GapBetweenButtons;
-		m_ReturnButton.m_Label.UpdateText("Return");
+		m_ReturnButton.m_Label.UpdateText(returnText);
 		const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
 		m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
 			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
@@ -170,6 +175,8 @@ void MainMenu::HandleLevelsButtons()
 
 void MainMenu::OnCursorMove()
 {
+	static Mix_Chunk *hoverSound = App::s_Textures.GetSound("hoverButton");
+
 	// Check if mouse is pointing at the same button as before
 	if (m_HoveredButton)
 	{
@@ -197,7 +204,7 @@ void MainMenu::OnCursorMove()
 		{
 			m_ReturnButton.m_IsHovered = true;
 			m_HoveredButton = &m_ReturnButton;
-			Mix_PlayChannel(-1, App::s_Textures.GetSound("hoverButton"), 0);
+			Mix_PlayChannel(-1, hoverSound, 0);
 			return;
 		}
 	}
@@ -215,7 +222,7 @@ void MainMenu::OnCursorMove()
 			{
 				m_PrimaryButtons.at(i).m_IsHovered = true;
 				m_HoveredButton = &m_PrimaryButtons.at(i);
-				Mix_PlayChannel(-1, App::s_Textures.GetSound("hoverButton"), 0);
+				Mix_PlayChannel(-1, hoverSound, 0);
 				return;
 			}
 		}
@@ -230,7 +237,7 @@ void MainMenu::OnCursorMove()
 			{
 				m_OptionsButtons.at(i).m_IsHovered = true;
 				m_HoveredButton = &m_OptionsButtons.at(i);
-				Mix_PlayChannel(-1, App::s_Textures.GetSound("hoverButton"), 0);
+				Mix_PlayChannel(-1, hoverSound, 0);
 				return;
 			}
 		}
@@ -245,7 +252,7 @@ void MainMenu::OnCursorMove()
 			{
 				m_LevelsButtons.at(i).m_IsHovered = true;
 				m_HoveredButton = &m_LevelsButtons.at(i);
-				Mix_PlayChannel(-1, App::s_Textures.GetSound("hoverButton"), 0);
+				Mix_PlayChannel(-1, hoverSound, 0);
 				return;
 			}
 		}

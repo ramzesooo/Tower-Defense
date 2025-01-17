@@ -1,5 +1,4 @@
 #pragma once
-#include "textureManager.h"
 #include "entity/label.h"
 
 #include "SDL_rect.h"
@@ -9,9 +8,12 @@ enum class UIState
 {
 	none = 0, // none means game is running by default
 	mainMenu,
-	building
+	building,
+	upgrading,
+	selling
 };
 
+// Wrong name, but whatever
 class UIElement
 {
 public:
@@ -19,23 +21,32 @@ public:
 	static constexpr SDL_Rect coinRect{ 0, 0, 5, 6 }; // coin rectangle
 	static constexpr SDL_Rect heartRect{ 0, 0, 32, 29 }; // heart rectangle
 	static constexpr SDL_Rect timerRect{ 0, 0, 19, 22 }; // clock rectangle
+	static constexpr SDL_Rect hammerRect{ 0, 0, 34, 34 }; // hammer rectangle
+	static constexpr SDL_Rect sellRect{ 0, 0, 24, 24 }; // sell rectangle
+
 	static SDL_Rect coinDestRect;
 	static SDL_Rect heartDestRect;
 	static SDL_Rect timerDestRect;
+	static SDL_Rect hammerDestRect;
+	static SDL_Rect sellDestRect;
+
 	static SDL_Texture *s_BgTexture;
 	static SDL_Texture *s_CoinTexture;
 	static SDL_Texture *s_HeartTexture;
 	static SDL_Texture *s_TimerTexture;
+	static SDL_Texture *s_HammerTexture;
+	static SDL_Texture *s_HammerGreenTexture;
+	static SDL_Texture *s_SellTexture;
+
+	static bool s_IsHammerPressed;
 
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 	Label m_Label;
 	std::string m_DefaultText;
-
-	inline void Draw()
-	{
-		TextureManager::DrawTexture(UIElement::s_BgTexture, UIElement::srcRect, destRect);
-		m_Label.Draw();
-	}
+public:
+	static void InitUI();
+	static void DrawUI();
+	void DrawElement();
 };
 
 enum class ButtonType
@@ -64,42 +75,5 @@ public:
 	bool m_IsHovered = false;
 	bool m_IsChecked = false;
 public:
-	inline void Draw()
-	{
-		if (m_Type == ButtonType::check)
-		{
-			if (m_IsHovered)
-			{
-				if (m_IsChecked)
-				{
-					TextureManager::DrawTexture(s_HoveredButtonChecked, srcRect, destRect);
-				}
-				else
-				{
-					TextureManager::DrawTexture(s_HoveredButtonUnchecked, srcRect, destRect);
-				}
-			}
-			else
-			{
-				if (m_IsChecked)
-				{
-					TextureManager::DrawTexture(s_DefaultButtonChecked, srcRect, destRect);
-				}
-				else
-				{
-					TextureManager::DrawTexture(s_DefaultButtonUnchecked, srcRect, destRect);
-				}
-			}
-
-			m_Label.Draw();
-			return;
-		}
-
-		if (m_IsHovered)
-			TextureManager::DrawTexture(s_HoveredButton, srcRect, destRect);
-		else
-			TextureManager::DrawTexture(s_DefaultButton, srcRect, destRect);
-
-		m_Label.Draw();
-	}
+	void Draw();
 };

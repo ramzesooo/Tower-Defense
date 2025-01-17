@@ -37,12 +37,17 @@ static constexpr AssetData texturesToLoad[]
 	{ "uncheckedHoveredButtonUI",	"ui/ui_button_hovered_unchecked.png" },
 	{ "canBuild",					"ui/tile_CanBuild.png" },
 	{ "cantBuild",					"ui/tile_CantBuild.png" },
-	{ "upgradeTower",				"ui/tile_Upgrade.png" },
+	//{ "upgradeTower",				"ui/tile_Upgrade.png" },
+	{ "canUpgrade",					"ui/upgrade.png" },
 	{ "highlightTowerRange",		"ui/highlightRange.png" },
 	{ "elementUI",					"ui/ui_element.png" },
 	{ "coinUI",						"ui/coin.png" },
 	{ "heartUI",					"ui/heart.png" },
 	{ "timerUI",					"ui/timer.png" },
+	{ "buildHammer",				"ui/hammer_1.png" },
+	{ "buildHammerGreen",			"ui/hammer_2.png" },
+	{ "upgradeIcon",				"ui/upgrade.png" },
+	{ "sellIcon",					"ui/sell.png" },
 
 	{ App::TextureOf(TowerType::classic),		"towers/classic/tower.png"},
 	{ App::TextureOf(TowerType::dark),			"towers/dark/DarkTower-Sheet.png"},
@@ -72,8 +77,8 @@ struct FontData
 
 static constexpr FontData fontsToLoad[]
 {
-	{ "default",		"F25_Bank_Printer.ttf", 15u },
-	{ "enemyHealth",	"Rostack.otf", 13u }
+	{ "default",		"F25_Bank_Printer.ttf",	15u },
+	{ "enemyHealth",	"Rostack.otf",			13u }
 };
 
 // FONTS
