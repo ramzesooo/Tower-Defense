@@ -221,7 +221,6 @@ void App::AssignStaticAssets()
 	//BuildingState::originalTexture = App::s_Textures.GetTexture("canBuild");
 	BuildingState::originalTexture = App::s_Textures.GetTexture("upgradeIcon");
 	BuildingState::cantBuildTexture = App::s_Textures.GetTexture("cantBuild");
-	BuildingState::upgradingTexture = App::s_Textures.GetTexture("canUpgrade");
 	BuildingState::sellingTexture = App::s_Textures.GetTexture("sellIcon");
 
 	App::s_GreenTex = App::s_Textures.GetTexture("green");
@@ -241,6 +240,7 @@ void App::AssignStaticAssets()
 	UIElement::s_HammerTexture = App::s_Textures.GetTexture("buildHammer");
 	UIElement::s_HammerGreenTexture = App::s_Textures.GetTexture("buildHammerGreen");
 	UIElement::s_SellTexture = App::s_Textures.GetTexture("sellIcon");
+	UIElement::s_UpgradeTexture = App::s_Textures.GetTexture("upgradeIcon");
 
 	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
@@ -528,7 +528,7 @@ IF_DEBUG(
 #ifdef DEBUG
 	case SDLK_F9: // Refresh attack (in case of EnemyDebugSpeed::stay)
 		for (const auto &e : g_Enemies)
-			dynamic_cast<Enemy *>(e)->ValidAttacker();
+			dynamic_cast<Enemy*>(e)->ValidAttacker();
 		return;
 #endif
 	case SDLK_F10: // Destroy all enemies
@@ -627,9 +627,7 @@ void App::LMBEvent()
 	if (s_MouseX >= UIElement::hammerDestRect.x && s_MouseX <= UIElement::hammerDestRect.x + UIElement::hammerDestRect.w
 		&& s_MouseY >= UIElement::hammerDestRect.y && s_MouseY <= UIElement::hammerDestRect.y + UIElement::hammerDestRect.h)
 	{
-		// UIElement::s_IsHammerPressed == true should always mean s_UIState == UIState::building
-		UIElement::s_IsHammerPressed = !UIElement::s_IsHammerPressed;
-		SwitchBuildingState(UIElement::s_IsHammerPressed ? UIState::building : UIState::none);
+		SwitchBuildingState(s_UIState == UIState::none ? UIState::building : UIState::none);
 		return;
 	}
 
@@ -637,20 +635,15 @@ void App::LMBEvent()
 	if (s_MouseX >= UIElement::sellDestRect.x && s_MouseX <= UIElement::sellDestRect.x + UIElement::sellDestRect.w
 		&& s_MouseY >= UIElement::sellDestRect.y && s_MouseY <= UIElement::sellDestRect.y + UIElement::sellDestRect.h)
 	{
-		// Check if hammer is pressed and if true, then cancel building
-		if (UIElement::s_IsHammerPressed)
-		{
-			SwitchBuildingState(UIState::none);
-			UIElement::s_IsHammerPressed = false;
-		}
-		else if (s_UIState == UIState::selling)
-		{
-			SwitchBuildingState(UIState::none);
-			return;
-		}
+		SwitchBuildingState(s_UIState == UIState::none ? UIState::selling : UIState::none);
+		return;
+	}
 
-		SwitchBuildingState(UIState::selling);
-
+	// Check if mouse is pointing at upgrade tower icon
+	if (s_MouseX >= UIElement::upgradeDestRect.x && s_MouseX <= UIElement::upgradeDestRect.x + UIElement::upgradeDestRect.w
+		&& s_MouseY >= UIElement::upgradeDestRect.y && s_MouseY <= UIElement::upgradeDestRect.y + UIElement::upgradeDestRect.h)
+	{
+		SwitchBuildingState(s_UIState == UIState::none ? UIState::upgrading : UIState::none);
 		return;
 	}
 }
@@ -681,14 +674,16 @@ void App::SetUIState(UIState state)
 
 	m_PauseLabel.m_Drawable = IsGamePaused(state);
 
-	// I'm not sure if using switch-case matters here
-	if (state == UIState::building || state == UIState::upgrading || state == UIState::selling)
+	switch (state)
 	{
-		ManageBuildingState();
-	}
-	else if (state == UIState::mainMenu)
-	{
+	case UIState::mainMenu:
 		App::Instance().OnResolutionChange();
+		return;
+	case UIState::building:
+	case UIState::upgrading:
+	case UIState::selling:
+		ManageBuildingState();
+		return;
 	}
 }
 

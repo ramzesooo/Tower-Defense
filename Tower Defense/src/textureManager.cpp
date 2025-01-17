@@ -38,7 +38,6 @@ static constexpr AssetData texturesToLoad[]
 	{ "canBuild",					"ui/tile_CanBuild.png" },
 	{ "cantBuild",					"ui/tile_CantBuild.png" },
 	//{ "upgradeTower",				"ui/tile_Upgrade.png" },
-	{ "canUpgrade",					"ui/upgrade.png" },
 	{ "highlightTowerRange",		"ui/highlightRange.png" },
 	{ "elementUI",					"ui/ui_element.png" },
 	{ "coinUI",						"ui/coin.png" },

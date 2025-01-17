@@ -23,12 +23,14 @@ public:
 	static constexpr SDL_Rect timerRect{ 0, 0, 19, 22 }; // clock rectangle
 	static constexpr SDL_Rect hammerRect{ 0, 0, 34, 34 }; // hammer rectangle
 	static constexpr SDL_Rect sellRect{ 0, 0, 24, 24 }; // sell rectangle
+	static constexpr SDL_Rect upgradeRect{ 0, 0, 24, 24 }; // upgrading hammer rectangle
 
 	static SDL_Rect coinDestRect;
 	static SDL_Rect heartDestRect;
 	static SDL_Rect timerDestRect;
 	static SDL_Rect hammerDestRect;
 	static SDL_Rect sellDestRect;
+	static SDL_Rect upgradeDestRect;
 
 	static SDL_Texture *s_BgTexture;
 	static SDL_Texture *s_CoinTexture;
@@ -37,8 +39,7 @@ public:
 	static SDL_Texture *s_HammerTexture;
 	static SDL_Texture *s_HammerGreenTexture;
 	static SDL_Texture *s_SellTexture;
-
-	static bool s_IsHammerPressed;
+	static SDL_Texture *s_UpgradeTexture;
 
 	SDL_Rect destRect{ 0, 0, 0, 0 };
 	Label m_Label;

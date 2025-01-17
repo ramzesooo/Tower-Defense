@@ -8,6 +8,7 @@ SDL_Rect UIElement::heartDestRect{};
 SDL_Rect UIElement::timerDestRect{};
 SDL_Rect UIElement::hammerDestRect{};
 SDL_Rect UIElement::sellDestRect{};
+SDL_Rect UIElement::upgradeDestRect{};
 
 SDL_Texture *UIElement::s_BgTexture = nullptr;
 SDL_Texture *UIElement::s_CoinTexture = nullptr;
@@ -16,8 +17,7 @@ SDL_Texture *UIElement::s_TimerTexture = nullptr;
 SDL_Texture *UIElement::s_HammerTexture = nullptr;
 SDL_Texture *UIElement::s_HammerGreenTexture = nullptr;
 SDL_Texture *UIElement::s_SellTexture = nullptr;
-
-bool UIElement::s_IsHammerPressed;
+SDL_Texture *UIElement::s_UpgradeTexture = nullptr;
 
 void UIElement::InitUI()
 {
@@ -66,6 +66,9 @@ void UIElement::InitUI()
 	UIElement::hammerDestRect.w /= 3;
 
 	UIElement::sellDestRect = { startX + destRect.w + destRect.w / 4, startY, destRect.w / 3, destRect.h };
+
+	UIElement::upgradeDestRect = UIElement::sellDestRect;
+	UIElement::upgradeDestRect.y += destRect.h;
 }
 
 void UIElement::DrawUI()
@@ -79,12 +82,30 @@ void UIElement::DrawUI()
 	TextureManager::DrawTexture(UIElement::s_HeartTexture, UIElement::heartRect, UIElement::heartDestRect);
 	TextureManager::DrawTexture(UIElement::s_TimerTexture, UIElement::timerRect, UIElement::timerDestRect);
 
-	if (s_IsHammerPressed)
+	if (App::s_UIState == UIState::building)
 		TextureManager::DrawTexture(UIElement::s_HammerGreenTexture, UIElement::hammerRect, UIElement::hammerDestRect);
 	else
 		TextureManager::DrawTexture(UIElement::s_HammerTexture, UIElement::hammerRect, UIElement::hammerDestRect);
 
-	TextureManager::DrawTexture(UIElement::s_SellTexture, UIElement::sellRect, UIElement::sellDestRect);
+	if (App::s_UIState == UIState::upgrading)
+	{
+		TextureManager::DrawTexture(UIElement::s_UpgradeTexture, UIElement::upgradeRect, UIElement::upgradeDestRect);
+		TextureManager::DrawTexture(UIElement::s_UpgradeTexture, UIElement::upgradeRect, UIElement::upgradeDestRect);
+	}
+	else
+	{
+		TextureManager::DrawTexture(UIElement::s_UpgradeTexture, UIElement::upgradeRect, UIElement::upgradeDestRect);
+	}
+
+	if (App::s_UIState == UIState::selling)
+	{
+		TextureManager::DrawTexture(UIElement::s_SellTexture, UIElement::sellRect, UIElement::sellDestRect);
+		TextureManager::DrawTexture(UIElement::s_SellTexture, UIElement::sellRect, UIElement::sellDestRect);
+	}
+	else
+	{
+		TextureManager::DrawTexture(UIElement::s_SellTexture, UIElement::sellRect, UIElement::sellDestRect);
+	}
 	
 	App::s_UICoinsNotification.Draw();
 }
