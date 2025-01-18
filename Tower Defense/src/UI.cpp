@@ -18,6 +18,11 @@ SDL_Texture *UIElement::s_HammerTexture = nullptr;
 SDL_Texture *UIElement::s_HammerGreenTexture = nullptr;
 SDL_Texture *UIElement::s_SellTexture = nullptr;
 SDL_Texture *UIElement::s_UpgradeTexture = nullptr;
+SDL_Texture *UIElement::s_TransparentGreenTexture = nullptr;
+
+std::array<SDL_Texture*, std::size_t(TowerType::size)> UIElement::s_ExpandingTowersIcons;
+
+TowerType UIElement::s_ChosenTower = TowerType::size;
 
 void UIElement::InitUI()
 {
@@ -65,6 +70,17 @@ void UIElement::InitUI()
 	UIElement::hammerDestRect = destRect;
 	UIElement::hammerDestRect.w /= 3;
 
+	for (int32_t i = 0; i < App::s_ExpandingTowers.size(); i++)
+	{
+		auto &element = App::s_ExpandingTowers.at(i);
+		element.destRect = hammerDestRect;
+		element.destRect.x += element.destRect.w * (i % 2);
+		element.destRect.y += (element.destRect.h * (i / 2)) + element.destRect.h;
+	}
+
+	s_ChosenTower = TowerType::classic;
+	App::s_ExpandingTowers.at(0).m_IsPressed = true;
+
 	UIElement::sellDestRect = { startX + destRect.w + destRect.w / 4, startY, destRect.w / 3, destRect.h };
 
 	UIElement::upgradeDestRect = UIElement::sellDestRect;
@@ -76,6 +92,17 @@ void UIElement::DrawUI()
 	for (std::size_t i = 0u; i < App::s_UIElements.size(); i++)
 	{
 		App::s_UIElements.at(i).DrawElement();
+	}
+
+	if (App::s_UIState == UIState::building)
+	{
+		for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
+		{
+			auto &element = App::s_ExpandingTowers.at(i);
+			TextureManager::DrawTexture(UIElement::s_ExpandingTowersIcons.at(i), UIElement::expandingTowerSrcRect, element.destRect);
+		}
+
+		TextureManager::DrawTexture(s_TransparentGreenTexture, UIElement::expandingTowerSrcRect, App::s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower)).destRect);
 	}
 
 	TextureManager::DrawTexture(UIElement::s_CoinTexture, UIElement::coinRect, UIElement::coinDestRect);

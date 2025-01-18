@@ -1,4 +1,6 @@
 #include "level.h"
+
+#include "UI.h"
 #include "app.h"
 #include "entity/enemy.h"
 #include "entity/label.h"
@@ -441,25 +443,12 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 
 void Level::LMBEvent()
 {
+	if (App::IsBuildingState() && !App::s_Building.canBuild)
+		return;
+
 	if (App::s_UIState == UIState::building)
 	{
-		if (!App::s_Building.canBuild)
-			return;
-
-		IF_DEBUG(
-			if (App::s_SwapTowerType)
-			{
-				AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::dark);
-			}
-			else
-			{
-				AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-			}
-		);
-
-		IF_NDEBUG(
-			AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, TowerType::classic);
-		);
+		AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, UIElement::s_ChosenTower);
 
 		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
@@ -470,14 +459,21 @@ void Level::LMBEvent()
 
 	if (App::s_UIState == UIState::upgrading)
 	{
+		App::Instance().TakeCoins(App::s_Building.towerToUpgradeOrSell->GetUpgradePrice());
+		App::s_Building.towerToUpgradeOrSell->Upgrade();
+
+		/*if (!App::s_Building.towerToUpgradeOrSell->CanUpgrade())
+		{
+			App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+			App::s_Building.towerToUpgradeOrSell = nullptr;
+			App::s_Building.canBuild = false;
+		}*/
+
 		return;
 	}
 
 	if (App::s_UIState == UIState::selling)
 	{
-		if (!App::s_Building.canBuild)
-			return;
-
 		App::Instance().AddCoins(App::s_Building.towerToUpgradeOrSell->GetSellPrice());
 		App::s_Building.towerToUpgradeOrSell->Destroy();
 

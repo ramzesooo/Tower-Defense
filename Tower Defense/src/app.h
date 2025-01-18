@@ -89,6 +89,8 @@ public:
 
 	// [0] = waves, [1] = coins, [2] = lifes, [3] = time
 	static std::array<UIElement, 4> s_UIElements;
+	// Towers displayed after going into building state
+	static std::array<UIElement, std::size_t(TowerType::size)> s_ExpandingTowers;
 	static Label s_UICoinsNotification;
 
 	static bool s_IsCameraLocked;
@@ -99,7 +101,6 @@ public:
 	IF_DEBUG(static Label *s_FrameDelay;);
 
 	IF_DEBUG(static EnemyDebugSpeed s_Speedy;);
-	IF_DEBUG(static bool s_SwapTowerType;);
 public:
 	App();
 	~App();
@@ -197,6 +198,18 @@ public:
 	static inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
 
 	void SetUIState(UIState state);
+	static constexpr inline bool IsBuildingState()
+	{
+		switch (s_UIState)
+		{
+		case UIState::building:
+		case UIState::upgrading:
+		case UIState::selling:
+			return true;
+		default:
+			return false;
+		}
+	}
 
 	// NOTE: this method should do all job for starting the level (e.g. creating enemies and whatever feature added in future)
 	static void LoadLevel();
@@ -335,6 +348,18 @@ public:
 			return "projectileArrow";
 		case ProjectileType::thunder:
 			return "projectileDarkTower";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view IconOf(TowerType type)
+	{
+		switch (type)
+		{
+		case TowerType::classic:
+			return "classicTowerIcon";
+		case TowerType::dark:
+			return "darkTowerIcon";
 		}
 		return "";
 	}

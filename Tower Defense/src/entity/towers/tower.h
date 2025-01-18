@@ -49,7 +49,7 @@ public:
 	Attacker* GetAttacker() const { return m_Attacker; }
 
 	// Upgrades by one tier up
-	virtual void Upgrade();
+	virtual void Upgrade() {};
 	uint16_t GetTier() const { return m_Tier; }
 	uint16_t CanUpgrade() const { return m_Tier < m_MaxTier; }
 
@@ -71,6 +71,7 @@ public:
 	void SetHighlight(bool highlight) { m_IsHighlighted = highlight; }
 
 	uint16_t GetSellPrice() const { return m_SellPrice; }
+	uint16_t GetUpgradePrice() const { return m_UpgradePrice; }
 protected:
 	int32_t m_TowerWidth = 144;
 	int32_t m_TowerHeight = 64;
@@ -88,4 +89,5 @@ protected:
 	bool m_IsHighlighted = false;
 
 	uint16_t m_SellPrice = 5u;
+	uint16_t m_UpgradePrice = 5u;
 };

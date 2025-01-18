@@ -49,6 +49,7 @@ SDL_Texture *App::s_Square = nullptr;
 
 // [0] = waves, [1] = coins, [2] = lifes, [3] = time
 std::array<UIElement, 4> App::s_UIElements{};
+std::array<UIElement, std::size_t(TowerType::size)> App::s_ExpandingTowers{};
 Label App::s_UICoinsNotification(coinsCooldownNotification);
 
 bool App::s_IsCameraLocked = true;
@@ -60,7 +61,6 @@ IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
 IF_DEBUG(Label *App::s_FrameDelay = nullptr;);
 
 IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
-IF_DEBUG(bool App::s_SwapTowerType = false;);
 // class App STATIC VARIABLES
 
 Vector2D CameraMovement::realVelocity{};
@@ -213,7 +213,10 @@ void App::AssignStaticAssets()
 	for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
 	{
 		Tower::s_TowerTextures[i] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
+		UIElement::s_ExpandingTowersIcons[i] = App::s_Textures.GetTexture(App::IconOf(TowerType(i)));
 	}
+
+	UIElement::s_TransparentGreenTexture = App::s_Textures.GetTexture("transparentGreen");
 
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
@@ -448,12 +451,6 @@ void App::HandleKeyboardEvent()
 {
 	switch (App::s_Event.key.keysym.sym)
 	{
-IF_DEBUG(
-	case SDLK_n:
-		s_SwapTowerType = !s_SwapTowerType;
-		App::s_Logger.AddLog(std::format("App::s_SwapTowerType: {}", static_cast<int32_t>(s_SwapTowerType)));
-		return;
-);
 	case SDLK_y: // lock/unlock camera movement
 		SwitchCameraMode();
 		return;
@@ -646,6 +643,65 @@ void App::LMBEvent()
 		SwitchBuildingState(s_UIState == UIState::none ? UIState::upgrading : UIState::none);
 		return;
 	}
+
+	/*
+	// If there is already chosen tower
+	if (UIElement::s_ChosenTower != TowerType::size)
+	{
+		auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
+
+		// Check if mouse pressed on the already chosen tower
+		if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
+			&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
+		{
+			UIElement::s_ChosenTower = TowerType::size;
+			element.m_IsPressed = false;
+			return;
+		}
+
+		// If pressed somewhere else, check if pressed on any other tower
+		for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
+		{
+			auto &tower = s_ExpandingTowers.at(i);
+
+			if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
+				&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
+			{
+				UIElement::s_ChosenTower = static_cast<TowerType>(i);
+				tower.m_IsPressed = true;
+				element.m_IsPressed = false;
+				return;
+			}
+		}
+
+		return;
+	}
+	*/
+
+	auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
+
+	// Check if mouse pressed on the already chosen tower
+	if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
+		&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
+	{
+		// Do nothing, avoids unnecessary loop
+		return;
+	}
+
+	// Check if any tower has been pressed if there isn't any already
+	for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
+	{
+		auto &tower = s_ExpandingTowers.at(i);
+
+		if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
+			&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
+		{
+			UIElement::s_ChosenTower = static_cast<TowerType>(i);
+			tower.m_IsPressed = true;
+			element.m_IsPressed = false;
+			return;
+		}
+	}
 }
 
 void App::SetUIState(UIState state)
@@ -722,10 +778,8 @@ void App::SwitchBuildingState(UIState newState)
 		s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 		break;
 	case UIState::building:
-		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		break;
 	case UIState::upgrading:
-		s_Building.buildingPlace.SetTexture(BuildingState::upgradingTexture);
+		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
 		break;
 	case UIState::selling:
 		s_Building.buildingPlace.SetTexture(BuildingState::sellingTexture);
@@ -746,9 +800,9 @@ void App::ManageBuildingState()
 		
 		// Disallows to set a tower in the right edge (where 2 from 4 tiles are outside of the map border)
 		// It's helpful with avoiding an issue about tiles in towers' range
-		if (s_Building.coordinates.x >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)) - 1.0f)
+		if (s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)))
 			s_Building.coordinates.x--;
-		if (s_Building.coordinates.y >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)) - 1.0f)
+		if (s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)))
 			s_Building.coordinates.y--;
 	);
 
@@ -807,6 +861,19 @@ void App::ManageBuildingState()
 	
 	if (s_UIState == UIState::upgrading)
 	{
+		Tower *tower = s_Building.pointedTile->GetTowerOccupying();
+		if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u) || !tower->CanUpgrade())
+		{
+			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+			s_Building.canBuild = false;
+			s_Building.towerToUpgradeOrSell = nullptr;
+			return;
+		}
+
+		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+		s_Building.canBuild = true;
+		s_Building.towerToUpgradeOrSell = tower;
+
 		return;
 	}
 

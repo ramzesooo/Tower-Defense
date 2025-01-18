@@ -1,8 +1,12 @@
 #pragma once
+#include "entity/typesEnums.h"
+
 #include "entity/label.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
+
+#include <array>
 
 enum class UIState
 {
@@ -25,6 +29,8 @@ public:
 	static constexpr SDL_Rect sellRect{ 0, 0, 24, 24 }; // sell rectangle
 	static constexpr SDL_Rect upgradeRect{ 0, 0, 24, 24 }; // upgrading hammer rectangle
 
+	static constexpr SDL_Rect expandingTowerSrcRect{ 0, 0, 34, 34 };
+
 	static SDL_Rect coinDestRect;
 	static SDL_Rect heartDestRect;
 	static SDL_Rect timerDestRect;
@@ -40,10 +46,17 @@ public:
 	static SDL_Texture *s_HammerGreenTexture;
 	static SDL_Texture *s_SellTexture;
 	static SDL_Texture *s_UpgradeTexture;
+	static SDL_Texture *s_TransparentGreenTexture;
 
-	SDL_Rect destRect{ 0, 0, 0, 0 };
+	static std::array<SDL_Texture*, std::size_t(TowerType::size)> s_ExpandingTowersIcons;
+
+	static TowerType s_ChosenTower;
+
+	SDL_Rect destRect{};
 	Label m_Label;
 	std::string m_DefaultText;
+
+	bool m_IsPressed = false;
 public:
 	static void InitUI();
 	static void DrawUI();

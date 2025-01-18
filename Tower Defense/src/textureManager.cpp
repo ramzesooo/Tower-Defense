@@ -47,6 +47,10 @@ static constexpr AssetData texturesToLoad[]
 	{ "buildHammerGreen",			"ui/hammer_2.png" },
 	{ "upgradeIcon",				"ui/upgrade.png" },
 	{ "sellIcon",					"ui/sell.png" },
+	{ "transparentGreen",			"ui/green_34x34.png" },
+
+	{ App::IconOf(TowerType::classic),			"ui/tower_0.png"},
+	{ App::IconOf(TowerType::dark),				"ui/tower_1.png"},
 
 	{ App::TextureOf(TowerType::classic),		"towers/classic/tower.png"},
 	{ App::TextureOf(TowerType::dark),			"towers/dark/DarkTower-Sheet.png"},

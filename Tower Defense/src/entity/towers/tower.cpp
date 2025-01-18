@@ -120,12 +120,12 @@ void Tower::AdjustToView()
 		m_Attacker->AdjustToView();
 }
 
-void Tower::Upgrade()
-{
-	App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
-	App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
-	App::s_Building.towerToUpgradeOrSell = nullptr;
-}
+//void Tower::Upgrade()
+//{
+//	App::s_Building.buildingPlace.SetTexture(App::s_Building.cantBuildTexture);
+//	App::s_Building.canBuild = false;
+//	App::s_Building.towerToUpgradeOrSell = nullptr;
+//}
 
 Tile *Tower::GetOccupiedTile(uint16_t ID) const
 {

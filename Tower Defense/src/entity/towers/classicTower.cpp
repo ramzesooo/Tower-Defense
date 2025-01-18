@@ -38,8 +38,7 @@ void ClassicTower::Upgrade()
 
 	if (!CanUpgrade())
 	{
-		App::s_Building.originalTexture = App::s_Textures.GetTexture("cantBuild");
-		App::s_Building.buildingPlace.SetTexture(App::s_Building.originalTexture);
+		App::s_Building.buildingPlace.SetTexture(App::s_Building.cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
 		return;
 	}
