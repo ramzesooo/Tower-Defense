@@ -105,9 +105,9 @@ public:
 		m_EntitiesToDestroy = false;
 	}
 
-	void AddToGroup(Entity* entity, EntityGroup group) { m_GroupedEntities[(std::size_t)group].emplace_back(entity); }
+	void AddToGroup(Entity *entity, EntityGroup group) { m_GroupedEntities[(std::size_t)group].emplace_back(entity); }
 
-	std::vector<Entity*>& GetGroup(EntityGroup group) { return m_GroupedEntities[(std::size_t)group]; }
+	std::vector<Entity*> &GetGroup(EntityGroup group) { return m_GroupedEntities[(std::size_t)group]; }
 
 	template<class T, class... Args>
 	inline T *NewEntity(Args&&... args)
@@ -176,6 +176,11 @@ public:
 	{
 		m_Entities.shrink_to_fit();
 		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).shrink_to_fit();
+	}
+
+	inline void ShrinkToFitTowers()
+	{
+		m_GroupedEntities.at((std::size_t)EntityGroup::tower).shrink_to_fit();
 	}
 private:
 	std::vector<std::unique_ptr<Tile>> m_Tiles;

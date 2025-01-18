@@ -123,15 +123,6 @@ public:
 
 	void OnResolutionChange();
 
-	void LMBEvent();
-	inline void HandleMouseButtonEvent(uint8_t mouseButton)
-	{
-		if (mouseButton == SDL_BUTTON_LEFT)
-		{
-			LMBEvent();
-		}
-	}
-
 	inline void OnCursorMove()
 	{
 		// Do this only if DEBUG is defined, because if it's undefined, it's already done in App::ManageBuildingState()

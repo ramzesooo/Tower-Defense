@@ -443,6 +443,89 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 
 void Level::LMBEvent()
 {
+	// Check if mouse is pointing at hammer for building
+	if (App::s_MouseX >= UIElement::hammerDestRect.x && App::s_MouseX <= UIElement::hammerDestRect.x + UIElement::hammerDestRect.w
+		&& App::s_MouseY >= UIElement::hammerDestRect.y && App::s_MouseY <= UIElement::hammerDestRect.y + UIElement::hammerDestRect.h)
+	{
+		App::Instance().SwitchBuildingState(App::s_UIState == UIState::none ? UIState::building : UIState::none);
+		return;
+	}
+
+	// Check if mouse is pointing at sell tower icon
+	if (App::s_MouseX >= UIElement::sellDestRect.x && App::s_MouseX <= UIElement::sellDestRect.x + UIElement::sellDestRect.w
+		&& App::s_MouseY >= UIElement::sellDestRect.y && App::s_MouseY <= UIElement::sellDestRect.y + UIElement::sellDestRect.h)
+	{
+		App::Instance().SwitchBuildingState(App::s_UIState == UIState::none ? UIState::selling : UIState::none);
+		return;
+	}
+
+	// Check if mouse is pointing at upgrade tower icon
+	if (App::s_MouseX >= UIElement::upgradeDestRect.x && App::s_MouseX <= UIElement::upgradeDestRect.x + UIElement::upgradeDestRect.w
+		&& App::s_MouseY >= UIElement::upgradeDestRect.y && App::s_MouseY <= UIElement::upgradeDestRect.y + UIElement::upgradeDestRect.h)
+	{
+		App::Instance().SwitchBuildingState(App::s_UIState == UIState::none ? UIState::upgrading : UIState::none);
+		return;
+	}
+
+	/*
+	// If there is already chosen tower
+	if (UIElement::s_ChosenTower != TowerType::size)
+	{
+		auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
+
+		// Check if mouse pressed on the already chosen tower
+		if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
+			&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
+		{
+			UIElement::s_ChosenTower = TowerType::size;
+			element.m_IsPressed = false;
+			return;
+		}
+
+		// If pressed somewhere else, check if pressed on any other tower
+		for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
+		{
+			auto &tower = s_ExpandingTowers.at(i);
+
+			if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
+				&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
+			{
+				UIElement::s_ChosenTower = static_cast<TowerType>(i);
+				tower.m_IsPressed = true;
+				element.m_IsPressed = false;
+				return;
+			}
+		}
+
+		return;
+	}
+	*/
+
+	auto &element = App::s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
+
+	// Check if mouse pressed on the already chosen tower
+	if (App::s_MouseX >= element.destRect.x && App::s_MouseX <= element.destRect.x + element.destRect.w
+		&& App::s_MouseY >= element.destRect.y && App::s_MouseY <= element.destRect.y + element.destRect.h)
+	{
+		// Do nothing, avoids unnecessary loop
+		return;
+	}
+
+	// Check if any tower has been pressed if there isn't any already
+	for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
+	{
+		auto &tower = App::s_ExpandingTowers.at(i);
+
+		if (App::s_MouseX >= tower.destRect.x && App::s_MouseX <= tower.destRect.x + tower.destRect.w
+			&& App::s_MouseY >= tower.destRect.y && App::s_MouseY <= tower.destRect.y + tower.destRect.h)
+		{
+			UIElement::s_ChosenTower = static_cast<TowerType>(i);
+			tower.m_IsPressed = true;
+			element.m_IsPressed = false;
+			return;
+		}
+	}
+
 	if (App::IsBuildingState() && !App::s_Building.canBuild)
 		return;
 
@@ -480,6 +563,8 @@ void Level::LMBEvent()
 		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
 		App::s_Building.canBuild = false;
+
+		App::s_Manager.ShrinkToFitTowers();
 
 		return;
 	}

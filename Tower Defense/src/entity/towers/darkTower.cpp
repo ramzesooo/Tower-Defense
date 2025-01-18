@@ -32,13 +32,5 @@ void DarkTower::Update()
 
 void DarkTower::Draw()
 {
-	if (m_IsHighlighted)
-	{
-		for (const auto &tile : m_TilesInRange)
-		{
-			tile->DrawHighlight();
-		}
-	}
-
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }

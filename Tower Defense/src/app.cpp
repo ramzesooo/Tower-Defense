@@ -364,7 +364,6 @@ void App::EventHandler()
 		}
 		else
 		{
-			HandleMouseButtonEvent(s_Event.button.button);
 			App::s_CurrentLevel->HandleMouseButtonEvent(s_Event.button.button);
 		}
 		return;
@@ -502,7 +501,7 @@ void App::HandleKeyboardEvent()
 			if (!e->IsActive())
 				continue;
 
-			dynamic_cast<Enemy *>(e)->DebugSpeed();
+			dynamic_cast<Enemy*>(e)->DebugSpeed();
 		}
 
 		s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
@@ -616,92 +615,6 @@ void App::OnResolutionChange()
 
 	MakeCameraCorrect();
 	s_CurrentLevel->OnUpdateCamera();
-}
-
-void App::LMBEvent()
-{
-	// Check if mouse is pointing at hammer for building
-	if (s_MouseX >= UIElement::hammerDestRect.x && s_MouseX <= UIElement::hammerDestRect.x + UIElement::hammerDestRect.w
-		&& s_MouseY >= UIElement::hammerDestRect.y && s_MouseY <= UIElement::hammerDestRect.y + UIElement::hammerDestRect.h)
-	{
-		SwitchBuildingState(s_UIState == UIState::none ? UIState::building : UIState::none);
-		return;
-	}
-
-	// Check if mouse is pointing at sell tower icon
-	if (s_MouseX >= UIElement::sellDestRect.x && s_MouseX <= UIElement::sellDestRect.x + UIElement::sellDestRect.w
-		&& s_MouseY >= UIElement::sellDestRect.y && s_MouseY <= UIElement::sellDestRect.y + UIElement::sellDestRect.h)
-	{
-		SwitchBuildingState(s_UIState == UIState::none ? UIState::selling : UIState::none);
-		return;
-	}
-
-	// Check if mouse is pointing at upgrade tower icon
-	if (s_MouseX >= UIElement::upgradeDestRect.x && s_MouseX <= UIElement::upgradeDestRect.x + UIElement::upgradeDestRect.w
-		&& s_MouseY >= UIElement::upgradeDestRect.y && s_MouseY <= UIElement::upgradeDestRect.y + UIElement::upgradeDestRect.h)
-	{
-		SwitchBuildingState(s_UIState == UIState::none ? UIState::upgrading : UIState::none);
-		return;
-	}
-
-	/*
-	// If there is already chosen tower
-	if (UIElement::s_ChosenTower != TowerType::size)
-	{
-		auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
-
-		// Check if mouse pressed on the already chosen tower
-		if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
-			&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
-		{
-			UIElement::s_ChosenTower = TowerType::size;
-			element.m_IsPressed = false;
-			return;
-		}
-
-		// If pressed somewhere else, check if pressed on any other tower
-		for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
-		{
-			auto &tower = s_ExpandingTowers.at(i);
-
-			if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
-				&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
-			{
-				UIElement::s_ChosenTower = static_cast<TowerType>(i);
-				tower.m_IsPressed = true;
-				element.m_IsPressed = false;
-				return;
-			}
-		}
-
-		return;
-	}
-	*/
-
-	auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
-
-	// Check if mouse pressed on the already chosen tower
-	if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
-		&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
-	{
-		// Do nothing, avoids unnecessary loop
-		return;
-	}
-
-	// Check if any tower has been pressed if there isn't any already
-	for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
-	{
-		auto &tower = s_ExpandingTowers.at(i);
-
-		if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
-			&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
-		{
-			UIElement::s_ChosenTower = static_cast<TowerType>(i);
-			tower.m_IsPressed = true;
-			element.m_IsPressed = false;
-			return;
-		}
-	}
 }
 
 void App::SetUIState(UIState state)

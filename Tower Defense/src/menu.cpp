@@ -159,7 +159,16 @@ void MainMenu::HandleLevelsButtons()
 			App::s_Logger.AddLog(std::format("MainMenu::HandleLevelsButtons: Assigning chosen level (#{}) failed, loading level has been stopped", i + 1));
 			return;
 		}
+
+		break;
 	}
+
+	auto centerY = App::WINDOW_HEIGHT / 2;
+	m_ReturnButton.destRect.y = centerY - m_ReturnButton.destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
+	m_ReturnButton.m_Label.UpdateText(quitText);
+	const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
+	m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
+		m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
 	
 	App::LoadLevel();
 	App::Instance().SetUIState(UIState::none);
