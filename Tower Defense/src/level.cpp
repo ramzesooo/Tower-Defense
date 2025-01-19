@@ -426,19 +426,19 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 	{
 	case AttackerType::archer:
 		shotCooldown = 315u;
-		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, shotCooldown, scale);
 		break;
 	case AttackerType::hunter:
 		shotCooldown = 280u;
-		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, shotCooldown, scale);
 		break;
 	case AttackerType::musketeer:
 		shotCooldown = 250u;
-		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, App::s_Textures.GetTexture(App::TextureOf(type)), shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<ClassicAttacker>(assignedTower, type, shotCooldown, scale);
 		break;
 	case AttackerType::darkTower:
 		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11;
-		attacker = App::s_Manager.NewEntity<DarkAttacker>(assignedTower, type, nullptr, shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<DarkAttacker>(assignedTower, type, shotCooldown, scale);
 		break;
 	default:
 		App::s_Logger.AddLog(std::format("Level::AddAttacker: AttackerType {} is invalid", static_cast<std::size_t>(type)));

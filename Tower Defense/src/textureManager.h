@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "entity/typesEnums.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -27,6 +28,86 @@ public:
 	// DrawTextureF is responsible for drawing rectangles with float values
 	// angle is NULL and flip is SDL_FLIP_NONE by default
 	static void DrawTextureF(SDL_Texture* texture, const SDL_Rect& src, const SDL_FRect& dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
+
+	static constexpr inline std::string_view TextureOf(AttackerType type)
+	{
+		switch (type)
+		{
+		case AttackerType::archer:
+			return "attackerArcher";
+		case AttackerType::hunter:
+			return "attackerHunter";
+		case AttackerType::musketeer:
+			return "attackerMusketeer";
+		case AttackerType::darkTower:
+			return "";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view TextureOf(EnemyType type)
+	{
+		switch (type)
+		{
+		case EnemyType::elf:
+			return "enemyElf";
+		case EnemyType::goblinWarrior:
+			return "enemyGoblinWarrior";
+		case EnemyType::dwarfSoldier:
+			return "enemyDwarfSoldier";
+		case EnemyType::dwarfKing:
+			return "enemyDwarfKing";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view TextureOf(ProjectileType type)
+	{
+		switch (type)
+		{
+		case ProjectileType::arrow:
+			return "projectileArrow";
+		case ProjectileType::thunder:
+			return "projectileDarkTower";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view IconOf(TowerType type)
+	{
+		switch (type)
+		{
+		case TowerType::classic:
+			return "classicTowerIcon";
+		case TowerType::dark:
+			return "darkTowerIcon";
+		}
+		return "";
+	}
+
+	static constexpr inline std::string_view TextureOf(TowerType type)
+	{
+		switch (type)
+		{
+		case TowerType::classic:
+			return "classicTower";
+		case TowerType::dark:
+			return "darkTower";
+		}
+		return "";
+	}
+
+	SDL_Texture *GetTextureOf(TowerType type) const { return GetTexture(TextureOf(type)); }
+	SDL_Texture *GetIconOf(TowerType type) const { return GetTexture(IconOf(type)); }
+	SDL_Texture *GetTextureOf(ProjectileType type) const { return GetTexture(TextureOf(type)); }
+	SDL_Texture *GetTextureOf(EnemyType type) const { return GetTexture(TextureOf(type)); }
+	SDL_Texture *GetTextureOf(AttackerType type) const
+	{ 
+		if (type == AttackerType::darkTower)
+			return nullptr;
+
+		return GetTexture(TextureOf(type)); 
+	}
 
 	void AddTexture(const std::string &textureID, const char *path);
 	SDL_Texture* GetTexture(std::string_view textureID) const;

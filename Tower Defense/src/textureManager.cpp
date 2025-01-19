@@ -49,23 +49,23 @@ static constexpr AssetData texturesToLoad[]
 	{ "sellIcon",					"ui/sell.png" },
 	{ "transparentGreen",			"ui/green_34x34.png" },
 
-	{ App::IconOf(TowerType::classic),			"ui/tower_0.png"},
-	{ App::IconOf(TowerType::dark),				"ui/tower_1.png"},
+	{ TextureManager::IconOf(TowerType::classic),			"ui/tower_0.png"},
+	{ TextureManager::IconOf(TowerType::dark),				"ui/tower_1.png"},
 
-	{ App::TextureOf(TowerType::classic),		"towers/classic/tower.png"},
-	{ App::TextureOf(TowerType::dark),			"towers/dark/DarkTower-Sheet.png"},
-
-	{ App::TextureOf(ProjectileType::arrow),	"projectiles/arrow_16x16.png" },
-	{ App::TextureOf(ProjectileType::thunder),	"projectiles/thunder.png" },
-
-	{ App::TextureOf(AttackerType::archer),		"entities/friendly/attackerArcher.png" },
-	{ App::TextureOf(AttackerType::hunter),		"entities/friendly/attackerHunter.png"},
-	{ App::TextureOf(AttackerType::musketeer),	"entities/friendly/attackerMusketeer.png" },
-
-	{ App::TextureOf(EnemyType::elf),			"entities/enemy/enemyElf.png" },
-	{ App::TextureOf(EnemyType::goblinWarrior),	"entities/enemy/enemyGoblinWarrior.png" },
-	{ App::TextureOf(EnemyType::dwarfSoldier),	"entities/enemy/enemyDwarfSoldier.png" },
-	{ App::TextureOf(EnemyType::dwarfKing),		"entities/enemy/enemyDwarfKing.png" }
+	{ TextureManager::TextureOf(TowerType::classic),		"towers/classic/tower.png"},
+	{ TextureManager::TextureOf(TowerType::dark),			"towers/dark/DarkTower-Sheet.png"},
+	  
+	{ TextureManager::TextureOf(ProjectileType::arrow),	"projectiles/arrow_16x16.png" },
+	{ TextureManager::TextureOf(ProjectileType::thunder),	"projectiles/thunder.png" },
+	  
+	{ TextureManager::TextureOf(AttackerType::archer),		"entities/friendly/attackerArcher.png" },
+	{ TextureManager::TextureOf(AttackerType::hunter),		"entities/friendly/attackerHunter.png"},
+	{ TextureManager::TextureOf(AttackerType::musketeer),	"entities/friendly/attackerMusketeer.png" },
+	  
+	{ TextureManager::TextureOf(EnemyType::elf),			"entities/enemy/enemyElf.png" },
+	{ TextureManager::TextureOf(EnemyType::goblinWarrior),	"entities/enemy/enemyGoblinWarrior.png" },
+	{ TextureManager::TextureOf(EnemyType::dwarfSoldier),	"entities/enemy/enemyDwarfSoldier.png" },
+	{ TextureManager::TextureOf(EnemyType::dwarfKing),		"entities/enemy/enemyDwarfKing.png" }
 };
 
 // TEXTURES

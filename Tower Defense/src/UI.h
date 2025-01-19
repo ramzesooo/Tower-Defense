@@ -6,8 +6,6 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 
-#include <array>
-
 enum class UIState
 {
 	none = 0, // none means game is running by default
@@ -47,8 +45,6 @@ public:
 	static SDL_Texture *s_SellTexture;
 	static SDL_Texture *s_UpgradeTexture;
 	static SDL_Texture *s_TransparentGreenTexture;
-
-	//static std::array<SDL_Texture*, std::size_t(TowerType::size)> s_ExpandingTowersIcons;
 
 	static TowerType s_ChosenTower;
 

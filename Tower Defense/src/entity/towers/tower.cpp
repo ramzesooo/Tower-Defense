@@ -9,7 +9,6 @@
 
 extern uint32_t g_PausedTicks;
 
-//std::array<SDL_Texture*, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 std::array<std::array<SDL_Texture*, 2u>, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
 Tower::Tower(float posX, float posY, TowerType type)

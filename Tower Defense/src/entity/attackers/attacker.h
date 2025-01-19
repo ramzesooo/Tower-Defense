@@ -23,7 +23,7 @@ public:
 	std::vector<Projectile*> m_OwnedProjectiles;
 public:
 	Attacker() = delete;
-	Attacker(Tower *occupiedTower, AttackerType type, SDL_Texture *texture, uint32_t shotCooldown, uint16_t scale = 1);
+	Attacker(Tower *occupiedTower, AttackerType type, uint32_t shotCooldown, uint16_t scale = 1);
 	Attacker(const Attacker &) = delete;
 	~Attacker() = default;
 

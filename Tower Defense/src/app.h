@@ -298,74 +298,6 @@ public:
 		ManageCameraY();
 	}
 
-	static constexpr inline std::string_view TextureOf(AttackerType type)
-	{
-		switch (type)
-		{
-		case AttackerType::archer:
-			return "attackerArcher";
-		case AttackerType::hunter:
-			return "attackerHunter";
-		case AttackerType::musketeer:
-			return "attackerMusketeer";
-		case AttackerType::darkTower:
-			return "";
-		}
-		return "";
-	}
-
-	static constexpr inline std::string_view TextureOf(EnemyType type)
-	{
-		switch (type)
-		{
-		case EnemyType::elf:
-			return "enemyElf";
-		case EnemyType::goblinWarrior:
-			return "enemyGoblinWarrior";
-		case EnemyType::dwarfSoldier:
-			return "enemyDwarfSoldier";
-		case EnemyType::dwarfKing:
-			return "enemyDwarfKing";
-		}
-		return "";
-	}
-
-	static constexpr inline std::string_view TextureOf(ProjectileType type)
-	{
-		switch (type)
-		{
-		case ProjectileType::arrow:
-			return "projectileArrow";
-		case ProjectileType::thunder:
-			return "projectileDarkTower";
-		}
-		return "";
-	}
-
-	static constexpr inline std::string_view IconOf(TowerType type)
-	{
-		switch (type)
-		{
-		case TowerType::classic:
-			return "classicTowerIcon";
-		case TowerType::dark:
-			return "darkTowerIcon";
-		}
-		return "";
-	}
-
-	static constexpr inline std::string_view TextureOf(TowerType type)
-	{
-		switch (type)
-		{
-		case TowerType::classic:
-			return "classicTower";
-		case TowerType::dark:
-			return "darkTower";
-		}
-		return "";
-	}
-
 	inline void SetCoins(uint16_t coins, bool notify = false)
 	{
 		m_Coins = coins;
@@ -377,7 +309,7 @@ public:
 		}
 		else
 		{
-			App::s_UIElements.at(1).m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+			App::s_UIElements[1].m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
 		}
 	}
 
@@ -424,7 +356,7 @@ public:
 			return;
 
 		s_CurrentLevel->GetBase()->m_Lifes += lifes;
-		App::s_UIElements.at(2).m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_UIElements[2].m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 	// Arg is not required, takes 1 by default
@@ -439,7 +371,7 @@ public:
 
 		if (lifes >= s_CurrentLevel->GetBase()->m_Lifes)
 		{
-			s_CurrentLevel->GetBase()->m_Lifes = 0;
+			s_CurrentLevel->GetBase()->m_Lifes = 0u;
 			s_CurrentLevel->GetBase()->m_IsActive = false;
 			s_CurrentLevel->Clean();
 			App::Instance().SetUIState(UIState::mainMenu);
@@ -455,19 +387,19 @@ public:
 	// Updates waves displayed in UI
 	static inline void UpdateWaves()
 	{
-		App::s_UIElements.at(0).m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
+		App::s_UIElements[0].m_Label.UpdateText(std::format("Wave: {}/{}", s_CurrentLevel->GetCurrentWave() + 1, s_CurrentLevel->GetWavesAmount()));
 	}
 
 	// Updates lifes displayed in UI
 	static inline void UpdateLifes()
 	{
-		App::s_UIElements.at(2).m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_UIElements[2].m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 	// Updates coins displayed in UI + resets alpha of amount of took or added coins
 	static inline void UpdateCoins()
 	{
-		App::s_UIElements.at(1).m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
+		App::s_UIElements[1].m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
 		App::s_UICoinsNotification.ResetAlpha();
 	}
 

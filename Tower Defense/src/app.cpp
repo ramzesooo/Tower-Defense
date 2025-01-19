@@ -211,16 +211,10 @@ void App::InitWindowAndRenderer()
 
 void App::AssignStaticAssets()
 {
-	/*for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
-	{
-		Tower::s_TowerTextures[i] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
-		UIElement::s_ExpandingTowersIcons[i] = App::s_Textures.GetTexture(App::IconOf(TowerType(i)));
-	}*/
-
 	for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
 	{
-		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
-		Tower::s_TowerTextures[i][1] = App::s_Textures.GetTexture(App::IconOf(TowerType(i)));
+		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTextureOf(TowerType(i));
+		Tower::s_TowerTextures[i][1] = App::s_Textures.GetIconOf(TowerType(i));
 	}
 
 	UIElement::s_TransparentGreenTexture = App::s_Textures.GetTexture("transparentGreen");

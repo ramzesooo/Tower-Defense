@@ -7,8 +7,8 @@
 extern uint32_t g_PausedTicks;
 extern std::vector<Entity*> &g_Enemies;
 
-ClassicAttacker::ClassicAttacker(Tower *occupiedTower, AttackerType type, SDL_Texture *texture, uint32_t shotCooldown, uint16_t scale)
-	: Attacker(occupiedTower, type, texture, shotCooldown * 4u, scale)
+ClassicAttacker::ClassicAttacker(Tower *occupiedTower, AttackerType type, uint32_t shotCooldown, uint16_t scale)
+	: Attacker(occupiedTower, type, shotCooldown * 4u, scale)
 {
 	if (m_Type == AttackerType::hunter)
 	{

@@ -40,6 +40,7 @@ void ClassicTower::Upgrade()
 	{
 		App::s_Building.buildingPlace.SetTexture(App::s_Building.cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
+		App::s_Building.canBuild = false;
 		return;
 	}
 }

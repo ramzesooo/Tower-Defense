@@ -14,7 +14,7 @@ extern uint32_t g_PausedTicks;
 Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)
 	: m_Type(type), m_Owner(owner), m_Target(target),
 	m_Destination(target->GetScaledPos()), 
-	m_Texture(App::s_Textures.GetTexture(App::TextureOf(type))), m_Pos(owner->GetPos())
+	m_Texture(App::s_Textures.GetTextureOf(type)), m_Pos(owner->GetPos())
 {
 	switch (type)
 	{

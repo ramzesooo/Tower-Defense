@@ -22,7 +22,6 @@ struct TowerAnimation
 class Tower : public Entity
 {
 public:
-	//static std::array<SDL_Texture*, std::size_t(TowerType::size)> s_TowerTextures;
 	// [0] = Texture, [1] = Icon
 	static std::array<std::array<SDL_Texture*, 2u>, std::size_t(TowerType::size)> s_TowerTextures;
 public:

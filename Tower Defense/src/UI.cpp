@@ -1,8 +1,9 @@
 #include "UI.h"
 #include "app.h"
 #include "entity/towers/tower.h"
-
 #include "textureManager.h"
+
+#include "SDL_ttf.h"
 
 SDL_Rect UIElement::coinDestRect{};
 SDL_Rect UIElement::heartDestRect{};
@@ -20,8 +21,6 @@ SDL_Texture *UIElement::s_HammerGreenTexture = nullptr;
 SDL_Texture *UIElement::s_SellTexture = nullptr;
 SDL_Texture *UIElement::s_UpgradeTexture = nullptr;
 SDL_Texture *UIElement::s_TransparentGreenTexture = nullptr;
-
-//std::array<SDL_Texture*, std::size_t(TowerType::size)> UIElement::s_ExpandingTowersIcons;
 
 TowerType UIElement::s_ChosenTower = TowerType::size;
 
@@ -99,11 +98,9 @@ void UIElement::DrawUI()
 
 	if (App::s_UIState == UIState::building)
 	{
-		//for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
 		for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
 		{
 			auto &element = App::s_ExpandingTowers[i];
-			//TextureManager::DrawTexture(UIElement::s_ExpandingTowersIcons.at(i), UIElement::expandingTowerSrcRect, element.destRect);
 			TextureManager::DrawTexture(Tower::s_TowerTextures[i][1], UIElement::expandingTowerSrcRect, element.destRect);
 		}
 
