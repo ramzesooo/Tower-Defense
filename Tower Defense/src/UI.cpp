@@ -1,5 +1,6 @@
 #include "UI.h"
 #include "app.h"
+#include "entity/towers/tower.h"
 
 #include "textureManager.h"
 
@@ -20,9 +21,11 @@ SDL_Texture *UIElement::s_SellTexture = nullptr;
 SDL_Texture *UIElement::s_UpgradeTexture = nullptr;
 SDL_Texture *UIElement::s_TransparentGreenTexture = nullptr;
 
-std::array<SDL_Texture*, std::size_t(TowerType::size)> UIElement::s_ExpandingTowersIcons;
+//std::array<SDL_Texture*, std::size_t(TowerType::size)> UIElement::s_ExpandingTowersIcons;
 
 TowerType UIElement::s_ChosenTower = TowerType::size;
+
+uint32_t UIElement::s_Timer = 0u;
 
 void UIElement::InitUI()
 {
@@ -35,7 +38,7 @@ void UIElement::InitUI()
 	App::s_UIElements.at(0).m_DefaultText = "Wave: 1/1";
 	App::s_UIElements.at(1).m_DefaultText = "100";
 	App::s_UIElements.at(2).m_DefaultText = "100";
-	App::s_UIElements.at(3).m_DefaultText = "0:00";
+	App::s_UIElements.at(3).m_DefaultText = "0.000";
 
 	for (std::size_t i = 0u; i < App::s_UIElements.size(); i++)
 	{
@@ -96,10 +99,12 @@ void UIElement::DrawUI()
 
 	if (App::s_UIState == UIState::building)
 	{
-		for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
+		//for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
+		for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
 		{
-			auto &element = App::s_ExpandingTowers.at(i);
-			TextureManager::DrawTexture(UIElement::s_ExpandingTowersIcons.at(i), UIElement::expandingTowerSrcRect, element.destRect);
+			auto &element = App::s_ExpandingTowers[i];
+			//TextureManager::DrawTexture(UIElement::s_ExpandingTowersIcons.at(i), UIElement::expandingTowerSrcRect, element.destRect);
+			TextureManager::DrawTexture(Tower::s_TowerTextures[i][1], UIElement::expandingTowerSrcRect, element.destRect);
 		}
 
 		TextureManager::DrawTexture(s_TransparentGreenTexture, UIElement::expandingTowerSrcRect, App::s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower)).destRect);

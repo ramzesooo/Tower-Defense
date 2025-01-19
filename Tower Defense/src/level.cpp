@@ -36,8 +36,12 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 		{
 			// TODO: it's pretty pointless to use Dijkstra if the distance/cost of traversal
 			// is always 1 everywhere, so maybe some tiles should be more expensive
-			uint32_t dx = totalDistance + 1; // tileSize (=24) * scale (=2) * 2
-			uint32_t dy = totalDistance + 1; // tileSize (=24) * scale (=2)
+			uint32_t dx = totalDistance + 1;
+			uint32_t dy = totalDistance + 2;
+			// TODO: calculate base's distance from spawn and make dx and dy properly to what is more expensive
+			// Usually: totalDistance + 1
+			// If the difference between the base and spawn relies more on X then dx = totalDistance + 2
+			// The same for Y
 			return { {
 				{ dx, Vector2D{ pos.x - 1, pos.y } },
 				{ dy, Vector2D{ pos.x, pos.y - 1 } },
@@ -103,7 +107,7 @@ SDL_Texture *Level::s_Texture = nullptr;
 
 static constexpr uint16_t pathID = 1026u;
 static constexpr uint16_t spawnerID = 305u;
-static constexpr uint16_t waveCooldown = 3500u; // milliseconds
+static constexpr uint16_t waveCooldown = 4500u; // milliseconds
 
 static constexpr char configName[] = ".config";
 
@@ -195,13 +199,21 @@ Level::Level(uint16_t levelID)
 
 		WaveContainer newWave{};
 
-		for (std::size_t i = 0u; i < newWave.container.size(); ++i)
+		for (auto &wave : newWave.container)
+		{
+			if (!std::getline(ss, value, ','))
+				break;
+
+			wave = static_cast<uint16_t>(std::stoi(value));
+		}
+
+		/*for (std::size_t i = 0u; i < newWave.container.size(); ++i)
 		{
 			if (!std::getline(ss, value, ','))
 				break;
 
 			newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
-		}
+		}*/
 
 		m_Waves.emplace_back(newWave);
 	}
@@ -215,7 +227,24 @@ Level::Level(uint16_t levelID)
 	m_MapData[4] = m_MapData.at(1) * m_ScaledTileSize;
 }
 
-void Level::Setup(std::ifstream &mapFile, uint16_t layerID)
+void Level::Init()
+{
+	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
+	{
+		std::ifstream mapFile(std::format("levels/{}/map_layer{}.map", GetID() + 1u, i));
+
+		SetupLayer(mapFile, i);
+	}
+
+	SetupBase();
+
+	InitTimerForNextWave();
+
+	m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
+	m_WaveProgress = WaveProgress::OnCooldown;
+}
+
+void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 {
 	if (layerID >= m_Layers.size())
 	{
@@ -334,6 +363,8 @@ void Level::SetupBase()
 	m_Base.m_Tile = GetTileFrom(m_BasePos.x, m_BasePos.y, 0);
 
 	App::s_Logger.AddLog(std::format("Created base ({}, {})", scaledPosX, scaledPosY));
+
+	InitTimerForNextWave();
 }
 
 void Level::Clean()
@@ -350,7 +381,7 @@ void Level::Clean()
 
 	App::s_Manager.DestroyAllTiles();
 
-	m_CurrentWave = 0;
+	m_CurrentWave = 0u;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
 }
@@ -363,10 +394,10 @@ void Level::AddTower(float posX, float posY, TowerType type)
 	{
 	case TowerType::classic:
 		tower = App::s_Manager.NewEntity<ClassicTower>(posX, posY, type);
-		break;
+		return;
 	case TowerType::dark:
 		tower = App::s_Manager.NewEntity<DarkTower>(posX, posY, type);
-		break;
+		return;
 	default:
 		App::s_Logger.AddLog(std::format("Level::AddTower: TowerType {} is invalid", static_cast<std::size_t>(type)));
 		break;
@@ -418,9 +449,9 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 	assignedTower->AssignAttacker(attacker);
 }
 
-Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale) const
+Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, uint16_t scale) const
 {
-	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, texture, scale);
+	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, scale);
 	enemy->AddToGroup(EntityGroup::enemy);
 
 	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
@@ -601,7 +632,7 @@ void Level::LMBEvent()
 	}
 }
 
-// Un-used at the moment, and not sure if it's needed also in future
+// Unused at the moment, and not sure if it's needed also in future
 //void Level::RMBEvent()
 //{
 //	
@@ -638,7 +669,7 @@ void Level::InitWave()
 		}
 	}
 
-	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, App::s_Textures.GetTexture(App::TextureOf(type)), 2);
+	auto enemy = AddEnemy(spawnPos.x, spawnPos.y, type, 2u);
 
 	if (!enemy)
 	{
@@ -647,7 +678,7 @@ void Level::InitWave()
 		return;
 	}
 	
-	m_NextSpawn = SDL_GetTicks() + s_SpawnCooldown - g_PausedTicks;
+	m_NextSpawn = SDL_GetTicks() + Level::s_SpawnCooldown - g_PausedTicks;
 	m_SpawnedEnemies++;
 }
 
@@ -664,10 +695,12 @@ void Level::ManageWaves()
 				return;
 			}
 
-			m_SpawnedEnemies = 0;
-			m_ExpectedEnemiesAmount = 0;
+			m_SpawnedEnemies = 0u;
+			m_ExpectedEnemiesAmount = 0u;
 			for (const auto &i : m_Waves.at(m_CurrentWave).container)
+			{
 				m_ExpectedEnemiesAmount += i;
+			}
 
 			App::s_Manager.ReserveMemoryForWave(m_ExpectedEnemiesAmount);
 
@@ -675,8 +708,15 @@ void Level::ManageWaves()
 
 			App::UpdateWaves();
 
+			// Make the timer zero, since it's not going to update by itself if time has already exceeded
+			// Because it would reach signed value in UpdateTimer()
+			App::s_UIElements.at(3).m_Label.UpdateText("0.000");
+
 			m_WaveProgress = WaveProgress::Initializing;
+			return;
 		}
+
+		UpdateTimer();
 		return;
 	case WaveProgress::Initializing:
 		if (SDL_GetTicks() - g_PausedTicks >= m_NextSpawn)
@@ -693,12 +733,29 @@ void Level::ManageWaves()
 	case WaveProgress::Finished:
 		if (++m_CurrentWave >= m_Waves.size())
 		{
-			m_CurrentWave = 0;
+			m_CurrentWave = 0u;
 		}
+
+		InitTimerForNextWave();
+
 		m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
 		m_WaveProgress = WaveProgress::OnCooldown;
 		return;
 	}
+}
+
+void Level::InitTimerForNextWave()
+{
+	int32_t timerSeconds = waveCooldown / 1000;
+	int32_t timerMilliseconds = waveCooldown - timerSeconds * 1000;
+
+	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}.{}", timerSeconds, timerMilliseconds));
+}
+
+void Level::UpdateTimer() const
+{
+	auto howMuchLeft = m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks);
+	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", howMuchLeft / 1000.0f));
 }
 
 void Level::Render()

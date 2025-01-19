@@ -16,8 +16,8 @@ IF_DEBUG(extern std::vector<Entity*> &g_Enemies;);
 
 SDL_Texture *Enemy::s_ArrowTexture = nullptr;
 
-Enemy::Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale)
-	: m_Pos(posX, posY), m_Type(type), m_Texture(texture), m_Scale(scale), m_Destination(m_Pos),
+Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
+	: m_Pos(posX, posY), m_Type(type), m_Texture(App::s_Textures.GetTexture(App::TextureOf(type))), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos * App::s_CurrentLevel->m_ScaledTileSize)
 	IF_DEBUG(, m_Speedy(App::s_Speedy))
 {

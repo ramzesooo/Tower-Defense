@@ -40,8 +40,11 @@ public:
 	std::vector<Attacker*> m_Attackers;
 public:
 	Enemy() = delete;
-	Enemy(float posX, float posY, EnemyType type, SDL_Texture* texture, uint16_t scale = 1);
+	Enemy(float posX, float posY, EnemyType type, uint16_t scale = 1);
+	Enemy(const Enemy &) = delete;
 	~Enemy();
+
+	Enemy &operator=(const Enemy &) = delete;
 
 	void Destroy() override;
 

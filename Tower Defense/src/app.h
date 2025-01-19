@@ -13,7 +13,6 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "SDL_events.h"
-#include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
 #include <string>

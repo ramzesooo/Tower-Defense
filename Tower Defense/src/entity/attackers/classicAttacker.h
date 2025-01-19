@@ -6,7 +6,10 @@ class ClassicAttacker : public Attacker
 public:
 	ClassicAttacker() = delete;
 	ClassicAttacker(Tower *occupiedTower, AttackerType type, SDL_Texture *texture, uint32_t shotCooldown, uint16_t scale = 1);
+	ClassicAttacker(const ClassicAttacker &) = delete;
 	~ClassicAttacker() = default;
+
+	ClassicAttacker &operator=(const ClassicAttacker &) = delete;
 
 	void Update() override;
 

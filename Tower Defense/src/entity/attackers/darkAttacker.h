@@ -6,7 +6,10 @@ class DarkAttacker : public Attacker
 public:
 	DarkAttacker() = delete;
 	DarkAttacker(Tower *occupiedTower, AttackerType type, SDL_Texture *texture, uint32_t shotCooldown, uint16_t scale = 1);
+	DarkAttacker(const DarkAttacker &) = delete;
 	~DarkAttacker() = default;
+
+	DarkAttacker &operator=(const DarkAttacker &) = delete;
 
 	void Update() override;
 	void Draw() override {};

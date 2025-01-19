@@ -5,6 +5,7 @@
 #include "entity/tile.h"
 
 #include "SDL_image.h"
+#include "SDL_ttf.h"
 
 #include <fstream>
 #include <cmath>
@@ -210,10 +211,16 @@ void App::InitWindowAndRenderer()
 
 void App::AssignStaticAssets()
 {
-	for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
+	/*for (std::size_t i = 0u; i < std::size_t(TowerType::size); i++)
 	{
 		Tower::s_TowerTextures[i] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
 		UIElement::s_ExpandingTowersIcons[i] = App::s_Textures.GetTexture(App::IconOf(TowerType(i)));
+	}*/
+
+	for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
+	{
+		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTexture(App::TextureOf(TowerType(i)));
+		Tower::s_TowerTextures[i][1] = App::s_Textures.GetTexture(App::IconOf(TowerType(i)));
 	}
 
 	UIElement::s_TransparentGreenTexture = App::s_Textures.GetTexture("transparentGreen");
@@ -658,25 +665,18 @@ void App::SetUIState(UIState state)
 
 void App::LoadLevel()
 {
-	Layer::s_MapWidth = s_CurrentLevel->m_MapData.at(0);
-	s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
-	s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+	Layer::s_MapWidth = App::s_CurrentLevel->m_MapData.at(0);
+	App::s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - App::s_Camera.w;
+	App::s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - App::s_Camera.h;
 
-	s_Building.buildingPlace.InitSpecialTile();
+	App::s_Building.buildingPlace.InitSpecialTile();
 
-	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
-	{
-		std::ifstream mapFile(std::format("levels/{}/map_layer{}.map", s_CurrentLevel->GetID() + 1, i));
+	App::s_CurrentLevel->Init();
 
-		s_CurrentLevel->Setup(mapFile, i);
-	}
+	const Vector2D &basePos = App::s_CurrentLevel->GetBase()->m_Pos;
 
-	s_CurrentLevel->SetupBase();
-
-	const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
-
-	s_Camera.x = basePos.x - s_Camera.w / 2.0f;
-	s_Camera.y = basePos.y - s_Camera.h / 2.0f;
+	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
+	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
 
 	App::Instance().SetCoins(5u);
 

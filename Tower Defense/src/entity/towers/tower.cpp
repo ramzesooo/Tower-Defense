@@ -9,11 +9,12 @@
 
 extern uint32_t g_PausedTicks;
 
-std::array<SDL_Texture*, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
+//std::array<SDL_Texture*, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
+std::array<std::array<SDL_Texture*, 2u>, std::size_t(TowerType::size)> Tower::s_TowerTextures{};
 
 Tower::Tower(float posX, float posY, TowerType type)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
-	m_Type(type), m_Texture(s_TowerTextures.at(static_cast<std::size_t>(type)))
+	m_Type(type), m_Texture(s_TowerTextures[static_cast<std::size_t>(type)][0])
 {
 	static Mix_Chunk *buildSound = App::s_Textures.GetSound("finishBuild");
 	static constexpr uint16_t towerOffset = 1;

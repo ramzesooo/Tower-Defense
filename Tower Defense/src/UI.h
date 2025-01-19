@@ -48,9 +48,11 @@ public:
 	static SDL_Texture *s_UpgradeTexture;
 	static SDL_Texture *s_TransparentGreenTexture;
 
-	static std::array<SDL_Texture*, std::size_t(TowerType::size)> s_ExpandingTowersIcons;
+	//static std::array<SDL_Texture*, std::size_t(TowerType::size)> s_ExpandingTowersIcons;
 
 	static TowerType s_ChosenTower;
+
+	static uint32_t s_Timer;
 
 	SDL_Rect destRect{};
 	Label m_Label;

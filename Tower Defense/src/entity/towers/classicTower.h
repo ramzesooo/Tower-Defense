@@ -6,7 +6,10 @@ class ClassicTower : public Tower
 public:
 	ClassicTower() = delete;
 	ClassicTower(float posX, float posY, TowerType type);
+	ClassicTower(const ClassicTower &) = delete;
 	~ClassicTower() = default;
 
-	virtual void Upgrade() override;
+	ClassicTower &operator=(const ClassicTower &) = delete;
+
+	void Upgrade() override;
 };

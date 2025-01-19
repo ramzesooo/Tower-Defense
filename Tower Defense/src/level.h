@@ -66,9 +66,11 @@ public:
 	Level(uint16_t levelID);
 	~Level() = default;
 
-	void Setup(std::ifstream &mapFile, uint16_t layerID);
+	void Init();
+private:
+	void SetupLayer(std::ifstream &mapFile, uint16_t layerID);
 	void SetupBase();
-
+public:
 	void Clean();
 
 	// All methods adding entities (such as tower, attacker and enemy) call AddGroup inside of them
@@ -82,7 +84,7 @@ public:
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
 	void AddTower(float posX, float posY, TowerType type);
 	void AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale = 2);
-	Enemy *AddEnemy(float posX, float posY, EnemyType type, SDL_Texture *texture, uint16_t scale = 2) const;
+	Enemy *AddEnemy(float posX, float posY, EnemyType type, uint16_t scale = 2) const;
 	void AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target);
 
 	void LMBEvent(); // Left mouse button event
@@ -102,6 +104,11 @@ public:
 	void InitWave();
 	void ManageWaves();
 
+private:
+	static void InitTimerForNextWave();
+	void UpdateTimer() const;
+
+public:
 	void Render();
 
 	uint16_t GetID() const { return m_LevelID; }
