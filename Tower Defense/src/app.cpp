@@ -1,7 +1,6 @@
 #include "app.h"
 #include "entity/entity.h"
 #include "entity/enemy.h"
-#include "entity/towers/tower.h"
 #include "entity/tile.h"
 
 #include "SDL_image.h"
@@ -11,6 +10,8 @@
 #include <cmath>
 
 static constexpr uint32_t coinsCooldownNotification = 1000u;
+
+extern SDL_DisplayMode displayInfo;
 
 // class App STATIC VARIABLES
 App *App::s_Instance = nullptr;
@@ -50,7 +51,7 @@ SDL_Texture *App::s_Square = nullptr;
 
 // [0] = waves, [1] = coins, [2] = lifes, [3] = time
 std::array<UIElement, 4> App::s_UIElements{};
-std::array<UIElement, std::size_t(TowerType::size)> App::s_ExpandingTowers{};
+std::array<UIElement, Tower::s_TowerTypeSize> App::s_ExpandingTowers{};
 Label App::s_UICoinsNotification(coinsCooldownNotification);
 
 bool App::s_IsCameraLocked = true;
@@ -82,8 +83,6 @@ auto &g_Enemies = App::s_Manager.GetGroup(EntityGroup::enemy);
 
 uint32_t g_PausedTicks = 0u;
 // class App GLOBAL VARIABLES
-
-extern SDL_DisplayMode displayInfo;
 
 App::App()
 {
@@ -211,7 +210,7 @@ void App::InitWindowAndRenderer()
 
 void App::AssignStaticAssets()
 {
-	for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
+	for (std::size_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 	{
 		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTextureOf(TowerType(i));
 		Tower::s_TowerTextures[i][1] = App::s_Textures.GetIconOf(TowerType(i));

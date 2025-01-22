@@ -1,6 +1,5 @@
 #pragma once
 #include "entity/typesEnums.h"
-
 #include "entity/label.h"
 
 #include "SDL_rect.h"

@@ -82,7 +82,7 @@ public:
 	// 
 	// Tower position depends on Vector2D and it is scaled by itself to tiles' size
 	// So it should look like this: x: 1.0f, y: 2.0f, instead of x: 96.0f, y: 144.0f
-	void AddTower(float posX, float posY, TowerType type);
+	void AddTower(float posX, float posY, TowerType type) const;
 	void AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale = 2);
 	Enemy *AddEnemy(float posX, float posY, EnemyType type, uint16_t scale = 2) const;
 	void AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target);

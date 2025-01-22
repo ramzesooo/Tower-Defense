@@ -22,8 +22,10 @@ struct TowerAnimation
 class Tower : public Entity
 {
 public:
+	static constexpr auto s_TowerTypeSize = static_cast<std::size_t>(TowerType::size);
+
 	// [0] = Texture, [1] = Icon
-	static std::array<std::array<SDL_Texture*, 2u>, std::size_t(TowerType::size)> s_TowerTextures;
+	static std::array<std::array<SDL_Texture*, 2u>, s_TowerTypeSize> s_TowerTextures;
 public:
 	Tower() = delete;
 	Tower(float posX, float posY, TowerType type);

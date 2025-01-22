@@ -381,12 +381,13 @@ void Level::Clean()
 
 	App::s_Manager.DestroyAllTiles();
 
+	m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
 	m_CurrentWave = 0u;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
 }
 
-void Level::AddTower(float posX, float posY, TowerType type)
+void Level::AddTower(float posX, float posY, TowerType type) const
 {
 	Tower *tower = nullptr;
 

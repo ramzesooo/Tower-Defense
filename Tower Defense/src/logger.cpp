@@ -48,7 +48,7 @@ void Logger::AddInstantLog(std::string_view newLog, bool endLine)
 	if (endLine)
 	{
 		logFile << "\n";
-		std::cout << newLog << "\n";
+		std::cout << newLog << std::endl;
 	}
 	else
 	{
@@ -63,7 +63,7 @@ void Logger::AddInstantLog(const std::string &newLog, bool endLine)
 	if (endLine)
 	{
 		logFile << "\n";
-		std::cout << newLog << "\n";
+		std::cout << newLog << std::endl;
 	}
 	else
 	{

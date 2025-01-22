@@ -22,7 +22,7 @@ SDL_Texture *UIElement::s_SellTexture = nullptr;
 SDL_Texture *UIElement::s_UpgradeTexture = nullptr;
 SDL_Texture *UIElement::s_TransparentGreenTexture = nullptr;
 
-TowerType UIElement::s_ChosenTower = TowerType::size;
+TowerType UIElement::s_ChosenTower = TowerType::classic;
 
 uint32_t UIElement::s_Timer = 0u;
 
@@ -72,7 +72,7 @@ void UIElement::InitUI()
 	UIElement::hammerDestRect = destRect;
 	UIElement::hammerDestRect.w /= 3;
 
-	for (int32_t i = 0; i < App::s_ExpandingTowers.size(); i++)
+	for (uint32_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 	{
 		auto &element = App::s_ExpandingTowers.at(i);
 		element.destRect = hammerDestRect;
@@ -80,7 +80,6 @@ void UIElement::InitUI()
 		element.destRect.y += (element.destRect.h * (i / 2)) + element.destRect.h;
 	}
 
-	s_ChosenTower = TowerType::classic;
 	App::s_ExpandingTowers.at(0).m_IsPressed = true;
 
 	UIElement::sellDestRect = { startX + destRect.w + destRect.w / 4, startY, destRect.w / 3, destRect.h };
@@ -98,7 +97,7 @@ void UIElement::DrawUI()
 
 	if (App::s_UIState == UIState::building)
 	{
-		for (std::size_t i = 0u; i < static_cast<std::size_t>(TowerType::size); i++)
+		for (std::size_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 		{
 			auto &element = App::s_ExpandingTowers[i];
 			TextureManager::DrawTexture(Tower::s_TowerTextures[i][1], UIElement::expandingTowerSrcRect, element.destRect);

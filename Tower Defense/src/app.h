@@ -5,6 +5,7 @@
 
 #include "menu.h"
 #include "entity/label.h"
+#include "entity/towers/tower.h"
 #include "level.h"
 #include "textureManager.h"
 #include "logger.h"
@@ -21,7 +22,6 @@
 #include <format>
 
 class Manager;
-class Tower;
 class Tile;
 
 struct CameraMovement
@@ -89,7 +89,7 @@ public:
 	// [0] = waves, [1] = coins, [2] = lifes, [3] = time
 	static std::array<UIElement, 4> s_UIElements;
 	// Towers displayed after going into building state
-	static std::array<UIElement, std::size_t(TowerType::size)> s_ExpandingTowers;
+	static std::array<UIElement, Tower::s_TowerTypeSize> s_ExpandingTowers;
 	static Label s_UICoinsNotification;
 
 	static bool s_IsCameraLocked;
