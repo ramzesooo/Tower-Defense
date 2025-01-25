@@ -6,7 +6,6 @@
 
 #include <cmath>
 #include <format>
-#include <string_view>
 
 extern uint32_t g_PausedTicks;
 

@@ -103,11 +103,10 @@ public:
 public:
 	App();
 	~App();
-
+private:
 	void InitWindowAndRenderer();
 	void AssignStaticAssets();
-	void InitMainMenu();
-
+public:
 	static App &Instance() { return *s_Instance; }
 	bool IsRunning() const { return s_IsRunning; }
 
@@ -185,7 +184,7 @@ public:
 	}
 
 	// for checking is currently the game paused
-	static inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
+	static constexpr inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
 
 	void SetUIState(UIState state);
 	static constexpr inline bool IsBuildingState()
@@ -371,15 +370,11 @@ public:
 
 		if (lifes >= s_CurrentLevel->GetBase()->m_Lifes)
 		{
-			s_CurrentLevel->GetBase()->m_Lifes = 0u;
-			s_CurrentLevel->GetBase()->m_IsActive = false;
-			s_CurrentLevel->Clean();
-			App::Instance().SetUIState(UIState::mainMenu);
+			s_CurrentLevel->Lost();
+			return;
 		}
-		else
-		{
-			s_CurrentLevel->GetBase()->m_Lifes -= lifes;
-		}
+		
+		s_CurrentLevel->GetBase()->m_Lifes -= lifes;
 
 		UpdateLifes();
 	}

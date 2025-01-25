@@ -35,6 +35,7 @@ public:
 
 enum class WaveProgress
 {
+	LoadedLevel,
 	OnCooldown,
 	Initializing,
 	InProgress,
@@ -71,7 +72,8 @@ private:
 	void SetupLayer(std::ifstream &mapFile, uint16_t layerID);
 	void SetupBase();
 public:
-	void Clean();
+	void Clear();
+	void Lost(); // Game over
 
 	// All methods adding entities (such as tower, attacker and enemy) call AddGroup inside of them
 
@@ -106,6 +108,7 @@ public:
 
 private:
 	static void InitTimerForNextWave();
+public:
 	void UpdateTimer() const;
 
 public:

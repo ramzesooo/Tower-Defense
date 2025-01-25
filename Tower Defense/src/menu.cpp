@@ -4,6 +4,7 @@
 #include "entity/label.h"
 
 #include "SDL_rect.h"
+#include "SDL_ttf.h"
 #include "SDL_mixer.h"
 
 #include <format>
@@ -22,6 +23,97 @@ SDL_Rect MainMenu::s_BgDestRect{ 0, 0, App::WINDOW_WIDTH, App::WINDOW_HEIGHT };
 
 static constexpr char returnText[] = "Return";
 static constexpr char quitText[] = "Quit";
+
+// TODO: Too much levels will result in wrong displaying
+// They should be splitted into pages
+void MainMenu::Init()
+{
+	TTF_Font *defaultFont = App::s_Textures.GetFont("default");
+
+	int32_t centerX = App::WINDOW_WIDTH / 2;
+	int32_t centerY = App::WINDOW_HEIGHT / 2;
+
+	MainMenu::s_GapBetweenButtons = (App::WINDOW_HEIGHT / 14) + ((App::WINDOW_HEIGHT / 14) / 4);
+
+	Button *btn = nullptr;
+
+	// Return button
+	{
+		btn = &m_ReturnButton;
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Quit", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Return button
+
+	// Title screen
+	for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
+	{
+		btn = &m_PrimaryButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
+	}
+
+	// Button "Play"
+	{
+		btn = &m_PrimaryButtons.at(0);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+
+	// Button "Options"
+	{
+		btn = &m_PrimaryButtons.at(1);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Title screen
+
+	// Options
+	for (std::size_t i = 0u; i < m_OptionsButtons.size(); ++i)
+	{
+		btn = &m_OptionsButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
+	}
+
+	// Button "V-Sync"
+	{
+		btn = &m_OptionsButtons.at(0);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "V-Sync", defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+
+		btn->m_Type = ButtonType::check;
+		btn->m_IsChecked = SDL_GetHintBoolean(SDL_HINT_RENDER_VSYNC, SDL_FALSE);
+	}
+	// Options
+
+	// Levels
+	for (std::size_t i = 0u; i < m_LevelsButtons.size(); ++i)
+	{
+		btn = &m_LevelsButtons.at(i);
+		btn->destRect.w = App::WINDOW_WIDTH / 7;
+		btn->destRect.h = App::WINDOW_HEIGHT / 14;
+		btn->destRect.x = centerX - btn->destRect.w / 2;
+		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
+
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, std::format("Level #{}", i + 1), defaultFont);
+		const SDL_Rect &labelRect = btn->m_Label.GetRect();
+		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
+	}
+	// Levels
+}
 
 void MainMenu::Render()
 {
@@ -149,7 +241,7 @@ void MainMenu::HandleOptionsButtons()
 
 void MainMenu::HandleLevelsButtons()
 {
-	for (auto i = 0u; i < m_LevelsButtons.size(); i++)
+	for (std::size_t i = 0u; i < m_LevelsButtons.size(); i++)
 	{
 		if (&m_LevelsButtons.at(i) != m_HoveredButton)
 			continue;
@@ -180,12 +272,18 @@ void MainMenu::HandleLevelsButtons()
 	App::Instance().UpdateCamera();
 
 	MainMenu::s_State = MenuState::primary;
+
+	m_HoveredButton->m_IsHovered = false;
+	m_HoveredButton = nullptr;
 }
 
 void MainMenu::OnCursorMove()
 {
 	static Mix_Chunk *hoverSound = App::s_Textures.GetSound("hoverButton");
 
+	// Probably should be checking also if menu state is still the same as the last one
+	// When we got the button hovered
+	// But it seems unnecessary since after choosing a level, it clears m_HoveredButton
 	// Check if mouse is pointing at the same button as before
 	if (m_HoveredButton)
 	{
@@ -222,7 +320,7 @@ void MainMenu::OnCursorMove()
 	switch (s_State)
 	{
 	case MenuState::primary:
-		for (std::size_t i = 0; i < m_PrimaryButtons.size(); ++i)
+		for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
 		{
 			const SDL_Rect &destRect = m_PrimaryButtons.at(i).destRect;
 
@@ -237,7 +335,7 @@ void MainMenu::OnCursorMove()
 		}
 		return;
 	case MenuState::options:
-		for (std::size_t i = 0; i < m_OptionsButtons.size(); ++i)
+		for (std::size_t i = 0u; i < m_OptionsButtons.size(); ++i)
 		{
 			const SDL_Rect &destRect = m_OptionsButtons.at(i).destRect;
 
@@ -252,7 +350,7 @@ void MainMenu::OnCursorMove()
 		}
 		return;
 	case MenuState::levels:
-		for (std::size_t i = 0; i < m_LevelsButtons.size(); ++i)
+		for (std::size_t i = 0u; i < m_LevelsButtons.size(); ++i)
 		{
 			const SDL_Rect &destRect = m_LevelsButtons.at(i).destRect;
 

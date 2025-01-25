@@ -130,7 +130,7 @@ App::App()
 
 	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
-	m_PauseLabel = Label(int32_t(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
+	m_PauseLabel = Label(static_cast<int32_t>(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
 	m_PauseLabel.m_Drawable = false;
 
 	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
@@ -144,7 +144,7 @@ App::App()
 		s_PointedPosition->UpdatePos({ 0.0f, static_cast<float>(App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h) });
 	);
 
-	InitMainMenu();
+	s_MainMenu.Init();
 
 	App::s_IsRunning = m_Initialized;
 }
@@ -208,12 +208,16 @@ void App::InitWindowAndRenderer()
 	SDL_SetRenderDrawColor(App::s_Renderer, 90, 0, 220, 255);
 }
 
+// Probably could be done async, but it doesn't matter here I guess
 void App::AssignStaticAssets()
 {
 	for (std::size_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 	{
+		/*
 		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTextureOf(TowerType(i));
 		Tower::s_TowerTextures[i][1] = App::s_Textures.GetIconOf(TowerType(i));
+		*/
+		Tower::s_TowerTextures[i] = { App::s_Textures.GetTextureOf(TowerType(i)), App::s_Textures.GetIconOf(TowerType(i)) };
 	}
 
 	UIElement::s_TransparentGreenTexture = App::s_Textures.GetTexture("transparentGreen");
@@ -248,95 +252,6 @@ void App::AssignStaticAssets()
 	Level::s_Texture = App::s_Textures.GetTexture("mapSheet");
 
 	Enemy::s_ArrowTexture = App::s_Textures.GetTexture("grayArrow");
-}
-
-void App::InitMainMenu()
-{
-	TTF_Font *defaultFont = App::s_Textures.GetFont("default");
-
-	int32_t centerX = App::WINDOW_WIDTH / 2;
-	int32_t centerY = App::WINDOW_HEIGHT / 2;
-
-	MainMenu::s_GapBetweenButtons = (App::WINDOW_HEIGHT / 14) + ((App::WINDOW_HEIGHT / 14) / 4);
-
-	Button *btn = nullptr;
-
-	// Return button
-	{
-		btn = &s_MainMenu.m_ReturnButton;
-		btn->destRect.w = App::WINDOW_WIDTH / 7;
-		btn->destRect.h = App::WINDOW_HEIGHT / 14;
-		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + static_cast<int32_t>(s_MainMenu.m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Quit", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-	// Return button
-
-	// Title screen
-	for (std::size_t i = 0u; i < s_MainMenu.m_PrimaryButtons.size(); ++i)
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(i);
-		btn->destRect.w = App::WINDOW_WIDTH / 7;
-		btn->destRect.h = App::WINDOW_HEIGHT / 14;
-		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
-	}
-
-	// Button "Play"
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-
-	// Button "Options"
-	{
-		btn = &s_MainMenu.m_PrimaryButtons.at(1);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-	// Title screen
-
-	// Options
-	for (std::size_t i = 0u; i < s_MainMenu.m_OptionsButtons.size(); ++i)
-	{
-		btn = &s_MainMenu.m_OptionsButtons.at(i);
-		btn->destRect.w = App::WINDOW_WIDTH / 7;
-		btn->destRect.h = App::WINDOW_HEIGHT / 14;
-		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
-	}
-
-	// Button "V-Sync"
-	{
-		btn = &s_MainMenu.m_OptionsButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "V-Sync", defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-
-		btn->m_Type = ButtonType::check;
-		btn->m_IsChecked = SDL_GetHintBoolean(SDL_HINT_RENDER_VSYNC, SDL_FALSE);
-	}
-	// Options
-
-	// Levels
-	for (std::size_t i = 0u; i < s_MainMenu.m_LevelsButtons.size(); ++i)
-	{
-		btn = &s_MainMenu.m_LevelsButtons.at(i);
-		btn->destRect.w = App::WINDOW_WIDTH / 7;
-		btn->destRect.h = App::WINDOW_HEIGHT / 14;
-		btn->destRect.x = centerX - btn->destRect.w / 2;
-		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
-
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, std::format("Level #{}", i + 1), defaultFont);
-		const SDL_Rect &labelRect = btn->m_Label.GetRect();
-		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
-	}
-	// Levels
 }
 
 void App::EventHandler()
@@ -736,20 +651,6 @@ void App::ManageBuildingState()
 
 		// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
 		Tile *pointedTile = s_Building.pointedTile;
-
-		/*
-		// Show to player the tower can be upgraded, but tower can be upgraded only if it's pointing the first tile of Tower to avoid confusion
-		{
-			Tower *tower = pointedTile->GetTowerOccupying();
-			if (tower && tower->CanUpgrade() && pointedTile == tower->GetOccupiedTile(0u))
-			{
-				s_Building.buildingPlace.SetTexture(BuildingState::upgradingTexture);
-				s_Building.canBuild = false;
-				s_Building.towerToUpgradeOrSell = tower;
-				return;
-			}
-		}
-		*/
 
 		for (auto i = 0u; i < 4u; i++)
 		{

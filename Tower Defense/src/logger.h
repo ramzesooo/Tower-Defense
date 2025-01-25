@@ -7,7 +7,10 @@ class Logger
 {
 public:
 	Logger();
+	Logger(const Logger &) = delete;
 	~Logger();
+
+	Logger &operator=(const Logger &) = delete;
 
 	void AddLog(std::string_view newLog, bool endLine = true);
 	void AddLog(const std::string &newLog, bool endLine = true);

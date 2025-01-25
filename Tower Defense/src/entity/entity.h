@@ -178,9 +178,12 @@ public:
 		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).shrink_to_fit();
 	}
 
-	inline void ShrinkToFitTowers()
+	inline void RefreshTowersAfterSell(Entity *tower)
 	{
-		m_GroupedEntities.at((std::size_t)EntityGroup::tower).shrink_to_fit();
+		static auto &towers = m_GroupedEntities.at((std::size_t)EntityGroup::tower);
+
+		std::erase(towers, tower);
+		towers.shrink_to_fit();
 	}
 private:
 	std::vector<std::unique_ptr<Tile>> m_Tiles;

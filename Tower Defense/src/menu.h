@@ -30,6 +30,8 @@ public:
 	std::array<Button, 1> m_OptionsButtons; // [0] = V-Sync, [1] = Return
 	std::array<Button, s_LevelsToLoad> m_LevelsButtons;
 public:
+	void Init();
+
 	void Render();
 
 	void HandleMouseButtonEvent();

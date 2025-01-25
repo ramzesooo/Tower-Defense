@@ -14,7 +14,7 @@ public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_Drawable = true;
 
-	Label() : m_OnStack(true), m_VanishDelay(NULL), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(NULL / 255.0) {}
+	Label() : m_OnStack(true), m_VanishDelay(NULL), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(NULL) {}
 	Label(uint32_t vanishable) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(vanishable / 255.0) {}
 	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
 	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect),

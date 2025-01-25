@@ -27,36 +27,10 @@ class Projectile : public Entity
 public:
 	Projectile() = delete;
 	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
-	/*Projectile(const Projectile &r) : srcRect(r.srcRect), m_Texture(r.m_Texture), destRect(r.destRect), m_Angle(r.m_Angle), m_Pos(r.m_Pos),
-		m_Velocity(r.m_Velocity), m_Destination(r.m_Destination), m_Type(r.m_Type), m_Owner(r.m_Owner), 
-		m_IsAnimated(r.m_IsAnimated), m_Animation(r.m_Animation), m_Lifetime(r.m_Lifetime), m_BaseVelocity(r.m_BaseVelocity) {}*/
 	Projectile(const Projectile &) = delete;
 	~Projectile() = default;
 
 	Projectile &operator=(const Projectile &) = delete;
-
-	/*inline Projectile &operator=(const Projectile &r)
-	{
-		if (this == &r)
-			return *this;
-
-		srcRect = r.srcRect;
-		m_Texture = r.m_Texture;
-		destRect = r.destRect;
-		m_Angle = r.m_Angle;
-		m_Pos = r.m_Pos;
-		m_Velocity = r.m_Velocity;
-		m_Destination = r.m_Destination;
-		m_Type = r.m_Type;
-		m_Owner = r.m_Owner;
-		m_Target = r.m_Target;
-		m_Lifetime = r.m_Lifetime;
-		m_Animation = r.m_Animation;
-		m_IsAnimated = r.m_IsAnimated;
-		m_BaseVelocity = r.m_BaseVelocity;
-
-		return *this;
-	}*/
 
 	void Destroy() override;
 

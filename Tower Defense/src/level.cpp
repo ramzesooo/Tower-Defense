@@ -110,6 +110,10 @@ static constexpr uint16_t spawnerID = 305u;
 static constexpr uint16_t waveCooldown = 4500u; // milliseconds
 
 static constexpr char configName[] = ".config";
+static constexpr char mapDataStr[] = "mapData=";
+static constexpr char basePosStr[] = "basePos=";
+static constexpr char movementRateStr[] = "movementRate=";
+static constexpr char wavesStr[] = "waves=";
 
 extern std::vector<Entity*> &g_Projectiles;
 extern std::vector<Entity*> &g_Towers;
@@ -133,6 +137,113 @@ Level::Level(uint16_t levelID)
 	}
 
 	std::string line;
+
+	bool readWaves = false;
+
+	while (std::getline(configFile, line))
+	{
+		std::string value;
+
+		if (line.find(wavesStr) != std::string::npos || line.find("}") != std::string::npos)
+		{
+			readWaves = !readWaves;
+			continue;
+		}
+
+		if (readWaves)
+		{
+			std::stringstream ss(line);
+
+			WaveContainer newWave{};
+
+			for (auto &wave : newWave.container)
+			{
+				if (!std::getline(ss, value, ','))
+					break;
+
+				wave = static_cast<uint16_t>(std::stoi(value));
+			}
+
+			/*for (std::size_t i = 0u; i < newWave.container.size(); ++i)
+			{
+				if (!std::getline(ss, value, ','))
+					break;
+
+				newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
+			}*/
+
+			m_Waves.emplace_back(newWave);
+
+			continue;
+		}
+
+		std::stringstream ss;
+
+		if (line.find(mapDataStr) != std::string::npos)
+		{
+			line.erase(line.begin(), line.begin() + strlen(mapDataStr));
+
+			ss << line;
+
+			for (auto i = 0u; i < 3u; ++i)
+			{
+				if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+				{
+					App::s_Logger.AddLog(std::format("Couldn't reach out map data no. {} from level {}", i, m_LevelID + 1));
+					m_MapData[i] = 2;
+					break;
+				}
+
+				m_MapData[i] = static_cast<uint16_t>(std::stoi(value));
+			}
+
+			continue;
+		}
+		else if (line.find(basePosStr) != std::string::npos)
+		{
+			line.erase(line.begin(), line.begin() + strlen(basePosStr));
+
+			ss << line;
+
+			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+			{
+				App::s_Logger.AddLog(std::format("Couldn't reach out base's X position from level {}", m_LevelID + 1));
+				m_BasePos.x = 0.0f;
+				continue;
+			}
+
+			m_BasePos.x = std::stof(value);
+
+			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
+			{
+				App::s_Logger.AddLog(std::format("Couldn't reach out base's Y position from level {}", m_LevelID + 1));
+				m_BasePos.y = 0.0f;
+			}
+			else
+			{
+				m_BasePos.y = std::stof(value);
+			}
+		}
+		else if (line.find(movementRateStr) != std::string::npos)
+		{
+			line.erase(line.begin(), line.begin() + strlen(movementRateStr));
+
+			ss << line;
+
+			if (!std::getline(ss, value, ','))
+			{
+				App::s_Logger.AddLog(std::string_view("Couldn't reach out movement speed rate from config file!"));
+				m_MovementSpeedRate = 1u;
+				continue;
+			}
+
+			m_MovementSpeedRate = static_cast<uint16_t>(std::stoul(value));
+			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate)););
+			continue;
+		}
+	}
+
+	/*
 	uint32_t lineNumber = 0;
 	while (std::getline(configFile, line))
 	{
@@ -207,19 +318,19 @@ Level::Level(uint16_t levelID)
 			wave = static_cast<uint16_t>(std::stoi(value));
 		}
 
-		/*for (std::size_t i = 0u; i < newWave.container.size(); ++i)
-		{
-			if (!std::getline(ss, value, ','))
-				break;
-
-			newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
-		}*/
+		//for (std::size_t i = 0u; i < newWave.container.size(); ++i)
+		//{
+		//	if (!std::getline(ss, value, ','))
+		//		break;
+		//
+		//	newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
+		//}
 
 		m_Waves.emplace_back(newWave);
 	}
+	*/
 
 	m_Waves.shrink_to_fit();
-	// LOAD CONFIG
 
 	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
 
@@ -240,8 +351,7 @@ void Level::Init()
 
 	InitTimerForNextWave();
 
-	m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
-	m_WaveProgress = WaveProgress::OnCooldown;
+	m_WaveProgress = WaveProgress::LoadedLevel;
 }
 
 void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
@@ -367,7 +477,7 @@ void Level::SetupBase()
 	InitTimerForNextWave();
 }
 
-void Level::Clean()
+void Level::Clear()
 {
 	App::s_Manager.DestroyAllEntities();
 
@@ -381,10 +491,22 @@ void Level::Clean()
 
 	App::s_Manager.DestroyAllTiles();
 
-	m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
+	m_WaveCooldown = 0u;
 	m_CurrentWave = 0u;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
+}
+
+void Level::Lost()
+{
+	m_Base.m_Lifes = 0u;
+	m_Base.m_IsActive = false;
+	Clear();
+
+	App::Instance().SetUIState(UIState::mainMenu);
+
+	// Check if the cursor is already pointing at any button
+	App::s_MainMenu.OnCursorMove();
 }
 
 void Level::AddTower(float posX, float posY, TowerType type) const
@@ -499,40 +621,6 @@ void Level::LMBEvent()
 		return;
 	}
 
-	/*
-	// If there is already chosen tower
-	if (UIElement::s_ChosenTower != TowerType::size)
-	{
-		auto &element = s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
-
-		// Check if mouse pressed on the already chosen tower
-		if (s_MouseX >= element.destRect.x && s_MouseX <= element.destRect.x + element.destRect.w
-			&& s_MouseY >= element.destRect.y && s_MouseY <= element.destRect.y + element.destRect.h)
-		{
-			UIElement::s_ChosenTower = TowerType::size;
-			element.m_IsPressed = false;
-			return;
-		}
-
-		// If pressed somewhere else, check if pressed on any other tower
-		for (std::size_t i = 0u; i < s_ExpandingTowers.size(); i++)
-		{
-			auto &tower = s_ExpandingTowers.at(i);
-
-			if (s_MouseX >= tower.destRect.x && s_MouseX <= tower.destRect.x + tower.destRect.w
-				&& s_MouseY >= tower.destRect.y && s_MouseY <= tower.destRect.y + tower.destRect.h)
-			{
-				UIElement::s_ChosenTower = static_cast<TowerType>(i);
-				tower.m_IsPressed = true;
-				element.m_IsPressed = false;
-				return;
-			}
-		}
-
-		return;
-	}
-	*/
-
 	auto &element = App::s_ExpandingTowers.at(static_cast<std::size_t>(UIElement::s_ChosenTower));
 
 	// Check if mouse pressed on the already chosen tower
@@ -544,7 +632,7 @@ void Level::LMBEvent()
 	}
 
 	// Check if any tower has been pressed if there isn't any already
-	for (std::size_t i = 0u; i < App::s_ExpandingTowers.size(); i++)
+	for (std::size_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 	{
 		auto &tower = App::s_ExpandingTowers.at(i);
 
@@ -577,13 +665,6 @@ void Level::LMBEvent()
 		App::Instance().TakeCoins(App::s_Building.towerToUpgradeOrSell->GetUpgradePrice());
 		App::s_Building.towerToUpgradeOrSell->Upgrade();
 
-		/*if (!App::s_Building.towerToUpgradeOrSell->CanUpgrade())
-		{
-			App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-			App::s_Building.towerToUpgradeOrSell = nullptr;
-			App::s_Building.canBuild = false;
-		}*/
-
 		return;
 	}
 
@@ -592,11 +673,11 @@ void Level::LMBEvent()
 		App::Instance().AddCoins(App::s_Building.towerToUpgradeOrSell->GetSellPrice());
 		App::s_Building.towerToUpgradeOrSell->Destroy();
 
+		App::s_Manager.RefreshTowersAfterSell(App::s_Building.towerToUpgradeOrSell);
+
 		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
 		App::s_Building.canBuild = false;
-
-		App::s_Manager.ShrinkToFitTowers();
 
 		return;
 	}
@@ -687,6 +768,13 @@ void Level::ManageWaves()
 {
 	switch (m_WaveProgress)
 	{
+		// Assigning WaveProgress::OnCooldown directly in Init()
+		// Kind of fucks up the timer, so it should be assigned when everything is initialized
+		// So now, basically App::Update() assigns correct cooldown by itself
+	case WaveProgress::LoadedLevel:
+		m_WaveCooldown = SDL_GetTicks() - g_PausedTicks + waveCooldown;
+		m_WaveProgress = WaveProgress::OnCooldown;
+		return;
 	case WaveProgress::OnCooldown:
 		if (SDL_TICKS_PASSED(SDL_GetTicks() - g_PausedTicks, m_WaveCooldown))
 		{
@@ -755,13 +843,16 @@ void Level::InitTimerForNextWave()
 
 void Level::UpdateTimer() const
 {
-	auto howMuchLeft = m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks);
-	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", howMuchLeft / 1000.0f));
+	static float howMuchLeft = 0.0f;
+
+	howMuchLeft = (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f;
+	// I have no idea if std::format is better than std::to_string, but for sure it is here
+	// Since it ignores the zeros at the end by default
+	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", howMuchLeft));
 }
 
 void Level::Render()
 {
-	// Seems to be faster in this case than for-each
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
 		for (const auto &tile : m_Layers.at(i).m_DrawableTiles)
@@ -774,23 +865,24 @@ void Level::Render()
 		m_HighlightedTower->DrawHighlight();
 
 	for (const auto &enemy : g_Enemies)
+	{
 		enemy->Draw();
+	}
 
 	m_Base.Draw();
 
 	// The tower triggers render for attackers
 	for (const auto &tower : g_Towers)
 	{
-		if (!tower->IsActive())
-			continue;
-
 		tower->Draw();
 	}
 
 	App::s_Building.buildingPlace.Draw();
 
 	for (const auto &projectile : g_Projectiles)
+	{
 		projectile->Draw();
+	}
 }
 
 Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const

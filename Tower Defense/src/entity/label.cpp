@@ -5,7 +5,7 @@
 
 #include <format>
 
-Label::Label(int32_t posX, int32_t posY, const std::string& text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
+Label::Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color, Entity *attachedTo)
 	: m_Text(text), m_Font(font), m_Color(color), m_AttachedTo(attachedTo)
 {
 	destRect.x = posX;
@@ -57,7 +57,7 @@ void Label::Draw()
 	SDL_RenderCopy(App::s_Renderer, m_Texture, nullptr, &destRect);
 }
 
-void Label::UpdateText(const std::string& text)
+void Label::UpdateText(const std::string &text)
 {
 	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, text.c_str(), m_Color);
 	if (!surface)
@@ -87,7 +87,7 @@ void Label::UpdateColor(SDL_Color newColor)
 	if (newColor.a == m_Color.a && newColor.r == m_Color.r && newColor.g == m_Color.g && newColor.b == m_Color.b)
 		return;
 
-	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, std::string(m_Text).c_str(), m_Color);
+	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, m_Text.c_str(), m_Color);
 	if (!surface)
 	{
 		App::s_Logger.AddLog(std::format("Failed to create a surface in Label::UpdateColor\nLast SDL Error: {}", SDL_GetError()));
