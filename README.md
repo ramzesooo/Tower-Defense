@@ -30,8 +30,6 @@ The map file can be done literally as you wish, but important thing is to make a
 Every layer of tiles is a seperated text file with extension *.map* containing all tiles separated by a comma *(,)*, and every layer has its own job - it's all should be properly described in class Level.
 Every level must have config file named like this: *.config* and it's important to keep correct values in correct lines, since the game takes it all in proper order. It should be properly described too in source code.
 ### Keyboard
-**B** - Switch between building mode
-
 **Y** - Lock/unlock camera moving
 
 **F1-F3** - Prepared resolutions
@@ -47,6 +45,3 @@ Every level must have config file named like this: *.config* and it's important 
 **F10** - Destroy all enemies
 
 **F11** - Fullscreen on/off
-
-### Compatibility
-For now it's prepared only for Windows (both of x86 and x64) in Visual Studio, but there is a high chance of involving CMake into this also developing for Linux later
