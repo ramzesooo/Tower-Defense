@@ -268,6 +268,9 @@ void Enemy::UpdateMovement()
 			return;
 		}
 
+		// TODO: Maybe enemies' path should be reseted every time they are walking in the same tile at the same time with another one
+		// This way, attackers could also check for enemies on specific tiles in their range what might have great impact on performance
+
 		Enemy *occupyingEnemy = dynamic_cast<Enemy*>(nextTile->GetOccupyingEntity());
 		if (occupyingEnemy && occupyingEnemy != this)
 		{
@@ -288,8 +291,13 @@ void Enemy::UpdateMovement()
 		m_OccupiedTile = nextTile;
 		m_OccupiedTile->SetOccupyingEntity(this);
 
+		// NOTE: It should work fine without ValidAttacker(), but also ValidAttacker()
+		// is less expensive than ValidTarget() for attackers
+		// in case of a lot of enemies attacking
+		// but as well, the game is more likely designed for small amount of enemies per wave
+		
 		// Probably it's not needed anymore since attackers check by themselves if they should switch the target
-		ValidAttacker();
+		//ValidAttacker();
 	}
 
 	// Updated position and scale it to tiles' size
@@ -306,7 +314,6 @@ void Enemy::UpdateMovement()
 	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.y = 0.0f;
 
-	// The direction of walk animation doesn't really matter in the game, so it can be done in the easiest possible way
 	if (m_Velocity.x > 0.0f)
 		PlayAnim("WalkRight");
 	else if (m_Velocity.x < 0.0f)
@@ -326,18 +333,30 @@ void Enemy::Move()
 
 	// Check the direction
 	if (m_Destination.x > m_Pos.x)
+	{
 		m_Velocity.x = m_MovementSpeed;
+	}
 	else if (m_Destination.x < m_Pos.x)
+	{
 		m_Velocity.x = -m_MovementSpeed;
+	}
 	else
+	{
 		m_Velocity.x = 0.0f;
+	}
 
 	if (m_Destination.y > m_Pos.y)
+	{
 		m_Velocity.y = m_MovementSpeed;
+	}
 	else if (m_Destination.y < m_Pos.y)
+	{
 		m_Velocity.y = -m_MovementSpeed;
+	}
 	else
+	{
 		m_Velocity.y = 0.0f;
+	}
 }
 
 void Enemy::UpdateHealthBar()
@@ -450,13 +469,14 @@ void Enemy::DebugSpeed()
 	case EnemyDebugSpeed::none:
 		m_MovementSpeed = m_MovementDebugSpeed;
 		Move();
-		break;
+		return;
 	case EnemyDebugSpeed::faster:
 		m_MovementSpeed = m_MovementDebugSpeed * 2;
 		Move();
-		break;
-	case EnemyDebugSpeed::stay:
-		break;
+		return;
+	case EnemyDebugSpeed::stay: // Do nothing
+	default:
+		return;
 	}
 }
 );

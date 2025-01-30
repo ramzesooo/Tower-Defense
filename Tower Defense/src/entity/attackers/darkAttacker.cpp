@@ -24,7 +24,6 @@ void DarkAttacker::Update()
 
 	uint32_t ticks = SDL_GetTicks() - g_PausedTicks;
 
-	// Create new projectile if got target and passed the cooldown of attack
 	if (!ValidTarget())
 		return;
 

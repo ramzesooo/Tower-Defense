@@ -37,7 +37,6 @@ static constexpr AssetData texturesToLoad[]
 	{ "uncheckedHoveredButtonUI",	"ui/ui_button_hovered_unchecked.png" },
 	{ "canBuild",					"ui/tile_CanBuild.png" },
 	{ "cantBuild",					"ui/tile_CantBuild.png" },
-	//{ "upgradeTower",				"ui/tile_Upgrade.png" },
 	{ "highlightTowerRange",		"ui/highlightRange.png" },
 	{ "elementUI",					"ui/ui_element.png" },
 	{ "coinUI",						"ui/coin.png" },

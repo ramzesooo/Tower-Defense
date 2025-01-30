@@ -90,7 +90,6 @@ public:
 	void AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target);
 
 	void LMBEvent(); // Left mouse button event
-	//void RMBEvent(); // Right mouse button event
 	inline void HandleMouseButtonEvent(uint8_t button)
 	{
 		if (button == SDL_BUTTON_LEFT)

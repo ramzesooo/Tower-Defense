@@ -92,9 +92,9 @@ public:
 			}
 
 			// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
-			for (std::size_t i = 0; i < (std::size_t)EntityGroup::size; ++i)
+			for (std::size_t i = 0u; i < static_cast<std::size_t>(EntityGroup::size); ++i)
 			{
-				(*it)->RemoveFromGroup((EntityGroup)i);
+				(*it)->RemoveFromGroup(static_cast<EntityGroup>(i));
 			}
 
 			//Ready to erase the unique pointer from entities

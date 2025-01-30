@@ -3,7 +3,7 @@
 #include "../typesEnums.h"
 #include "../entity.h"
 #include "../enemy.h"
-#include "../projectile.h"
+#include "../projectiles/projectile.h"
 #include "../../Vector2D.h"
 #include "../anim.h"
 

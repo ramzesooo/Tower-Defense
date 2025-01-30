@@ -106,7 +106,7 @@ public:
 		if (type == AttackerType::darkTower)
 			return nullptr;
 
-		return GetTexture(TextureOf(type)); 
+		return GetTexture(TextureOf(type));
 	}
 
 	void AddTexture(const std::string &textureID, const char *path);

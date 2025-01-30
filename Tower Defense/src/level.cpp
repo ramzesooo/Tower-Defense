@@ -5,6 +5,7 @@
 #include "entity/enemy.h"
 #include "entity/label.h"
 #include "entity/towers/towers_inc.h"
+#include "entity/projectiles/projectiles_inc.h"
 
 #include <fstream>
 #include <sstream>
@@ -223,6 +224,8 @@ Level::Level(uint16_t levelID)
 			{
 				m_BasePos.y = std::stof(value);
 			}
+
+			continue;
 		}
 		else if (line.find(movementRateStr) != std::string::npos)
 		{
@@ -242,93 +245,6 @@ Level::Level(uint16_t levelID)
 			continue;
 		}
 	}
-
-	/*
-	uint32_t lineNumber = 0;
-	while (std::getline(configFile, line))
-	{
-		lineNumber++;
-
-		std::istringstream ss(line);
-		std::string value;
-
-		// Map data
-		if (lineNumber == 1)
-		{
-			// first line of config must contain map's width, height and scale
-			// for example: 70,70,2
-			for (auto i = 0u; i < 3u; ++i)
-			{
-				if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
-				{
-					App::s_Logger.AddLog(std::format("Couldn't reach out map data no. {} from level {}", i, m_LevelID + 1));
-					m_MapData[i] = 2;
-					break;
-				}
-
-				m_MapData[i] = static_cast<uint16_t>(std::stoi(value));
-			}
-
-			continue;
-		}
-		else if (lineNumber == 2) // Base pos
-		{
-			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
-			{
-				App::s_Logger.AddLog(std::format("Couldn't reach out base's X position from level {}", m_LevelID + 1));
-				m_BasePos.x = 0.0f;
-				continue;
-			}
-
-			m_BasePos.x = std::stof(value);
-
-			if (!std::getline(ss, value, ',') || strlen(value.c_str()) == 0)
-			{
-				App::s_Logger.AddLog(std::format("Couldn't reach out base's Y position from level {}", m_LevelID + 1));
-				m_BasePos.y = 0.0f;
-			}
-			else
-			{
-				m_BasePos.y = std::stof(value);
-			}
-
-			continue;
-		}
-		else if (lineNumber == 3)
-		{
-			if (!std::getline(ss, value, ','))
-			{
-				App::s_Logger.AddLog(std::string_view("Couldn't reach out movement speed rate from config file!"));
-				m_MovementSpeedRate = 1u;
-				continue;
-			}
-
-			m_MovementSpeedRate = static_cast<uint16_t>(std::stoul(value));
-			IF_DEBUG(App::s_Logger.AddLog(std::format("Movement speed rate for level #{}: x{}", m_LevelID + 1, m_MovementSpeedRate));)
-			continue;
-		}
-
-		WaveContainer newWave{};
-
-		for (auto &wave : newWave.container)
-		{
-			if (!std::getline(ss, value, ','))
-				break;
-
-			wave = static_cast<uint16_t>(std::stoi(value));
-		}
-
-		//for (std::size_t i = 0u; i < newWave.container.size(); ++i)
-		//{
-		//	if (!std::getline(ss, value, ','))
-		//		break;
-		//
-		//	newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
-		//}
-
-		m_Waves.emplace_back(newWave);
-	}
-	*/
 
 	m_Waves.shrink_to_fit();
 
@@ -517,10 +433,10 @@ void Level::AddTower(float posX, float posY, TowerType type) const
 	{
 	case TowerType::classic:
 		tower = App::s_Manager.NewEntity<ClassicTower>(posX, posY, type);
-		return;
+		break;
 	case TowerType::dark:
 		tower = App::s_Manager.NewEntity<DarkTower>(posX, posY, type);
-		return;
+		break;
 	default:
 		App::s_Logger.AddLog(std::format("Level::AddTower: TowerType {} is invalid", static_cast<std::size_t>(type)));
 		break;
@@ -540,8 +456,6 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 		return;
 	}
 
-	// Probably will have to use the switch in the future anyway, so let's consider it as a temporary
-	//uint32_t shotCooldown = 325 - (50 * ((uint32_t)type + 1));
 	uint32_t shotCooldown = 0u;
 	Attacker *attacker = nullptr;
 
@@ -586,11 +500,18 @@ Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, uint16_t scale) c
 
 void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target)
 {
-	// Probably don't need this anymore since Attacker has now ValidTarget()
-	/*if (!target->IsActive())
-		return;*/
+	Projectile *projectile = nullptr;
+	
+	switch (type)
+	{
+	case ProjectileType::arrow:
+		projectile = App::s_Manager.NewEntity<ArrowProjectile>(projectileOwner, target);
+		break;
+	case ProjectileType::thunder:
+		projectile = App::s_Manager.NewEntity<ThunderProjectile>(projectileOwner, target);
+		break;
+	}
 
-	auto *projectile = App::s_Manager.NewEntity<Projectile>(type, projectileOwner, target);
 	projectile->AddToGroup(EntityGroup::projectile);
 	projectileOwner->m_OwnedProjectiles.emplace_back(projectile);
 }
@@ -713,12 +634,6 @@ void Level::LMBEvent()
 		tower->SetHighlight(true);
 	}
 }
-
-// Unused at the moment, and not sure if it's needed also in future
-//void Level::RMBEvent()
-//{
-//	
-//}
 
 void Level::InitWave()
 {
@@ -843,12 +758,12 @@ void Level::InitTimerForNextWave()
 
 void Level::UpdateTimer() const
 {
-	static float howMuchLeft = 0.0f;
-
-	howMuchLeft = (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f;
+	// (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f
+	// Calculates left time to start wave
+	// 
 	// I have no idea if std::format is better than std::to_string, but for sure it is here
 	// Since it ignores the zeros at the end by default
-	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", howMuchLeft));
+	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f));
 }
 
 void Level::Render()

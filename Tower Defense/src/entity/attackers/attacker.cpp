@@ -24,10 +24,6 @@ void Attacker::Destroy()
 		p->Destroy();
 	}
 
-	// It's unnecessary since tower already assigns nullptr by itself
-	// But might be safer as well
-	//m_OccupiedTower->AssignAttacker(nullptr);
-
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 

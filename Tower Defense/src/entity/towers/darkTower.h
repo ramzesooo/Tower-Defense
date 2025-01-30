@@ -11,6 +11,6 @@ public:
 
 	DarkTower &operator=(const DarkTower &) = delete;
 
-	virtual void Update() override;
-	virtual void Draw() override;
+	void Update() override;
+	void Draw() override;
 };

@@ -108,7 +108,7 @@ App::App()
 		m_Levels.emplace_back(i);
 	}
 
-	App::s_CurrentLevel = &m_Levels.at(0);
+	App::s_CurrentLevel = &m_Levels[0u];
 
 	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
 	{
@@ -193,11 +193,7 @@ void App::InitWindowAndRenderer()
 	}
 
 	// Renderer
-#ifdef DEBUG
 	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
-#else
-	App::s_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_PRESENTVSYNC);
-#endif
 	if (!App::s_Renderer)
 	{
 		App::s_Logger.AddLog(std::string_view(SDL_GetError()));
@@ -213,10 +209,6 @@ void App::AssignStaticAssets()
 {
 	for (std::size_t i = 0u; i < Tower::s_TowerTypeSize; i++)
 	{
-		/*
-		Tower::s_TowerTextures[i][0] = App::s_Textures.GetTextureOf(TowerType(i));
-		Tower::s_TowerTextures[i][1] = App::s_Textures.GetIconOf(TowerType(i));
-		*/
 		Tower::s_TowerTextures[i] = { App::s_Textures.GetTextureOf(TowerType(i)), App::s_Textures.GetIconOf(TowerType(i)) };
 	}
 
@@ -225,7 +217,6 @@ void App::AssignStaticAssets()
 	Tile::s_RangeTexture = App::s_Textures.GetTexture("highlightTowerRange");
 
 	BuildingState::transparentTexture = App::s_Textures.GetTexture("transparent");
-	//BuildingState::originalTexture = App::s_Textures.GetTexture("canBuild");
 	BuildingState::originalTexture = App::s_Textures.GetTexture("upgradeIcon");
 	BuildingState::cantBuildTexture = App::s_Textures.GetTexture("cantBuild");
 	BuildingState::sellingTexture = App::s_Textures.GetTexture("sellIcon");
@@ -436,12 +427,6 @@ void App::HandleKeyboardEvent()
 	case SDLK_F8: // Take coin
 		TakeCoins();
 		return;
-#ifdef DEBUG
-	case SDLK_F9: // Refresh attack (in case of EnemyDebugSpeed::stay)
-		for (const auto &e : g_Enemies)
-			dynamic_cast<Enemy*>(e)->ValidAttacker();
-		return;
-#endif
 	case SDLK_F10: // Destroy all enemies
 		for (const auto &e : g_Enemies)
 			e->Destroy();

@@ -1,9 +1,9 @@
 #pragma once
-#include "typesEnums.h"
-#include "anim.h"
+#include "../typesEnums.h"
+#include "../anim.h"
 
-#include "entity.h"
-#include "../Vector2D.h"
+#include "../entity.h"
+#include "../../Vector2D.h"
 
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -26,7 +26,7 @@ class Projectile : public Entity
 {
 public:
 	Projectile() = delete;
-	Projectile(ProjectileType type, Attacker* owner, Enemy* enemy);
+	Projectile(ProjectileType type, Attacker* owner, Enemy* target);
 	Projectile(const Projectile &) = delete;
 	~Projectile() = default;
 
@@ -34,13 +34,12 @@ public:
 
 	void Destroy() override;
 
-	void Update() override;
+	virtual void Update() override = 0;
 	void Draw() override;
 
-	void AdjustToView() override;
+	virtual void AdjustToView() override = 0;
 
 	void UpdateArrow();
-	//void UpdateDark();
 	void UpdateThunder();
 
 	void SetTarget(Enemy *target) { m_Target = target; }
@@ -49,7 +48,7 @@ public:
 	Attacker* GetOwner() const { return m_Owner; }
 
 	ProjectileType GetType() const { return m_Type; }
-private:
+protected:
 	//static constexpr float s_BaseVelocity = 210.0f;
 	//static constexpr SDL_Rect srcRect{ 0, 0, 16, 16 };
 	SDL_Rect srcRect{ 0, 0, 16, 16 };

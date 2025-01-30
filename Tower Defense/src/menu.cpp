@@ -95,7 +95,7 @@ void MainMenu::Init()
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 
 		btn->m_Type = ButtonType::check;
-		btn->m_IsChecked = SDL_GetHintBoolean(SDL_HINT_RENDER_VSYNC, SDL_FALSE);
+		btn->m_IsChecked = false;
 	}
 	// Options
 

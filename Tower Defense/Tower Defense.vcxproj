@@ -283,7 +283,9 @@
     <ClCompile Include="src\entity\enemy.cpp" />
     <ClCompile Include="src\entity\entity.cpp" />
     <ClCompile Include="src\entity\label.cpp" />
-    <ClCompile Include="src\entity\projectile.cpp" />
+    <ClCompile Include="src\entity\projectiles\arrowProjectile.cpp" />
+    <ClCompile Include="src\entity\projectiles\projectile.cpp" />
+    <ClCompile Include="src\entity\projectiles\thunderProjectile.cpp" />
     <ClCompile Include="src\entity\towers\classicTower.cpp" />
     <ClCompile Include="src\entity\towers\darkTower.cpp" />
     <ClCompile Include="src\level.cpp" />
@@ -301,6 +303,9 @@
     <ClInclude Include="src\entity\attackers\attackers_inc.h" />
     <ClInclude Include="src\entity\attackers\classicAttacker.h" />
     <ClInclude Include="src\entity\attackers\darkAttacker.h" />
+    <ClInclude Include="src\entity\projectiles\arrowProjectile.h" />
+    <ClInclude Include="src\entity\projectiles\projectiles_inc.h" />
+    <ClInclude Include="src\entity\projectiles\thunderProjectile.h" />
     <ClInclude Include="src\entity\towers\classicTower.h" />
     <ClInclude Include="src\entity\towers\darkTower.h" />
     <ClInclude Include="src\entity\towers\towers_inc.h" />
@@ -308,7 +313,7 @@
     <ClInclude Include="src\entity\anim.h" />
     <ClInclude Include="src\entity\base.h" />
     <ClInclude Include="src\entity\health.h" />
-    <ClInclude Include="src\entity\projectile.h" />
+    <ClInclude Include="src\entity\projectiles\projectile.h" />
     <ClInclude Include="src\entity\attackers\attacker.h" />
     <ClInclude Include="src\entity\enemy.h" />
     <ClInclude Include="src\entity\entity.h" />
