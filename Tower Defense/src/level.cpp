@@ -256,9 +256,23 @@ Level::Level(uint16_t levelID)
 
 void Level::Init()
 {
+	std::string mapFilePath;
 	for (uint16_t i = 0u; i < Level::s_LayersAmount; i++)
 	{
-		std::ifstream mapFile(std::format("levels/{}/map_layer{}.map", GetID() + 1u, i));
+		mapFilePath = std::format("levels/{}/map_layer{}.map", GetID() + 1u, i);
+		std::ifstream mapFile(mapFilePath);
+
+		if (i >= m_Layers.size())
+		{
+			App::s_Logger.AddLog(std::format("Failed to load level {}: Layer {} doesn't exist", m_LevelID + 1, i));
+			break;
+		}
+
+		if (mapFile.fail())
+		{
+			App::s_Logger.AddLog(std::format("Failed to load level {}: File \"{}\" doesn't exist", m_LevelID + 1, mapFilePath));
+			continue;
+		}
 
 		SetupLayer(mapFile, i);
 	}
@@ -272,19 +286,7 @@ void Level::Init()
 
 void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 {
-	if (layerID >= m_Layers.size())
-	{
-		App::s_Logger.AddLog(std::format("Failed to load level {}: Layer {} doesn't exist", m_LevelID + 1, layerID));
-		return;
-	}
-
-	if (mapFile.fail())
-	{
-		App::s_Logger.AddLog(std::format("Failed to load level {}: Couldn't find the file", m_LevelID + 1));
-		return;
-	}
-
-	App::s_Logger.AddLog(std::format("Loading level {} (Layer: {})", m_LevelID + 1, layerID));
+	App::s_Logger.AddLog(std::format("Loading layer #{} (Level: #{})", layerID, m_LevelID + 1));
 
 	// This code can be improved
 	std::string line;
@@ -324,18 +326,20 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 		break;
 	}*/
 
+	uint16_t mapSize = m_MapData[0] * m_MapData[1];
+
 	Layer *newLayer = &m_Layers.at(layerID);
-	newLayer->m_Tiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
-	newLayer->m_DrawableTiles.reserve(std::size_t(m_MapData.at(0) * m_MapData.at(1)));
+	newLayer->m_Tiles.reserve(static_cast<size_t>(mapSize));
+	newLayer->m_DrawableTiles.reserve(static_cast<size_t>(mapSize));
 
 	Tile *tile = nullptr;
 	int32_t srcX, srcY;
 	int32_t x, y;
 
-	for (uint16_t i = 0u; i < m_MapData.at(0) * m_MapData.at(1); i++)
+	for (uint16_t i = 0u; i < mapSize; i++)
 	{
-		x = i % m_MapData.at(0);
-		y = i / m_MapData.at(1);
+		x = i % m_MapData[0];
+		y = i / m_MapData[1];
 		tileCode = mapData.at(y).at(x);
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
@@ -366,11 +370,12 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 			// Because it hasn't been designed to expect any tile to be failed
 			// So then maybe if (tile) when needed, but probably something's just wrong if it can't be created
 		}
+		else if (tile->IsDrawable())
+		{
+			newLayer->m_DrawableTiles.emplace_back(tile);
+		}
 
 		newLayer->m_Tiles.emplace_back(tile);
-
-		if (tile->IsDrawable())
-			newLayer->m_DrawableTiles.emplace_back(tile);
 	}
 
 	newLayer->m_DrawableTiles.shrink_to_fit();
@@ -432,10 +437,10 @@ void Level::AddTower(float posX, float posY, TowerType type) const
 	switch (type)
 	{
 	case TowerType::classic:
-		tower = App::s_Manager.NewEntity<ClassicTower>(posX, posY, type);
+		tower = App::s_Manager.NewEntity<ClassicTower>(posX, posY);
 		break;
 	case TowerType::dark:
-		tower = App::s_Manager.NewEntity<DarkTower>(posX, posY, type);
+		tower = App::s_Manager.NewEntity<DarkTower>(posX, posY);
 		break;
 	default:
 		App::s_Logger.AddLog(std::format("Level::AddTower: TowerType {} is invalid", static_cast<std::size_t>(type)));
@@ -445,6 +450,7 @@ void Level::AddTower(float posX, float posY, TowerType type) const
 	if (!tower)
 	{
 		App::s_Logger.AddLog(std::format("Level::AddTower: Failed adding a tower (type #{}) ({}, {})", static_cast<std::size_t>(type), posX, posY));
+		return;
 	}
 }
 
@@ -452,7 +458,7 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 {
 	if (!assignedTower || assignedTower->GetAttacker() != nullptr)
 	{
-		App::s_Logger.AddLog(std::string_view("Tried to add attacker to non-existing tower or an attacker for the specific tower already exists."));
+		App::s_Logger.AddLog(std::string_view("Level::AddAttacker: Tried to add attacker to non-existing tower or an attacker for the specific tower already exists."));
 		return;
 	}
 
@@ -475,7 +481,7 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 		break;
 	case AttackerType::darkTower:
 		shotCooldown = assignedTower->GetAnimSpeed("Attack") * 11;
-		attacker = App::s_Manager.NewEntity<DarkAttacker>(assignedTower, type, shotCooldown, scale);
+		attacker = App::s_Manager.NewEntity<DarkAttacker>(assignedTower, shotCooldown, scale);
 		break;
 	default:
 		App::s_Logger.AddLog(std::format("Level::AddAttacker: AttackerType {} is invalid", static_cast<std::size_t>(type)));
@@ -488,7 +494,7 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 
 Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, uint16_t scale) const
 {
-	auto enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, scale);
+	auto *enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, scale);
 	enemy->AddToGroup(EntityGroup::enemy);
 
 	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
@@ -510,6 +516,9 @@ void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy 
 	case ProjectileType::thunder:
 		projectile = App::s_Manager.NewEntity<ThunderProjectile>(projectileOwner, target);
 		break;
+	default:
+		App::s_Logger.AddLog(std::format("Level::AddProjectile: ProjectileType {} is invalid", static_cast<std::size_t>(type)));
+		return;
 	}
 
 	projectile->AddToGroup(EntityGroup::projectile);
@@ -567,30 +576,29 @@ void Level::LMBEvent()
 		}
 	}
 
-	if (App::IsBuildingState() && !App::s_Building.canBuild)
-		return;
-
-	if (App::s_UIState == UIState::building)
+	switch (App::s_UIState)
 	{
+	case UIState::building:
+		if (!App::s_Building.canBuild)
+			return;
+
 		AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, UIElement::s_ChosenTower);
 
 		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
 		App::s_Building.canBuild = false;
-
 		return;
-	} // == s_UIState.building
+	case UIState::upgrading:
+		if (!App::s_Building.canBuild)
+			return;
 
-	if (App::s_UIState == UIState::upgrading)
-	{
 		App::Instance().TakeCoins(App::s_Building.towerToUpgradeOrSell->GetUpgradePrice());
 		App::s_Building.towerToUpgradeOrSell->Upgrade();
-
 		return;
-	}
+	case UIState::selling:
+		if (!App::s_Building.canBuild)
+			return;
 
-	if (App::s_UIState == UIState::selling)
-	{
 		App::Instance().AddCoins(App::s_Building.towerToUpgradeOrSell->GetSellPrice());
 		App::s_Building.towerToUpgradeOrSell->Destroy();
 
@@ -599,8 +607,9 @@ void Level::LMBEvent()
 		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
 		App::s_Building.towerToUpgradeOrSell = nullptr;
 		App::s_Building.canBuild = false;
-
 		return;
+	default: // go further if not in building state
+		break;
 	}
 
 	auto posX = std::floorf((App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize));

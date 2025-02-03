@@ -4,25 +4,32 @@
 
 #include "SDL_rect.h"
 
-ClassicTower::ClassicTower(float posX, float posY, TowerType type) : Tower(posX, posY, type)
+ClassicTower::ClassicTower(float posX, float posY) : Tower(posX, posY, TowerType::classic, { 144, 64 })
 {
 	static constexpr AttackerType attackerType = AttackerType::archer;
 
-	m_TowerWidth = 144;
-	m_TowerHeight = 64;
+	//m_ImageSize = { 144, 64 };
 	//srcRect.x = (tier - 1) * (imageWidth / 3);
-	srcRect.x = srcRect.y = 0;
-	srcRect.w = m_TowerWidth / 3;
-	srcRect.h = 64;
+	//srcRect.x = srcRect.y = 0;
+	//srcRect.w = m_ImageSize[0] / 3;
+	//srcRect.h = 64;
+	//srcRect.h = m_ImageSize[1];
 	m_MaxTier = 3;
 
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }
 
+void ClassicTower::Draw()
+{
+	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+
+	m_Attacker->Draw();
+}
+
 void ClassicTower::Upgrade()
 {
 	m_Tier++;
-	srcRect.x = (m_Tier - 1) * (m_TowerWidth / 3);
+	srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / 3);
 
 	if (m_Attacker)
 	{
@@ -43,4 +50,12 @@ void ClassicTower::Upgrade()
 		App::s_Building.canBuild = false;
 		return;
 	}
+}
+
+void ClassicTower::AdjustToView()
+{
+	destRect.x = static_cast<int32_t>(m_Pos.x - App::s_Camera.x);
+	destRect.y = static_cast<int32_t>(m_Pos.y - App::s_Camera.y);
+
+	m_Attacker->AdjustToView();
 }

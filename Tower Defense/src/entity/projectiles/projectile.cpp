@@ -2,7 +2,6 @@
 #include "../attackers/attacker.h"
 #include "../enemy.h"
 #include "../../textureManager.h"
-#include "../../level.h"
 #include "../../app.h"
 
 Projectile::Projectile(ProjectileType type, Attacker *owner, Enemy *target)

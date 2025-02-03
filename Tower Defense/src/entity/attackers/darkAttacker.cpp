@@ -7,8 +7,8 @@
 extern uint32_t g_PausedTicks;
 extern std::vector<Entity*> &g_Enemies;
 
-DarkAttacker::DarkAttacker(Tower *occupiedTower, AttackerType type, uint32_t shotCooldown, uint16_t scale)
-	: Attacker(occupiedTower, type, shotCooldown, scale)
+DarkAttacker::DarkAttacker(Tower *occupiedTower, uint32_t shotCooldown, uint16_t scale)
+	: Attacker(occupiedTower, AttackerType::darkTower, shotCooldown, scale)
 {
 	m_Invisible = true;
 	m_Pos.x -= static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize) / 4.0f;

@@ -17,7 +17,7 @@ class Tower;
 
 struct WaveContainer
 {
-	std::array<uint16_t, (std::size_t)EnemyType::size> container{};
+	std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> container{};
 };
 
 //Layer references to just map's layer of tiles

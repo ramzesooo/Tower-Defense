@@ -11,12 +11,12 @@ extern uint32_t g_PausedTicks;
 
 std::array<std::array<SDL_Texture*, 2u>, Tower::s_TowerTypeSize> Tower::s_TowerTextures{};
 
-Tower::Tower(float posX, float posY, TowerType type)
+Tower::Tower(float posX, float posY, TowerType type, const std::array<int32_t, 2> &imageSize)
 	: m_Pos(posX * App::s_CurrentLevel->m_ScaledTileSize, posY * App::s_CurrentLevel->m_ScaledTileSize),
-	m_Type(type), m_Texture(s_TowerTextures[static_cast<std::size_t>(type)][0])
+	m_Type(type), m_Texture(s_TowerTextures[static_cast<std::size_t>(type)][0]), m_ImageSize(imageSize),
+	srcRect{ 0, 0, imageSize[0], imageSize[1] }
 {
 	static Mix_Chunk *buildSound = App::s_Textures.GetSound("finishBuild");
-	static constexpr uint16_t towerOffset = 1;
 
 	Tile *tile = nullptr;
 	for (auto i = 0u; i < 4u; i++)
@@ -31,6 +31,9 @@ Tower::Tower(float posX, float posY, TowerType type)
 	// Squared triangle * 4 for all sides
 	m_TilesInRange.reserve(static_cast<std::size_t>((App::s_TowerRange + 1) * (App::s_TowerRange + 2) / 2 * 4));
 
+	constexpr uint16_t towerOffset = 1u;
+	std::array<uint32_t, 2> tilePos{}; // [0] = x, [1] = y
+
 	for (auto y = 0; y <= static_cast<int16_t>(App::s_TowerRange); y++)
 	{
 		for (auto x = y; x <= static_cast<int16_t>(App::s_TowerRange); x++)
@@ -39,14 +42,14 @@ Tower::Tower(float posX, float posY, TowerType type)
 			for (auto i = 1; i >= -1; i = i - 2)
 			{
 				// Left side
-				uint32_t tileX = static_cast<uint32_t>(posX - x + y);
+				tilePos[0] = static_cast<uint32_t>(posX - x + y);
 
 				// std::min(i, 0) lets to make the mirror reflect appropriate for Y position
-				// Since tower takes 4 tiles and basically loop considers only case of 0, 0,
+				// Since tower takes 4 tiles and basically loop considers only case of (0, 0),
 				// it's needed to be adjusted and look for position Y - 1
-				uint32_t tileY = static_cast<uint32_t>(posY - std::min(i, 0) - (y * i)); // posY - 1 - y or posY - 0 + y
+				tilePos[1] = static_cast<uint32_t>(posY - std::min(i, 0) - (y * i)); // posY - 1 - y or posY - 0 + y
 
-				tile = App::s_CurrentLevel->GetTileFrom(tileX, tileY);
+				tile = App::s_CurrentLevel->GetTileFrom(tilePos[0], tilePos[1]);
 
 				if (tile)
 				{
@@ -55,9 +58,9 @@ Tower::Tower(float posX, float posY, TowerType type)
 
 				// Right side
 				// towerOffset should be changed only in case when the tower takes more than 4 tiles
-				tileX = static_cast<uint32_t>(posX + towerOffset + x - y);
+				tilePos[0] = static_cast<uint32_t>(posX + towerOffset + x - y);
 
-				tile = App::s_CurrentLevel->GetTileFrom(tileX, tileY);
+				tile = App::s_CurrentLevel->GetTileFrom(tilePos[0], tilePos[1]);
 
 				if (tile)
 				{
@@ -149,7 +152,7 @@ void Tower::PlayAnim(std::string_view animID)
 	}
 
 	m_AnimData.currentAnim = it->second;
-	srcRect.y = m_AnimData.currentAnim.index * m_TowerHeight;
+	srcRect.y = m_AnimData.currentAnim.index * m_ImageSize[1];
 }
 
 void Tower::UpdateAnimSpeed(std::string_view animID, int32_t newSpeed)

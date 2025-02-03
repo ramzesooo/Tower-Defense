@@ -11,6 +11,7 @@
 #include "SDL_rect.h"
 
 #include <unordered_map>
+#include <array>
 
 struct TowerAnimation
 {
@@ -28,7 +29,7 @@ public:
 	static std::array<std::array<SDL_Texture*, 2u>, s_TowerTypeSize> s_TowerTextures;
 public:
 	Tower() = delete;
-	Tower(float posX, float posY, TowerType type);
+	Tower(float posX, float posY, TowerType type, const std::array<int32_t, 2>& imageSize);
 	Tower(const Tower &) = delete;
 	~Tower() = default;
 
@@ -46,7 +47,7 @@ public:
 		}
 	}
 
-	virtual void AdjustToView() override;
+	virtual void AdjustToView() override = 0;
 
 	Vector2D GetPos() const override { return m_Pos; }
 	const SDL_Rect &GetRect() const { return destRect; }
@@ -79,8 +80,8 @@ public:
 	uint16_t GetSellPrice() const { return m_SellPrice; }
 	uint16_t GetUpgradePrice() const { return m_UpgradePrice; }
 protected:
-	int32_t m_TowerWidth = 144;
-	int32_t m_TowerHeight = 64;
+	// tower's rectangle in image
+	const std::array<int32_t, 2> m_ImageSize{ 144, 64 }; // [0] = width, [1] = height
 	SDL_Texture *m_Texture = nullptr;
 	TowerType m_Type = TowerType::classic;
 	Vector2D m_Pos{};
