@@ -83,7 +83,7 @@ Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
 	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 
 	m_RectHP.barRect = m_RectHP.squareRect;
-	m_RectHP.barRect.w = std::fabs(m_RectHP.squareRect.w / 100.0f * (-m_HPPercent));
+	m_RectHP.barRect.w = std::fabsf(m_RectHP.squareRect.w / 100.0f * (-m_HPPercent));
 
 	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
 	m_RectHP.labelHP.UpdatePos(HPPos);
@@ -309,9 +309,9 @@ void Enemy::UpdateMovement()
 
 	// Check if distance between current position and next step's (tile's) position is less than enemy's movement speed
 	// Basically just predict if in next frame the position will be equal to destination (next tile)
-	if (std::fabs(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabsf(m_Pos.x - m_Destination.x) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.x = 0.0f;
-	if (std::fabs(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
+	if (std::fabsf(m_Pos.y - m_Destination.y) < m_MovementSpeed * App::s_ElapsedTime)
 		m_Velocity.y = 0.0f;
 
 	if (m_Velocity.x > 0.0f)
@@ -366,7 +366,7 @@ void Enemy::UpdateHealthBar()
 
 	m_RectHP.barRect.x = m_RectHP.squareRect.x;
 	m_RectHP.barRect.y = m_RectHP.squareRect.y;
-	m_RectHP.barRect.w = std::fabs(m_RectHP.onePercent * (-m_HPPercent));
+	m_RectHP.barRect.w = std::fabsf(m_RectHP.onePercent * (-m_HPPercent));
 
 	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
 	m_RectHP.labelHP.UpdatePos(HPPos);

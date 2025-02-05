@@ -28,7 +28,7 @@ uint32_t UIElement::s_Timer = 0u;
 
 void UIElement::InitUI()
 {
-	static TTF_Font *font = App::s_Textures.GetFont("default");
+	TTF_Font *font = App::s_Textures.GetFont("default");
 	constexpr int32_t startX = 0;
 	constexpr int32_t startY = 0;
 	//static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};

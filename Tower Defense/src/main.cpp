@@ -13,6 +13,9 @@
 // SDL2_ttf 2.22.0
 
 static constexpr uint32_t logsCooldown = 1000;
+#ifdef DEBUG
+static constexpr char lastFrameTimeString[] = "Last frame time: ";
+#endif
 
 SDL_DisplayMode displayInfo;
 
@@ -82,12 +85,11 @@ int main(int argc, char** arg)
 			{
 				SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::format("Tower Defense (FPS: {})", frames).c_str());
 				logsTime = SDL_GetTicks() + logsCooldown;
-				frames = 0;
+				frames = 0u;
 				App::s_Logger.PrintQueuedLogs();
 				App::s_Logger.ClearLogs();
 
-				static constexpr char lastFrameTime[] = "Last frame time: ";
-				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTime, App::s_ElapsedTime * 1000.0f));
+				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTimeString, App::s_ElapsedTime * 1000.0f));
 			}
 		);
 

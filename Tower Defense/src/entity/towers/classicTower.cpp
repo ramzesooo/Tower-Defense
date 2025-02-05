@@ -4,17 +4,16 @@
 
 #include "SDL_rect.h"
 
-ClassicTower::ClassicTower(float posX, float posY) : Tower(posX, posY, TowerType::classic, { 144, 64 })
+ClassicTower::ClassicTower(float posX, float posY) : Tower(posX, posY, TowerType::classic, { 144, 64 }, 3)
 {
 	static constexpr AttackerType attackerType = AttackerType::archer;
 
 	//m_ImageSize = { 144, 64 };
-	//srcRect.x = (tier - 1) * (imageWidth / 3);
+	//srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / 3);
 	//srcRect.x = srcRect.y = 0;
-	//srcRect.w = m_ImageSize[0] / 3;
+	srcRect.w = m_ImageSize[0] / m_MaxTier;
 	//srcRect.h = 64;
 	//srcRect.h = m_ImageSize[1];
-	m_MaxTier = 3;
 
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }

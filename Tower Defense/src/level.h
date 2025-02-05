@@ -26,11 +26,12 @@ class Layer
 public:
 	static uint16_t s_MapWidth; // App::LoadLevel assign the correct map width situable for current level
 
-	std::vector<Tile*> m_Tiles;
+	//std::vector<Tile*> m_Tiles;
+	std::vector<Tile> m_Tiles;
 	std::vector<Tile*> m_DrawableTiles;
 public:
 	// returns a tile from specific coordinates
-	Tile *GetTileFrom(std::size_t posX, std::size_t posY) const { return m_Tiles.at(posY * Layer::s_MapWidth + posX); }
+	Tile *GetTileFrom(std::size_t posX, std::size_t posY) { return &m_Tiles.at(posY * Layer::s_MapWidth + posX); }
 };
 
 enum class WaveProgress
@@ -102,6 +103,8 @@ public:
 		}*/
 	}
 
+	void HighlightTower();
+
 	void InitWave();
 	void ManageWaves();
 
@@ -111,7 +114,7 @@ public:
 	void UpdateTimer() const;
 
 public:
-	void Render();
+	void Render() const;
 
 	uint16_t GetID() const { return m_LevelID; }
 
@@ -120,8 +123,8 @@ public:
 	Base *GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
-	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0u) const;
-	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0u) const { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
+	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0u);
+	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0u) { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();
@@ -130,7 +133,7 @@ public:
 	std::size_t GetCurrentWave() const { return m_CurrentWave; }
 
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
-	inline bool IsTileWalkable(const Vector2D &pos) const
+	inline bool IsTileWalkable(const Vector2D &pos)
 	{
 		const Tile *tile = GetTileFrom(pos.x, pos.y, 2u);
 		if (tile && tile->IsWalkable())

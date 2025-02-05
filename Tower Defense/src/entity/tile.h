@@ -9,11 +9,7 @@
 
 class Tower;
 
-// It's not needed anymore to inheritance from Entity
-// TODO: Adjust it to be totally independent from Entity class,
-// Manager has another method for tiles NewTile() instead of NewEntity() with another vector
-// It has been done to avoid iterating through a lot of tiles in Refresh() and Update() because it's stealing a lot of performance
-class Tile : public Entity
+class Tile
 {
 public:
 	static SDL_Texture *s_RangeTexture;
@@ -23,7 +19,7 @@ public:
 	Tile(int32_t srcX, int32_t srcY, int32_t posX, int32_t posY, SDL_Texture *texture, TileType type = TileType::regular);
 	Tile(const Tile &r) : srcRect(r.srcRect), destRect(r.destRect), m_Pos(r.m_Pos), m_Texture(r.m_Texture), m_Type(r.m_Type),
 		m_EntityOccupying(r.m_EntityOccupying), m_TowerOnTile(r.m_TowerOnTile), m_IsWalkable(r.m_IsWalkable), m_IsDrawable(r.m_IsDrawable) {}
-	~Tile() = default;
+	~Tile();
 
 	inline Tile &operator=(const Tile &r)
 	{
@@ -44,20 +40,16 @@ public:
 	}
 
 	void InitSpecialTile();
-
-	void Destroy() override;
-
-	void Update() override {};
-	void Draw() override;
+	void Draw();
 
 	void DrawHighlight() const;
 
-	void AdjustToView() override;
+	void AdjustToView();
 
 	void SetTexture(SDL_Texture* texture) { m_Texture = texture; }
 
 	// Position for Tile class is already scaled tile size with map scale
-	Vector2D GetPos() const override { return m_Pos; }
+	const Vector2D &GetPos() const { return m_Pos; }
 	void SetPos(const Vector2D &newPos) { m_Pos = newPos; }
 
 	int32_t GetWidth() const { return destRect.w; }

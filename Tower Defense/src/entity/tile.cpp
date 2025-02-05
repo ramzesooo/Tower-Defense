@@ -14,21 +14,12 @@ Tile::Tile(int32_t srcX, int32_t srcY, int32_t posX, int32_t posY, SDL_Texture *
 	m_Pos(static_cast<float>(posX), static_cast<float>(posY)), m_Texture(texture), m_Type(type)
 {}
 
-void Tile::InitSpecialTile() // Should be called every time before loading another level in case the level has different scaling
+Tile::~Tile()
 {
-	// default tile's size * scale * 2
-	// times 2 because towers take 4 tiles
-	destRect.w = destRect.h = Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2) * 2;
-}
-
-void Tile::Destroy()
-{
-	m_IsActive = false;
-
 	if (m_TowerOnTile)
 	{
-		auto &tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
-		Tile *tile = nullptr;
+		auto& tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
+		Tile* tile = nullptr;
 		for (uint16_t i = 0u; i < tilesFromTower.size(); ++i)
 		{
 			tile = m_TowerOnTile->GetOccupiedTile(i);
@@ -39,6 +30,13 @@ void Tile::Destroy()
 			}
 		}
 	}
+}
+
+void Tile::InitSpecialTile() // Should be called every time before loading another level in case the level has different scaling
+{
+	// default tile's size * scale * 2
+	// times 2 because towers take 4 tiles
+	destRect.w = destRect.h = Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2) * 2;
 }
 
 void Tile::Draw()

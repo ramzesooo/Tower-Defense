@@ -116,12 +116,17 @@ public:
 		return dynamic_cast<T*>(m_Entities.back().get());
 	}
 
-	template<class... Args>
+	/*template<class... Args>
 	inline Tile *NewTile(Args&&... args)
 	{
 		m_Tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
 		return m_Tiles.back().get();
-	}
+	}*/
+
+	/*inline void NewTile(Tile *tile)
+	{
+		m_Tiles.emplace_back(tile);
+	}*/
 	
 	template<class... Args>
 	inline Label *NewLabel(Args&&... args)
@@ -161,10 +166,10 @@ public:
 		m_EntitiesToDestroy = false;*/
 	}
 
-	inline void DestroyAllTiles()
+	/*inline void ClearTiles()
 	{
 		m_Tiles.clear();
-	}
+	}*/
 
 	inline void ReserveMemoryForWave(std::size_t size)
 	{
@@ -186,7 +191,7 @@ public:
 		towers.shrink_to_fit();
 	}
 private:
-	std::vector<std::unique_ptr<Tile>> m_Tiles;
+	//std::vector<std::unique_ptr<Tile>> m_Tiles;
 	std::vector<std::unique_ptr<Label>> m_Labels;
 	std::vector<std::unique_ptr<Entity>> m_Entities;
 	std::array<std::vector<Entity*>, (std::size_t)EntityGroup::size> m_GroupedEntities;

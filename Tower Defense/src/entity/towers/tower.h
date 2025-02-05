@@ -29,7 +29,7 @@ public:
 	static std::array<std::array<SDL_Texture*, 2u>, s_TowerTypeSize> s_TowerTextures;
 public:
 	Tower() = delete;
-	Tower(float posX, float posY, TowerType type, const std::array<int32_t, 2>& imageSize);
+	Tower(float posX, float posY, TowerType type, const std::array<int32_t, 2>& imageSize, uint16_t maxTier = 1);
 	Tower(const Tower &) = delete;
 	~Tower() = default;
 

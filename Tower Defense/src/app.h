@@ -108,7 +108,7 @@ private:
 	void AssignStaticAssets();
 public:
 	static App &Instance() { return *s_Instance; }
-	bool IsRunning() const { return s_IsRunning; }
+	const bool IsRunning() const { return s_IsRunning; }
 
 	void EventHandler();
 	void Update();

@@ -14,9 +14,11 @@
 #include <unordered_map>
 #include <queue>
 
+static uint32_t expenseOfX = 1;
+static uint32_t expenseOfY = 1;
+
 static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goal)
 {
-	const Level &currentLevel = *App::s_CurrentLevel;
 	std::vector<Vector2D> result;
 
 	// Visited positions onto the origins from which they have been visited
@@ -37,8 +39,8 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 		{
 			// TODO: it's pretty pointless to use Dijkstra if the distance/cost of traversal
 			// is always 1 everywhere, so maybe some tiles should be more expensive
-			uint32_t dx = totalDistance + 1;
-			uint32_t dy = totalDistance + 2;
+			uint32_t dx = totalDistance + expenseOfX;
+			uint32_t dy = totalDistance + expenseOfY;
 			// TODO: calculate base's distance from spawn and make dx and dy properly to what is more expensive
 			// Usually: totalDistance + 1
 			// If the difference between the base and spawn relies more on X then dx = totalDistance + 2
@@ -85,7 +87,7 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 		// A - B - C
 		for (const Node &neighbor : next.GetNeighbours())
 		{
-			if (!currentLevel.IsTileWalkable(neighbor.pos))
+			if (!App::s_CurrentLevel->IsTileWalkable(neighbor.pos))
 				continue;
 
 			// std::unordered_map::emplace will not insert a new element into the set if one already exists
@@ -326,7 +328,7 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 		break;
 	}*/
 
-	uint16_t mapSize = m_MapData[0] * m_MapData[1];
+	const uint16_t mapSize = m_MapData[0] * m_MapData[1];
 
 	Layer *newLayer = &m_Layers.at(layerID);
 	newLayer->m_Tiles.reserve(static_cast<size_t>(mapSize));
@@ -344,7 +346,10 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 		srcX = tileCode % 10;
 		srcY = tileCode / 10;
 
-		tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
+		newLayer->m_Tiles.emplace_back(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
+		tile = &newLayer->m_Tiles.back();
+		//App::s_Manager.NewTile(tile);
+		//tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
 
 		if (layerID == 2)
 		{
@@ -362,6 +367,7 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 			}
 		}
 
+		// I have no idea if it's still possible after keeping it in stack memory
 		if (!tile)
 		{
 			m_FailedLoading = true;
@@ -375,7 +381,7 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 			newLayer->m_DrawableTiles.emplace_back(tile);
 		}
 
-		newLayer->m_Tiles.emplace_back(tile);
+		//newLayer->m_Tiles.emplace_back(tile);
 	}
 
 	newLayer->m_DrawableTiles.shrink_to_fit();
@@ -404,18 +410,20 @@ void Level::Clear()
 
 	for (auto &layer : m_Layers)
 	{
-		layer.m_Tiles.clear();
 		layer.m_DrawableTiles.clear();
+		layer.m_Tiles.clear();
 	}
 
-	m_Spawners.clear();
+	//App::s_Manager.ClearTiles();
 
-	App::s_Manager.DestroyAllTiles();
+	m_Spawners.clear();
 
 	m_WaveCooldown = 0u;
 	m_CurrentWave = 0u;
 	m_WaveProgress = WaveProgress::OnCooldown;
 	m_SpecificEnemiesAmount = {};
+
+	App::s_Manager.Refresh();
 }
 
 void Level::Lost()
@@ -494,14 +502,7 @@ void Level::AddAttacker(Tower *assignedTower, AttackerType type, uint16_t scale)
 
 Enemy *Level::AddEnemy(float posX, float posY, EnemyType type, uint16_t scale) const
 {
-	auto *enemy = App::s_Manager.NewEntity<Enemy>(posX, posY, type, scale);
-	enemy->AddToGroup(EntityGroup::enemy);
-
-	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
-
-	enemy->SetPath(findPath({ posX, posY }, m_BasePos));
-
-	return enemy;
+	return App::s_Manager.NewEntity<Enemy>(posX, posY, type, scale);
 }
 
 void Level::AddProjectile(ProjectileType type, Attacker *projectileOwner, Enemy *target)
@@ -612,14 +613,22 @@ void Level::LMBEvent()
 		break;
 	}
 
+	HighlightTower();
+}
+
+void Level::HighlightTower()
+{
+	// Get current mouse's position
 	auto posX = std::floorf((App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize));
 	auto posY = std::floorf((App::s_Camera.y / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(m_ScaledTileSize));
 
-	Tile *tile = GetTileFrom(posX, posY);
+	// Return if couldn't get any tile pointed by mouse
+	Tile* tile = GetTileFrom(posX, posY);
 	if (!tile)
 		return;
 
-	Tower *tower = tile->GetTowerOccupying();
+	// Return if there isn't any tower on pointed tile
+	Tower* tower = tile->GetTowerOccupying();
 	if (!tower)
 		return;
 
@@ -629,19 +638,17 @@ void Level::LMBEvent()
 		{
 			m_HighlightedTower->SetHighlight(false);
 			m_HighlightedTower = nullptr;
+			return;
 		}
-		else if (m_HighlightedTower != tower)
-		{
-			m_HighlightedTower->SetHighlight(false);
-			m_HighlightedTower = tower;
-			tower->SetHighlight(true);
-		}
-	}
-	else
-	{
+
+		m_HighlightedTower->SetHighlight(false);
 		m_HighlightedTower = tower;
 		tower->SetHighlight(true);
+		return;
 	}
+
+	m_HighlightedTower = tower;
+	tower->SetHighlight(true);
 }
 
 void Level::InitWave()
@@ -655,9 +662,8 @@ void Level::InitWave()
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
 	const Tile *spawner = m_Spawners.at(spawnerDistr(g_Rng));
-	const Vector2D &spawnerPos = spawner->GetPos();
 
-	const Vector2D spawnPos(spawnerPos.x / static_cast<float>(m_ScaledTileSize), spawnerPos.y / static_cast<float>(m_ScaledTileSize));
+	const Vector2D spawnPos(spawner->GetPos().x / static_cast<float>(m_ScaledTileSize), spawner->GetPos().y / static_cast<float>(m_ScaledTileSize));
 
 	EnemyType type = EnemyType::elf;
 	// It might be as well casual variable defined in for loop, but maybe it's better to store it here
@@ -683,6 +689,27 @@ void Level::InitWave()
 		m_SpecificEnemiesAmount[enemyTypeIterator]--;
 		return;
 	}
+
+	enemy->AddToGroup(EntityGroup::enemy);
+
+	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
+
+	// Check whether X is more expensive for enemy's movement than Y
+	if (std::fabsf(m_BasePos.x - spawnPos.x) > std::fabsf(m_BasePos.y - spawnPos.y))
+	{
+		// Enemy should focus on moving on X-axis, so Y is more expensive
+		expenseOfY = 2;
+	}
+	else
+	{
+		// Enemy should focus on moving on Y-axis, so X is more expensive
+		expenseOfX = 2;
+	}
+
+	enemy->SetPath(findPath({ spawnPos.x, spawnPos.y }, m_BasePos));
+
+	expenseOfX = 1;
+	expenseOfY = 1;
 	
 	m_NextSpawn = SDL_GetTicks() + Level::s_SpawnCooldown - g_PausedTicks;
 	m_SpawnedEnemies++;
@@ -775,7 +802,7 @@ void Level::UpdateTimer() const
 	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f));
 }
 
-void Level::Render()
+void Level::Render() const
 {
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
@@ -809,7 +836,7 @@ void Level::Render()
 	}
 }
 
-Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
+Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer)
 {
 	if (layer >= m_Layers.size())
 	{
@@ -817,7 +844,7 @@ Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer) const
 		return nullptr;
 	}
 
-	if (posX >= m_MapData.at(0) || posY >= m_MapData.at(1))
+	if (posX >= m_MapData[0] || posY >= m_MapData[1])
 		return nullptr;
 
 	return m_Layers.at(layer).GetTileFrom(posX, posY);
