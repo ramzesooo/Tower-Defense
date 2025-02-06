@@ -1,5 +1,6 @@
 #include "darkAttacker.h"
 #include "../towers/tower.h"
+#include "../towers/darkTower.h"
 #include "../../app.h"
 
 #include "SDL_mixer.h"
@@ -50,6 +51,7 @@ void DarkAttacker::InitAttack(Enemy *target, bool updateShotCD)
 	m_Target = target;
 
 	m_OccupiedTower->PlayAnim("Attack");
+	dynamic_cast<DarkTower*>(m_OccupiedTower)->UpdateTicks(SDL_GetTicks() - g_PausedTicks);
 }
 
 void DarkAttacker::StopAttacking(bool toErase)

@@ -338,23 +338,21 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 	int32_t srcX, srcY;
 	int32_t x, y;
 
+	constexpr int32_t tilesetWidth = 10;
+
 	for (uint16_t i = 0u; i < mapSize; i++)
 	{
 		x = i % m_MapData[0];
 		y = i / m_MapData[1];
 		tileCode = mapData.at(y).at(x);
-		srcX = tileCode % 10;
-		srcY = tileCode / 10;
+		srcX = tileCode % tilesetWidth;
+		srcY = tileCode / tilesetWidth;
 
 		newLayer->m_Tiles.emplace_back(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
 		tile = &newLayer->m_Tiles.back();
-		//App::s_Manager.NewTile(tile);
-		//tile = App::s_Manager.NewTile(srcX * s_TileSize, srcY * s_TileSize, x * m_ScaledTileSize, y * m_ScaledTileSize, s_Texture, tileType);
 
 		if (layerID == 2)
 		{
-			tile->SetDrawable(false);
-
 			if (tileCode == pathID)
 			{
 				tile->SetWalkable();
@@ -363,25 +361,16 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 			{
 				m_Spawners.reserve(m_Spawners.size() + 1);
 				m_Spawners.emplace_back(tile);
-				tile->SetDrawable(true);
+				newLayer->SetTileDrawable(tile, true);
+				continue;
 			}
+
+			newLayer->SetTileDrawable(tile, false);
+
+			continue;
 		}
 
-		// I have no idea if it's still possible after keeping it in stack memory
-		if (!tile)
-		{
-			m_FailedLoading = true;
-			App::s_Logger.AddLog(std::format("Couldn't load a tile in layer {} ({}, {})", layerID, x * m_ScaledTileSize, y * m_ScaledTileSize));
-			// We are storing nullptr in the vector even if the tile couldn't be created
-			// Because it hasn't been designed to expect any tile to be failed
-			// So then maybe if (tile) when needed, but probably something's just wrong if it can't be created
-		}
-		else if (tile->IsDrawable())
-		{
-			newLayer->m_DrawableTiles.emplace_back(tile);
-		}
-
-		//newLayer->m_Tiles.emplace_back(tile);
+		newLayer->SetTileDrawable(tile, true);
 	}
 
 	newLayer->m_DrawableTiles.shrink_to_fit();
@@ -413,8 +402,6 @@ void Level::Clear()
 		layer.m_DrawableTiles.clear();
 		layer.m_Tiles.clear();
 	}
-
-	//App::s_Manager.ClearTiles();
 
 	m_Spawners.clear();
 
@@ -695,6 +682,8 @@ void Level::InitWave()
 	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
 
 	// Check whether X is more expensive for enemy's movement than Y
+	// Basically if there is more difference between enemy's X and base's X than in Y-axis,
+	// Then just assign appropriate values
 	if (std::fabsf(m_BasePos.x - spawnPos.x) > std::fabsf(m_BasePos.y - spawnPos.y))
 	{
 		// Enemy should focus on moving on X-axis, so Y is more expensive
@@ -800,6 +789,8 @@ void Level::UpdateTimer() const
 	// I have no idea if std::format is better than std::to_string, but for sure it is here
 	// Since it ignores the zeros at the end by default
 	App::s_UIElements.at(3).m_Label.UpdateText(std::format("{}", (m_WaveCooldown - (SDL_GetTicks() - g_PausedTicks)) / 1000.0f));
+
+	// This is also very expensive, so it would be cool making it another way than allocating new string every frame
 }
 
 void Level::Render() const

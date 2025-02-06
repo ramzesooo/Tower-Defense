@@ -15,4 +15,8 @@ public:
 	void Draw() override;
 
 	void AdjustToView() override;
+
+	void UpdateTicks(uint32_t ticks) { m_Ticks = ticks; }
+private:
+	uint32_t m_Ticks;
 };

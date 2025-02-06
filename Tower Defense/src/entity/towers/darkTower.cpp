@@ -6,7 +6,7 @@
 
 extern uint32_t g_PausedTicks;
 
-DarkTower::DarkTower(float posX, float posY) : Tower(posX, posY, TowerType::dark, { 160, 186 })
+DarkTower::DarkTower(float posX, float posY) : Tower(posX, posY, TowerType::dark, { 160, 186 }), m_Ticks(SDL_GetTicks() - g_PausedTicks)
 {
 	static constexpr AttackerType attackerType = AttackerType::darkTower;
 
@@ -21,7 +21,7 @@ DarkTower::DarkTower(float posX, float posY) : Tower(posX, posY, TowerType::dark
 
 void DarkTower::Update()
 {
-	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
+	srcRect.x = srcRect.w * static_cast<int32_t>(((SDL_GetTicks() - m_Ticks - g_PausedTicks) / m_AnimData.currentAnim.speed) % m_AnimData.currentAnim.frames);
 	m_Attacker->Update();
 }
 

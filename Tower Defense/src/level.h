@@ -26,12 +26,42 @@ class Layer
 public:
 	static uint16_t s_MapWidth; // App::LoadLevel assign the correct map width situable for current level
 
-	//std::vector<Tile*> m_Tiles;
 	std::vector<Tile> m_Tiles;
 	std::vector<Tile*> m_DrawableTiles;
 public:
 	// returns a tile from specific coordinates
 	Tile *GetTileFrom(std::size_t posX, std::size_t posY) { return &m_Tiles.at(posY * Layer::s_MapWidth + posX); }
+
+	void SetTileDrawable(Tile *tile, bool bDrawable)
+	{
+		// If it's supposed to make a tile drawable
+		if (bDrawable)
+		{
+			// If it's already in the vector it would be stupid to put it once more
+			if (std::find(m_DrawableTiles.begin(), m_DrawableTiles.end(), tile) != m_DrawableTiles.end())
+			{
+				return;
+			}
+
+			// emplace_back if it's yet not there
+			m_DrawableTiles.emplace_back(tile);
+
+			return;
+		}
+
+		// If it's supposed to make a tile non-drawable
+
+		auto it = std::find(m_DrawableTiles.begin(), m_DrawableTiles.end(), tile);
+
+		// If couldn't find the tile, then just return, since it means it's non-drawable
+		if (it == m_DrawableTiles.end())
+		{
+			return;
+		}
+
+		// Erase if it was drawable
+		m_DrawableTiles.erase(it);
+	}
 };
 
 enum class WaveProgress
@@ -118,8 +148,6 @@ public:
 
 	uint16_t GetID() const { return m_LevelID; }
 
-	bool HasLoadingFailed() const { return m_FailedLoading; }
-
 	Base *GetBase() { return &m_Base; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
@@ -142,7 +170,6 @@ public:
 		return false;
 	}
 private:
-	bool m_FailedLoading = false;
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
 	uint16_t m_LevelID = 0u;

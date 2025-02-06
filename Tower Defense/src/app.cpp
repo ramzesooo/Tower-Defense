@@ -110,7 +110,7 @@ App::App()
 
 	App::s_CurrentLevel = &m_Levels[0u];
 
-	if (!App::s_CurrentLevel || App::s_CurrentLevel->HasLoadingFailed())
+	if (!App::s_CurrentLevel)
 	{
 		App::s_Logger.AddLog(std::string_view("First level couldn't be loaded properly."));
 		m_Initialized = false;

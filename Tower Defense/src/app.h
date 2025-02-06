@@ -168,7 +168,7 @@ public:
 	}
 
 	// for checking is specific state going to pause the game
-	static constexpr inline bool IsGamePaused(UIState state)
+	[[nodiscard]] static constexpr inline bool IsGamePaused(UIState state)
 	{
 		switch (state)
 		{
@@ -184,10 +184,10 @@ public:
 	}
 
 	// for checking is currently the game paused
-	static constexpr inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
+	[[nodiscard]] static constexpr inline bool IsGamePaused() { return IsGamePaused(s_UIState) || s_IsWindowMinimized; }
 
 	void SetUIState(UIState state);
-	static constexpr inline bool IsBuildingState()
+	[[nodiscard]] static constexpr inline bool IsBuildingState()
 	{
 		switch (s_UIState)
 		{

@@ -18,8 +18,8 @@ Tile::~Tile()
 {
 	if (m_TowerOnTile)
 	{
-		auto& tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
-		Tile* tile = nullptr;
+		auto &tilesFromTower = m_TowerOnTile->GetOccupiedTiles();
+		Tile *tile = nullptr;
 		for (uint16_t i = 0u; i < tilesFromTower.size(); ++i)
 		{
 			tile = m_TowerOnTile->GetOccupiedTile(i);
@@ -39,7 +39,7 @@ void Tile::InitSpecialTile() // Should be called every time before loading anoth
 	destRect.w = destRect.h = Level::s_TileSize * App::s_CurrentLevel->m_MapData.at(2) * 2;
 }
 
-void Tile::Draw()
+void Tile::Draw() const
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }
