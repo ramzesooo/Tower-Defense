@@ -55,6 +55,8 @@ struct BuildingState
 class App
 {
 public:
+	static constexpr uint16_t s_TowerRange = 5u;
+
 	static bool s_IsRunning;
 
 	static int32_t WINDOW_WIDTH;
@@ -71,7 +73,7 @@ public:
 	static SDL_FRect s_Camera;
 
 	static Level *s_CurrentLevel;
-	static constexpr uint16_t s_TowerRange = 5u;
+	
 	static float s_ElapsedTime;
 	static UIState s_UIState;
 	static int32_t s_MouseX;
@@ -103,9 +105,11 @@ public:
 public:
 	App();
 	~App();
+
 private:
 	void InitWindowAndRenderer();
 	void AssignStaticAssets();
+
 public:
 	static App &Instance() { return *s_Instance; }
 	const bool IsRunning() const { return s_IsRunning; }
@@ -126,8 +130,13 @@ public:
 		// Do this only if DEBUG is defined, because if it's undefined, it's already done in App::ManageBuildingState()
 		// Basically it's about the label s_PointedPosition for debugging
 #ifdef DEBUG
-		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
-		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+		s_Building.coordinates = {
+			(App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize),
+			(App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)
+		};
+		s_Building.coordinates.Floorf();
+		//s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
+		//s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 
 		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			s_MouseX,
@@ -216,9 +225,9 @@ public:
 	}
 
 	void SwitchBuildingState(UIState newState);
-	void ManageBuildingState();
+	void ManageBuildingState() const;
 
-	static uint16_t GetDamageOf(ProjectileType type);
+	[[nodiscard]] static uint16_t GetDamageOf(ProjectileType type);
 
 	inline void SwitchCameraMode() {
 		if (s_IsCameraLocked)
@@ -342,6 +351,7 @@ public:
 	{
 		Base *base = s_CurrentLevel->GetBase();
 
+		// I guess it's better without that
 		if (lifes >= base->m_MaxLifes)
 			base->m_Lifes = base->m_MaxLifes;
 		else
@@ -398,6 +408,12 @@ public:
 		App::s_UICoinsNotification.ResetAlpha();
 	}
 
+	static inline void SetCantBuild()
+	{
+		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+		App::s_Building.canBuild = false;
+		App::s_Building.towerToUpgradeOrSell = nullptr;
+	}
 private:
 	static App *s_Instance;
 

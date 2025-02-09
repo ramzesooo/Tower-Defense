@@ -467,8 +467,8 @@ void App::UpdateCamera()
 		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			s_MouseX,
 			s_MouseY,
-			static_cast<int32_t>(s_Camera.x + s_MouseX),
-			static_cast<int32_t>(s_Camera.y + s_MouseY),
+			static_cast<int32_t>(s_Camera.x) + s_MouseX,
+			static_cast<int32_t>(s_Camera.y) + s_MouseY,
 			s_Building.coordinates.x,
 			s_Building.coordinates.y)
 		);
@@ -484,7 +484,7 @@ void App::OnResolutionChange()
 	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
 	IF_DEBUG(
-		s_PointedPosition->UpdatePos({ 0.0f, static_cast<float>(App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h) });
+		s_PointedPosition->UpdatePos(0, App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h);
 	);
 
 	if (s_UIState == UIState::mainMenu)
@@ -493,7 +493,7 @@ void App::OnResolutionChange()
 		return;
 	}
 
-	m_PauseLabel.UpdatePos({ m_PauseLabel.GetPos().x + (static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w), 10.0f });
+	m_PauseLabel.UpdatePos(m_PauseLabel.GetRect().x + App::WINDOW_WIDTH - static_cast<int32_t>(s_Camera.w), 10);
 
 	if (static_cast<float>(App::WINDOW_WIDTH) > s_Camera.w)
 		s_Camera.x -= static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w;
@@ -508,8 +508,10 @@ void App::OnResolutionChange()
 	s_Camera.w = static_cast<float>(App::WINDOW_WIDTH);
 	s_Camera.h = static_cast<float>(App::WINDOW_HEIGHT);
 
-	s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
-	s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+	s_CameraMovement.border = {
+		static_cast<float>(App::s_CurrentLevel->m_MapData[3]) - s_Camera.w,
+		static_cast<float>(App::s_CurrentLevel->m_MapData[4]) - s_Camera.h
+	};
 	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
 	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
 
@@ -558,9 +560,9 @@ void App::SetUIState(UIState state)
 
 void App::LoadLevel()
 {
-	Layer::s_MapWidth = App::s_CurrentLevel->m_MapData.at(0);
-	App::s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - App::s_Camera.w;
-	App::s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - App::s_Camera.h;
+	Layer::s_MapWidth = App::s_CurrentLevel->m_MapData[0];
+	App::s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData[3]) - App::s_Camera.w;
+	App::s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData[4]) - App::s_Camera.h;
 
 	App::s_Building.buildingPlace.InitSpecialTile();
 
@@ -571,7 +573,7 @@ void App::LoadLevel()
 	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
 	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
 
-	App::Instance().SetCoins(5u);
+	App::Instance().SetCoins(15u);
 
 	App::s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
 }
@@ -597,18 +599,21 @@ void App::SwitchBuildingState(UIState newState)
 	SetUIState(newState);
 }
 
-void App::ManageBuildingState()
+void App::ManageBuildingState() const
 {
 	// Do this only if DEBUG is undefined, because if it's defined, it's already done in App::OnCursorMove()
 	IF_NDEBUG(
-		s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
-		s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
-		
+		s_Building.coordinates = {
+			(App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize),
+			(App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)
+		};
+		s_Building.coordinates.Floorf();
+
 		// Disallows to set a tower in the right edge (where 2 from 4 tiles are outside of the map border)
 		// It's helpful with avoiding an issue about tiles in towers' range
-		if (s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)))
+		if (s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData[0]))
 			s_Building.coordinates.x--;
-		if (s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)))
+		if (s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData[1]))
 			s_Building.coordinates.y--;
 	);
 
@@ -620,70 +625,72 @@ void App::ManageBuildingState()
 	s_Building.canBuild = true;
 	s_Building.towerToUpgradeOrSell = nullptr;
 	s_Building.buildingPlace.AdjustToView();
-
-	if (s_UIState == UIState::building)
-	{
-		if (App::s_CurrentLevel->IsTileWalkable(s_Building.coordinates))
-		{
-			s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
-			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-			s_Building.canBuild = false;
-			s_Building.buildingPlace.AdjustToView();
-			return;
-		}
-
-		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-
-		// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
-		Tile *pointedTile = s_Building.pointedTile;
-
-		for (auto i = 0u; i < 4u; i++)
-		{
-			pointedTile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(s_Building.coordinates.x) + i % 2, static_cast<uint32_t>(s_Building.coordinates.y) + i / 2, 0);
-			if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
-				continue;
-
-			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-			s_Building.canBuild = false;
-			return;
-		}
-
-		return;
-	}
 	
-	if (s_UIState == UIState::upgrading)
+	switch (s_UIState)
 	{
-		Tower *tower = s_Building.pointedTile->GetTowerOccupying();
-		if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u) || !tower->CanUpgrade())
+	case UIState::building:
 		{
-			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-			s_Building.canBuild = false;
-			s_Building.towerToUpgradeOrSell = nullptr;
-			return;
+			if (m_Coins < Level::GetBuildPrice(UIElement::s_ChosenTower))
+			{
+				App::SetCantBuild();
+				return;
+			}
+
+			if (App::s_CurrentLevel->IsTileWalkable(s_Building.coordinates))
+			{
+				s_Building.buildingPlace.SetPos(s_Building.pointedTile->GetPos());
+				s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+				s_Building.canBuild = false;
+				s_Building.buildingPlace.AdjustToView();
+				return;
+			}
+
+			s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+
+			// pointedTile refers to one of four tiles pointed by building tile (basically by a mouse and 3 more tiles in the building tile's range)
+			Tile* pointedTile = s_Building.pointedTile;
+
+			for (auto i = 0u; i < 4u; i++)
+			{
+				pointedTile = App::s_CurrentLevel->GetTileFrom(static_cast<uint32_t>(s_Building.coordinates.x) + i % 2, static_cast<uint32_t>(s_Building.coordinates.y) + i / 2, 0);
+				if (!pointedTile || !pointedTile->GetTowerOccupying() && s_CurrentLevel->GetBase()->m_Tile != pointedTile)
+					continue;
+
+				s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
+				s_Building.canBuild = false;
+				return;
+			}
 		}
-
-		s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
-		s_Building.canBuild = true;
-		s_Building.towerToUpgradeOrSell = tower;
-
 		return;
-	}
-
-	if (s_UIState == UIState::selling)
-	{
-		Tower *tower = s_Building.pointedTile->GetTowerOccupying();
-		if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u))
+	case UIState::upgrading:
 		{
-			s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-			s_Building.canBuild = false;
-			s_Building.towerToUpgradeOrSell = nullptr;
-			return;
+			Tower* tower = s_Building.pointedTile->GetTowerOccupying();
+			if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u) || !tower->CanUpgrade())
+			{
+				App::SetCantBuild();
+				return;
+			}
+
+			s_Building.buildingPlace.SetTexture(BuildingState::originalTexture);
+			s_Building.canBuild = true;
+			s_Building.towerToUpgradeOrSell = tower;
 		}
+		return;
+	case UIState::selling:
+		{
+			Tower* tower = s_Building.pointedTile->GetTowerOccupying();
+			if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u))
+			{
+				App::SetCantBuild();
+				return;
+			}
 
-		s_Building.buildingPlace.SetTexture(BuildingState::sellingTexture);
-		s_Building.canBuild = true;
-		s_Building.towerToUpgradeOrSell = tower;
-
+			s_Building.buildingPlace.SetTexture(BuildingState::sellingTexture);
+			s_Building.canBuild = true;
+			s_Building.towerToUpgradeOrSell = tower;
+		}
+		return;
+	default: // do nothing
 		return;
 	}
 }
@@ -691,6 +698,7 @@ void App::ManageBuildingState()
 uint16_t App::GetDamageOf(ProjectileType type)
 {
 	uint16_t minDmg = 0, maxDmg = 0;
+	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);
 
 	switch (type)
 	{
@@ -699,11 +707,11 @@ uint16_t App::GetDamageOf(ProjectileType type)
 			maxDmg = 30;
 			break;
 		case ProjectileType::thunder:
-			minDmg = 35;
-			maxDmg = 40;
+			minDmg = 15;
+			maxDmg = 25;
 			break;
 	}
-
-	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);
+	
+	dmg.param(std::uniform_int_distribution<uint16_t>::param_type(minDmg, maxDmg));
 	return dmg(g_Rng);
 }

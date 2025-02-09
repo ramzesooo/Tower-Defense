@@ -142,21 +142,30 @@ public:
 		return *this;
 	}
 
-	inline Vector2D &Zero()
+	inline void Zero()
+	{
+		x = 0.0f;
+		y = 0.0f;
+	}
+
+	/*inline Vector2D &Zero()
 	{
 		this->x = 0.0f;
 		this->y = 0.0f;
+
 		return *this;
+	}*/
+
+	inline void Floorf()
+	{
+		x = std::floorf(x);
+		y = std::floorf(y);
 	}
 
-	inline Vector2D Roundf() const
+	inline void Truncf()
 	{
-		return { std::roundf(x), std::roundf(y) };
-	}
-
-	inline Vector2D Trunc() const
-	{
-		return { std::trunc(x), std::trunc(y) };
+		x = std::truncf(x);
+		y = std::truncf(y);
 	}
 
 	inline bool IsEqualZero() const

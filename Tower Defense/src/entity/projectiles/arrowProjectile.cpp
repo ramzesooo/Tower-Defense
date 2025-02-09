@@ -36,7 +36,8 @@ void ArrowProjectile::Update()
 	auto scaledTileSize = App::s_CurrentLevel->m_ScaledTileSize;
 
 	m_Destination = m_Target->GetPos() * scaledTileSize;
-	Vector2D truncatedPos = { m_Pos.Trunc() };
+	Vector2D truncatedPos(m_Pos);
+	truncatedPos.Truncf();
 
 	if (m_Destination.x == truncatedPos.x)
 	{

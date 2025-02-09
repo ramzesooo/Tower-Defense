@@ -28,7 +28,7 @@ void ClassicTower::Draw()
 void ClassicTower::Upgrade()
 {
 	m_Tier++;
-	srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / 3);
+	srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / m_MaxTier);
 
 	if (m_Attacker)
 	{
@@ -42,11 +42,12 @@ void ClassicTower::Upgrade()
 		App::s_CurrentLevel->AddAttacker(this, static_cast<AttackerType>(m_Tier - 1));
 	}
 
+	m_SellPrice = (Level::GetBuildPrice(m_Type) / 2) * m_Tier;
+	m_UpgradePrice = static_cast<uint16_t>(std::ceilf(Level::GetBuildPrice(m_Type) / 3.0f)) * m_Tier;
+
 	if (!CanUpgrade())
 	{
-		App::s_Building.buildingPlace.SetTexture(App::s_Building.cantBuildTexture);
-		App::s_Building.towerToUpgradeOrSell = nullptr;
-		App::s_Building.canBuild = false;
+		App::SetCantBuild();
 		return;
 	}
 }

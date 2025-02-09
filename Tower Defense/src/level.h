@@ -169,6 +169,19 @@ public:
 
 		return false;
 	}
+
+	static constexpr inline uint16_t GetBuildPrice(TowerType type)
+	{
+		switch (type)
+		{
+		case TowerType::classic:
+			return 5u;
+		case TowerType::dark:
+			return 10u;
+		}
+
+		return 1u;
+	}
 private:
 	std::string_view m_BaseTextureID = "base";
 	Base m_Base;
@@ -177,7 +190,7 @@ private:
 	std::vector<Tile*> m_Spawners;
 
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
-	std::array<uint16_t, (std::size_t)EnemyType::size> m_SpecificEnemiesAmount{};
+	std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> m_SpecificEnemiesAmount{};
 
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
 	std::vector<WaveContainer> m_Waves;

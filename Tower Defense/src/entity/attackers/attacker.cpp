@@ -20,7 +20,7 @@ void Attacker::Destroy()
 	for (const auto &p : m_OwnedProjectiles)
 	{
 		p->SetOwner(nullptr);
-		p->SetTarget(nullptr);
+		//p->SetTarget(nullptr); // unnecessary
 		p->Destroy();
 	}
 

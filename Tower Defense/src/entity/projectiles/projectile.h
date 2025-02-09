@@ -39,9 +39,6 @@ public:
 
 	virtual void AdjustToView() override = 0;
 
-	void UpdateArrow();
-	void UpdateThunder();
-
 	void SetTarget(Enemy *target) { m_Target = target; }
 	void SetOwner(Attacker *owner) { m_Owner = owner; }
 	Enemy* GetTarget() const { return m_Target; }

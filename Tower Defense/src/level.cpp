@@ -90,9 +90,9 @@ static std::vector<Vector2D> findPath(const Vector2D &start, const Vector2D &goa
 			if (!App::s_CurrentLevel->IsTileWalkable(neighbor.pos))
 				continue;
 
-			// std::unordered_map::emplace will not insert a new element into the set if one already exists
+			// std::unordered_map::emplace will not insert a new element into the map if one already exists
 			// in that case, success is false, but we always get an iterator to the
-			// new/already existing element in the set
+			// new/already existing element in the map
 			auto [iterator, success] = visited.emplace(neighbor.pos, next.pos);
 
 			if (success)
@@ -132,7 +132,7 @@ Level::Level(uint16_t levelID)
 {
 	// LOAD CONFIG
 	std::ifstream configFile(std::format("levels\\{}\\{}", m_LevelID + 1, configName));
-
+	
 	if (configFile.fail())
 	{
 		App::s_Logger.AddLog(std::format("Config file for level {} doesn't exist!", m_LevelID + 1));
@@ -250,10 +250,10 @@ Level::Level(uint16_t levelID)
 
 	m_Waves.shrink_to_fit();
 
-	m_ScaledTileSize = m_MapData.at(2) * s_TileSize;
+	m_ScaledTileSize = m_MapData[2] * s_TileSize;
 
-	m_MapData[3] = m_MapData.at(0) * m_ScaledTileSize;
-	m_MapData[4] = m_MapData.at(1) * m_ScaledTileSize;
+	m_MapData[3] = m_MapData[0] * m_ScaledTileSize;
+	m_MapData[4] = m_MapData[1] * m_ScaledTileSize;
 }
 
 void Level::Init()
@@ -385,12 +385,10 @@ void Level::SetupBase()
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
 	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
 	m_Base.m_Pos = { static_cast<float>(scaledPosX), static_cast<float>(scaledPosY) };
-	m_Base.m_MaxLifes = m_Base.m_Lifes = 5;
+	m_Base.m_MaxLifes = m_Base.m_Lifes = 5u;
 	m_Base.m_Tile = GetTileFrom(m_BasePos.x, m_BasePos.y, 0);
 
 	App::s_Logger.AddLog(std::format("Created base ({}, {})", scaledPosX, scaledPosY));
-
-	InitTimerForNextWave();
 }
 
 void Level::Clear()
@@ -570,11 +568,10 @@ void Level::LMBEvent()
 		if (!App::s_Building.canBuild)
 			return;
 
+		App::Instance().TakeCoins(Level::GetBuildPrice(UIElement::s_ChosenTower));
 		AddTower(App::s_Building.coordinates.x, App::s_Building.coordinates.y, UIElement::s_ChosenTower);
 
-		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-		App::s_Building.towerToUpgradeOrSell = nullptr;
-		App::s_Building.canBuild = false;
+		App::SetCantBuild();
 		return;
 	case UIState::upgrading:
 		if (!App::s_Building.canBuild)
@@ -592,9 +589,7 @@ void Level::LMBEvent()
 
 		App::s_Manager.RefreshTowersAfterSell(App::s_Building.towerToUpgradeOrSell);
 
-		App::s_Building.buildingPlace.SetTexture(BuildingState::cantBuildTexture);
-		App::s_Building.towerToUpgradeOrSell = nullptr;
-		App::s_Building.canBuild = false;
+		App::SetCantBuild();
 		return;
 	default: // go further if not in building state
 		break;
@@ -606,11 +601,15 @@ void Level::LMBEvent()
 void Level::HighlightTower()
 {
 	// Get current mouse's position
-	auto posX = std::floorf((App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize));
-	auto posY = std::floorf((App::s_Camera.y / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(m_ScaledTileSize));
+	Vector2D pointedPos(
+		(App::s_Camera.x / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(m_ScaledTileSize),
+		(App::s_Camera.y / static_cast<float>(m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(m_ScaledTileSize)
+	);
+
+	pointedPos.Floorf();
 
 	// Return if couldn't get any tile pointed by mouse
-	Tile* tile = GetTileFrom(posX, posY);
+	Tile* tile = GetTileFrom(pointedPos.x, pointedPos.y);
 	if (!tile)
 		return;
 
@@ -648,9 +647,16 @@ void Level::InitWave()
 
 	static std::uniform_int_distribution<std::size_t> spawnerDistr(0, m_Spawners.size() - 1);
 
+	// Check if it stays the same, since it's static and spawners amount might be different for different level
+	if (spawnerDistr.b() != m_Spawners.size() - 1)
+	{
+		// If level has changed as well as m_Spawners.size(), then adjust new size
+		spawnerDistr.param(std::uniform_int_distribution<std::size_t>::param_type(0, m_Spawners.size() - 1));
+	}
+
 	const Tile *spawner = m_Spawners.at(spawnerDistr(g_Rng));
 
-	const Vector2D spawnPos(spawner->GetPos().x / static_cast<float>(m_ScaledTileSize), spawner->GetPos().y / static_cast<float>(m_ScaledTileSize));
+	const Vector2D spawnPos(Vector2D(spawner->GetPos()) / static_cast<float>(m_ScaledTileSize));
 
 	EnemyType type = EnemyType::elf;
 	// It might be as well casual variable defined in for loop, but maybe it's better to store it here
@@ -687,18 +693,17 @@ void Level::InitWave()
 	if (std::fabsf(m_BasePos.x - spawnPos.x) > std::fabsf(m_BasePos.y - spawnPos.y))
 	{
 		// Enemy should focus on moving on X-axis, so Y is more expensive
+		expenseOfX = 1;
 		expenseOfY = 2;
 	}
 	else
 	{
 		// Enemy should focus on moving on Y-axis, so X is more expensive
 		expenseOfX = 2;
+		expenseOfY = 1;
 	}
 
 	enemy->SetPath(findPath({ spawnPos.x, spawnPos.y }, m_BasePos));
-
-	expenseOfX = 1;
-	expenseOfY = 1;
 	
 	m_NextSpawn = SDL_GetTicks() + Level::s_SpawnCooldown - g_PausedTicks;
 	m_SpawnedEnemies++;
@@ -737,8 +742,8 @@ void Level::ManageWaves()
 
 			App::UpdateWaves();
 
-			// Make the timer zero, since it's not going to update by itself if time has already exceeded
-			// Because it would reach signed value in UpdateTimer()
+			// Make the timer zero, since it's not going to update by itself if time has been already exceeded
+			// Because it would reach negative value in UpdateTimer()
 			App::s_UIElements.at(3).m_Label.UpdateText("0.000");
 
 			m_WaveProgress = WaveProgress::Initializing;
@@ -797,7 +802,7 @@ void Level::Render() const
 {
 	for (std::size_t i = 0u; i < m_Layers.size(); ++i)
 	{
-		for (const auto &tile : m_Layers.at(i).m_DrawableTiles)
+		for (const auto &tile : m_Layers[i].m_DrawableTiles)
 		{
 			tile->Draw();
 		}
@@ -838,7 +843,8 @@ Tile *Level::GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer)
 	if (posX >= m_MapData[0] || posY >= m_MapData[1])
 		return nullptr;
 
-	return m_Layers.at(layer).GetTileFrom(posX, posY);
+	// At the beginning there is already if statement and layer is unsigned int, so we don't have to use .at()
+	return m_Layers[layer].GetTileFrom(posX, posY);
 }
 
 #if ASYNC_TILES == 1

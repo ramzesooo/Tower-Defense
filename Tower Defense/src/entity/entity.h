@@ -7,9 +7,7 @@
 #include <memory>
 #include <bitset>
 
-class Tile;
-
-enum class EntityGroup
+enum class EntityGroup : uint16_t
 {
 	enemy = 0,
 	tower,
@@ -21,8 +19,7 @@ enum class EntityGroup
 class Entity
 {
 public:
-	bool m_IsActive = true;
-	std::bitset<(std::size_t)EntityGroup::size> m_GroupBitSet;
+	static constexpr auto s_EntityGroupSize = static_cast<uint16_t>(EntityGroup::size);
 public:
 	Entity() = default;
 	Entity(const Entity&) = delete;
@@ -37,11 +34,15 @@ public:
 	virtual Vector2D GetPos() const { return { 0.0f, 0.0f }; }
 
 	virtual void Destroy() { m_IsActive = false; }
-	bool IsActive() const { return m_IsActive; }
+	[[nodiscard]] const bool IsActive() const { return m_IsActive; }
 
-	bool HasGroup(EntityGroup group) const { return m_GroupBitSet[(std::size_t)group]; }
+	[[nodiscard]] const bool HasGroup(EntityGroup group) const { return m_GroupBitSet[static_cast<uint16_t>(group)]; }
 	void AddToGroup(EntityGroup group);
 	void RemoveFromGroup(EntityGroup group);
+protected:
+	bool m_IsActive = true;
+private:
+	std::bitset<s_EntityGroupSize> m_GroupBitSet;
 };
 
 class Manager
@@ -53,7 +54,7 @@ public:
 	//void Update();
 	inline void Update()
 	{
-		for (const auto &e : m_GroupedEntities.at((std::size_t)EntityGroup::enemy))
+		for (const auto& e : m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::enemy)))
 		{
 			if (!e->IsActive())
 				continue;
@@ -62,7 +63,7 @@ public:
 		}
 
 		// Tower updates attacker
-		for (const auto &t : m_GroupedEntities.at((std::size_t)EntityGroup::tower))
+		for (const auto &t : m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::tower)))
 		{
 			if (!t->IsActive())
 				continue;
@@ -70,7 +71,7 @@ public:
 			t->Update();
 		}
 
-		for (const auto &p : m_GroupedEntities.at((std::size_t)EntityGroup::projectile))
+		for (const auto &p : m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::projectile)))
 		{
 			p->Update();
 		}
@@ -92,7 +93,7 @@ public:
 			}
 
 			// Erase it from specific group if it's there (groupedEntities is an array of groups' vectors)
-			for (std::size_t i = 0u; i < static_cast<std::size_t>(EntityGroup::size); ++i)
+			for (uint16_t i = 0u; i < Entity::s_EntityGroupSize; ++i)
 			{
 				(*it)->RemoveFromGroup(static_cast<EntityGroup>(i));
 			}
@@ -105,9 +106,9 @@ public:
 		m_EntitiesToDestroy = false;
 	}
 
-	void AddToGroup(Entity *entity, EntityGroup group) { m_GroupedEntities[(std::size_t)group].emplace_back(entity); }
+	void AddToGroup(Entity *entity, EntityGroup group) { m_GroupedEntities[static_cast<uint16_t>(group)].emplace_back(entity); }
 
-	std::vector<Entity*> &GetGroup(EntityGroup group) { return m_GroupedEntities[(std::size_t)group]; }
+	std::vector<Entity*> &GetGroup(EntityGroup group) { return m_GroupedEntities[static_cast<uint16_t>(group)]; }
 
 	template<class T, class... Args>
 	inline T *NewEntity(Args&&... args)
@@ -115,18 +116,6 @@ public:
 		m_Entities.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
 		return dynamic_cast<T*>(m_Entities.back().get());
 	}
-
-	/*template<class... Args>
-	inline Tile *NewTile(Args&&... args)
-	{
-		m_Tiles.emplace_back(std::make_unique<Tile>(std::forward<Args>(args)...));
-		return m_Tiles.back().get();
-	}*/
-
-	/*inline void NewTile(Tile *tile)
-	{
-		m_Tiles.emplace_back(tile);
-	}*/
 	
 	template<class... Args>
 	inline Label *NewLabel(Args&&... args)
@@ -166,33 +155,27 @@ public:
 		m_EntitiesToDestroy = false;*/
 	}
 
-	/*inline void ClearTiles()
-	{
-		m_Tiles.clear();
-	}*/
-
 	inline void ReserveMemoryForWave(std::size_t size)
 	{
 		m_Entities.reserve(m_Entities.size() + size);
-		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).reserve(m_GroupedEntities.at((std::size_t)EntityGroup::enemy).size() + size);
+		m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::enemy)).reserve(m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::enemy)).size() + size);
 	}
 
 	inline void RecoveryMemoryAfterWave()
 	{
 		m_Entities.shrink_to_fit();
-		m_GroupedEntities.at((std::size_t)EntityGroup::enemy).shrink_to_fit();
+		m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::enemy)).shrink_to_fit();
 	}
 
 	inline void RefreshTowersAfterSell(Entity *tower)
 	{
-		static auto &towers = m_GroupedEntities.at((std::size_t)EntityGroup::tower);
+		static auto& towers = m_GroupedEntities.at(static_cast<uint16_t>(EntityGroup::tower));
 
 		std::erase(towers, tower);
 		towers.shrink_to_fit();
 	}
 private:
-	//std::vector<std::unique_ptr<Tile>> m_Tiles;
 	std::vector<std::unique_ptr<Label>> m_Labels;
 	std::vector<std::unique_ptr<Entity>> m_Entities;
-	std::array<std::vector<Entity*>, (std::size_t)EntityGroup::size> m_GroupedEntities;
+	std::array<std::vector<Entity*>, Entity::s_EntityGroupSize> m_GroupedEntities;
 };
