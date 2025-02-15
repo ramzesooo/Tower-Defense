@@ -15,10 +15,13 @@ class App;
 class Enemy;
 class Tower;
 
-struct WaveContainer
-{
-	std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> container{};
-};
+using WavesArray = std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)>;
+
+//struct WaveContainer
+//{
+//	//std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> container{};
+//	WavesArray container{};
+//};
 
 //Layer references to just map's layer of tiles
 class Layer
@@ -146,19 +149,22 @@ public:
 public:
 	void Render() const;
 
-	uint16_t GetID() const { return m_LevelID; }
+	[[nodiscard]] uint16_t GetID() const { return m_LevelID; }
 
-	Base *GetBase() { return &m_Base; }
+	[[nodiscard]] Base *GetBase() { return &m_Base; }
+	void SetBaseActive(bool active) { m_Base.m_IsActive = true; }
+	[[nodiscard]] const bool IsBaseActive() const { return m_Base.m_IsActive; }
+	[[nodiscard]] uint16_t GetBaseCurrentLifes() const { return m_Base.m_Lifes; }
 
 	// Function GetTileFrom may return nullptr if asked tile is outside of map and/or doesn't exist
-	Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0u);
-	Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0u) { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
+	[[nodiscard]] Tile *GetTileFrom(uint32_t posX, uint32_t posY, uint16_t layer = 0u);
+	[[nodiscard]] Tile *GetTileFrom(float posX, float posY, uint16_t layer = 0u) { return GetTileFrom(static_cast<uint32_t>(posX), static_cast<uint32_t>(posY), layer); }
 
 	// Adjust tiles' view to current camera
 	void OnUpdateCamera();
 
-	std::size_t GetWavesAmount() const { return m_Waves.size(); }
-	std::size_t GetCurrentWave() const { return m_CurrentWave; }
+	[[nodiscard]] std::size_t GetWavesAmount() const { return m_Waves.size(); }
+	[[nodiscard]] std::size_t GetCurrentWave() const { return m_CurrentWave; }
 
 	// The method takes origin of tile, for example 1, 1 instead of 48, 48
 	inline bool IsTileWalkable(const Vector2D &pos)
@@ -189,11 +195,13 @@ private:
 	std::array<Layer, s_LayersAmount> m_Layers;
 	std::vector<Tile*> m_Spawners;
 
+	/// NOTE: WavesArray is std::array defined in the beginning of the header file
+
 	// m_SpecificEnemiesAmount array is specifying how many enemies of specified type is already spawned
-	std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> m_SpecificEnemiesAmount{};
+	WavesArray m_SpecificEnemiesAmount{};
 
 	//array in the vector m_Waves declares expected specific enemies spawned at specific wave
-	std::vector<WaveContainer> m_Waves;
+	std::vector<WavesArray> m_Waves;
 	std::size_t m_ExpectedEnemiesAmount = 0u;
 	std::size_t m_SpawnedEnemies = 0u;
 	std::size_t m_CurrentWave = 0u;

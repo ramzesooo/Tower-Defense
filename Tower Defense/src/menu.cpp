@@ -53,7 +53,7 @@ void MainMenu::Init()
 	// Title screen
 	for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
 	{
-		btn = &m_PrimaryButtons.at(i);
+		btn = &m_PrimaryButtons[i];
 		btn->destRect.w = App::WINDOW_WIDTH / 7;
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
@@ -80,7 +80,7 @@ void MainMenu::Init()
 	// Options
 	for (std::size_t i = 0u; i < m_OptionsButtons.size(); ++i)
 	{
-		btn = &m_OptionsButtons.at(i);
+		btn = &m_OptionsButtons[i];
 		btn->destRect.w = App::WINDOW_WIDTH / 7;
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
@@ -102,7 +102,7 @@ void MainMenu::Init()
 	// Levels
 	for (std::size_t i = 0u; i < m_LevelsButtons.size(); ++i)
 	{
-		btn = &m_LevelsButtons.at(i);
+		btn = &m_LevelsButtons[i];
 		btn->destRect.w = App::WINDOW_WIDTH / 7;
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
@@ -144,11 +144,11 @@ void MainMenu::Render()
 
 void MainMenu::HandleMouseButtonEvent()
 {
+	static Mix_Chunk *clickSound = App::s_Textures.GetSound("selectButton");
+
 	// Don't do anything if mouse isn't pointing at any button
 	if (!m_HoveredButton)
 		return;
-
-	static Mix_Chunk *clickSound = App::s_Textures.GetSound("selectButton");
 
 	App::s_Logger.AddLog(std::format("Pressed button {} (Menu state: {})", m_HoveredButton->m_Label.GetText(), static_cast<std::size_t>(s_State)));
 
@@ -162,10 +162,8 @@ void MainMenu::HandleMouseButtonEvent()
 		switch (s_State)
 		{
 		case MenuState::primary: // Quit
-			m_HoveredButton->m_IsHovered = false;
-			m_HoveredButton = nullptr;
 			App::s_IsRunning = false;
-			return;
+			break;
 		case MenuState::options: // Return to primary
 		case MenuState::levels: // Return to primary
 			m_HoveredButton->destRect.y = centerY - m_HoveredButton->destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
@@ -175,11 +173,12 @@ void MainMenu::HandleMouseButtonEvent()
 				m_HoveredButton->destRect.y + m_HoveredButton->destRect.h / 4);
 
 			s_State = MenuState::primary;
-			m_HoveredButton->m_IsHovered = false;
-			m_HoveredButton = nullptr;
 			OnCursorMove(); // Look again for hovered button
-			return;
+			break;
 		}
+
+		SetHoveredButton(nullptr);
+
 		return;
 	}
 
@@ -210,8 +209,7 @@ void MainMenu::HandleTitleButtons()
 			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
 
 		s_State = MenuState::levels;
-		m_HoveredButton->m_IsHovered = false;
-		m_HoveredButton = nullptr;
+		SetHoveredButton(nullptr);
 		OnCursorMove(); // Look again for hovered button
 	}
 	else if (m_HoveredButton == &m_PrimaryButtons.at(1))
@@ -223,8 +221,7 @@ void MainMenu::HandleTitleButtons()
 			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
 
 		s_State = MenuState::options;
-		m_HoveredButton->m_IsHovered = false;
-		m_HoveredButton = nullptr;
+		SetHoveredButton(nullptr);
 		OnCursorMove(); // Look again for hovered button
 	}
 }
@@ -243,7 +240,7 @@ void MainMenu::HandleLevelsButtons()
 {
 	for (std::size_t i = 0u; i < m_LevelsButtons.size(); i++)
 	{
-		if (&m_LevelsButtons.at(i) != m_HoveredButton)
+		if (&m_LevelsButtons[i] != m_HoveredButton)
 			continue;
 
 		if (!App::Instance().SetCurrentLevel(i))
@@ -262,106 +259,58 @@ void MainMenu::HandleLevelsButtons()
 	m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
 		m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
 	
-	App::LoadLevel();
-	App::Instance().SetUIState(UIState::none);
-	App::UpdateWaves();
-	App::UpdateLifes();
-	App::s_CurrentLevel->GetBase()->m_IsActive = true;
-
-	App::Instance().OnResolutionChange();
-	App::Instance().UpdateCamera();
+	LoadLevel();
 
 	MainMenu::s_State = MenuState::primary;
 
-	m_HoveredButton->m_IsHovered = false;
-	m_HoveredButton = nullptr;
+	SetHoveredButton(nullptr);
 }
 
 void MainMenu::OnCursorMove()
 {
-	static Mix_Chunk *hoverSound = App::s_Textures.GetSound("hoverButton");
-
-	// Probably should be checking also if menu state is still the same as the last one
-	// When we got the button hovered
-	// But it seems unnecessary since after choosing a level, it clears m_HoveredButton
-	// Check if mouse is pointing at the same button as before
 	if (m_HoveredButton)
 	{
-		const SDL_Rect &destRect = m_HoveredButton->destRect;
-
 		// Check if mouse is still pointing at the same button as before
-		if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
-			&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
-		{
-			// If true, then don't do anything, because it's unnecessary
-			// Since all we have to do here is just get the button which the mouse points at
+		if (IsMousePointingAt(*m_HoveredButton))
 			return;
-		}
 
-		m_HoveredButton->m_IsHovered = false;
-		m_HoveredButton = nullptr;
+		SetHoveredButton(nullptr);
 	}
 
-	// Check if mouse is pointing at return button
+	if (IsMousePointingAt(m_ReturnButton))
 	{
-		const SDL_Rect &destRect = m_ReturnButton.destRect;
-
-		if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
-			&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
-		{
-			m_ReturnButton.m_IsHovered = true;
-			m_HoveredButton = &m_ReturnButton;
-			Mix_PlayChannel(-1, hoverSound, 0);
-			return;
-		}
+		SetHoveredButton(&m_ReturnButton);
+		return;
 	}
 
 	// Check for every button for specific menu state if it's the one mouse is pointing
 	switch (s_State)
 	{
 	case MenuState::primary:
-		for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
+		for (auto &button : m_PrimaryButtons)
 		{
-			const SDL_Rect &destRect = m_PrimaryButtons.at(i).destRect;
+			if (!IsMousePointingAt(button))
+				continue;
 
-			if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
-				&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
-			{
-				m_PrimaryButtons.at(i).m_IsHovered = true;
-				m_HoveredButton = &m_PrimaryButtons.at(i);
-				Mix_PlayChannel(-1, hoverSound, 0);
-				return;
-			}
+			SetHoveredButton(&button);
 		}
 		return;
 	case MenuState::options:
-		for (std::size_t i = 0u; i < m_OptionsButtons.size(); ++i)
+		for (auto &button : m_OptionsButtons)
 		{
-			const SDL_Rect &destRect = m_OptionsButtons.at(i).destRect;
+			if (!IsMousePointingAt(button))
+				continue;
 
-			if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
-				&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
-			{
-				m_OptionsButtons.at(i).m_IsHovered = true;
-				m_HoveredButton = &m_OptionsButtons.at(i);
-				Mix_PlayChannel(-1, hoverSound, 0);
-				return;
-			}
+			SetHoveredButton(&button);
 		}
 		return;
 	case MenuState::levels:
-		for (std::size_t i = 0u; i < m_LevelsButtons.size(); ++i)
+		for (auto &button : m_LevelsButtons)
 		{
-			const SDL_Rect &destRect = m_LevelsButtons.at(i).destRect;
+			if (!IsMousePointingAt(button))
+				continue;
 
-			if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
-				&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
-			{
-				m_LevelsButtons.at(i).m_IsHovered = true;
-				m_HoveredButton = &m_LevelsButtons.at(i);
-				Mix_PlayChannel(-1, hoverSound, 0);
-				return;
-			}
+			SetHoveredButton(&button);
 		}
 		return;
 	}
@@ -393,8 +342,10 @@ void MainMenu::OnResolutionChange()
 	// Update text's position from return button
 	{
 		const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
-		m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
-			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4);
+		m_ReturnButton.m_Label.UpdatePos(
+			(m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
+			m_ReturnButton.destRect.y + m_ReturnButton.destRect.h / 4
+		);
 	}
 
 	Button *btn = nullptr;
@@ -402,7 +353,7 @@ void MainMenu::OnResolutionChange()
 	// Title
 	for (std::size_t i = 0u; i < m_PrimaryButtons.size(); ++i)
 	{
-		btn = &m_PrimaryButtons.at(i);
+		btn = &m_PrimaryButtons[i];
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
 
@@ -412,7 +363,7 @@ void MainMenu::OnResolutionChange()
 	// Options
 	for (std::size_t i = 0u; i < m_OptionsButtons.size(); ++i)
 	{
-		btn = &m_OptionsButtons.at(i);
+		btn = &m_OptionsButtons[i];
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
 
@@ -423,7 +374,7 @@ void MainMenu::OnResolutionChange()
 	// Levels
 	for (std::size_t i = 0u; i < m_LevelsButtons.size(); ++i)
 	{
-		btn = &m_LevelsButtons.at(i);
+		btn = &m_LevelsButtons[i];
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * (btn->destRect.h + btn->destRect.h / 4);
 
@@ -433,4 +384,43 @@ void MainMenu::OnResolutionChange()
 
 	s_BgDestRect.w = App::WINDOW_WIDTH;
 	s_BgDestRect.h = App::WINDOW_HEIGHT;
+}
+
+void MainMenu::SetHoveredButton(Button *button)
+{
+	static Mix_Chunk* hoverSound = App::s_Textures.GetSound("hoverButton");
+
+	if (m_HoveredButton)
+	{
+		m_HoveredButton->m_IsHovered = false;
+	}
+
+	button->m_IsHovered = true;
+	m_HoveredButton = button;
+	Mix_PlayChannel(-1, hoverSound, 0);
+}
+
+void MainMenu::LoadLevel() const
+{
+	App::LoadLevel();
+	App::Instance().SetUIState(UIState::none);
+	App::UpdateWaves();
+	App::UpdateLifes();
+	App::s_CurrentLevel->SetBaseActive(true);
+
+	App::Instance().OnResolutionChange();
+	App::Instance().UpdateCamera();
+}
+
+const bool MainMenu::IsMousePointingAt(const Button& button) const
+{
+	const SDL_Rect &destRect = button.destRect;
+
+	if (App::s_MouseX >= destRect.x && App::s_MouseX <= destRect.x + destRect.w
+		&& App::s_MouseY >= destRect.y && App::s_MouseY <= destRect.y + destRect.h)
+	{
+		return true;
+	}
+
+	return false;
 }

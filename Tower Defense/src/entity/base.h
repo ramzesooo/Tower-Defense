@@ -18,7 +18,8 @@ public:
 	uint16_t m_Lifes = 0u;
 	uint16_t m_MaxLifes = 0u;
 public:
-	const SDL_Rect& GetRect() const { return destRect; }
+	const SDL_Rect &GetRect() const { return destRect; }
+	const Vector2D &GetPos() const { return m_Pos; }
 
 	void Draw() const;
 	void AdjustToView();

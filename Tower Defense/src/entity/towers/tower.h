@@ -49,7 +49,8 @@ public:
 
 	virtual void AdjustToView() override = 0;
 
-	Vector2D GetPos() const override { return m_Pos; }
+	//Vector2D GetPos() const { return m_Pos; }
+	const Vector2D &GetPos() const { return m_Pos; }
 	const SDL_Rect &GetRect() const { return destRect; }
 
 	void AssignAttacker(Attacker *attacker) { m_Attacker = attacker; }

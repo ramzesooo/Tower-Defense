@@ -13,8 +13,6 @@ class Enemy;
 
 struct ProjectileLifetime
 {
-	//static constexpr uint32_t darkProjectileLifetime = 3000;
-
 	bool isRestricted = false; // specifies whether the projectile's lifetime depends on time
 	uint32_t lifetime = 0;
 	uint32_t timePerFrame = 0;

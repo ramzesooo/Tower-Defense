@@ -130,29 +130,29 @@ public:
 		// Do this only if DEBUG is defined, because if it's undefined, it's already done in App::ManageBuildingState()
 		// Basically it's about the label s_PointedPosition for debugging
 #ifdef DEBUG
-		s_Building.coordinates = {
-			(App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize),
-			(App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)
+		App::s_Building.coordinates = {
+			(App::s_Camera.x / static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(App::s_MouseX) / static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize),
+			(App::s_Camera.y / static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(App::s_MouseY) / static_cast<float>(App::s_CurrentLevel->m_ScaledTileSize)
 		};
-		s_Building.coordinates.Floorf();
+		App::s_Building.coordinates.Floorf();
 		//s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		//s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 
-		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
-			s_MouseX,
-			s_MouseY,
-			static_cast<int32_t>(s_Camera.x + s_MouseX),
-			static_cast<int32_t>(s_Camera.y + s_MouseY),
-			s_Building.coordinates.x,
-			s_Building.coordinates.y)
+		App::s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
+			App::s_MouseX,
+			App::s_MouseY,
+			static_cast<int32_t>(App::s_Camera.x + App::s_MouseX),
+			static_cast<int32_t>(App::s_Camera.y + App::s_MouseY),
+			App::s_Building.coordinates.x,
+			App::s_Building.coordinates.y)
 		);
 
 		// Disallows to set a tower in the right edge (where 2 from 4 tiles are outside of the map border)
 		// It's helpful with avoiding an issue about tiles in towers' range
-		if (s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(0)))
-			s_Building.coordinates.x--;
-		if (s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData.at(1)))
-			s_Building.coordinates.y--;
+		if (App::s_Building.coordinates.x + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData[0]))
+			App::s_Building.coordinates.x--;
+		if (App::s_Building.coordinates.y + 1.0f >= static_cast<float>(App::s_CurrentLevel->m_MapData[1]))
+			App::s_Building.coordinates.y--;
 #endif
 
 		switch (s_UIState)
@@ -216,11 +216,11 @@ public:
 		if (level >= m_Levels.size())
 		{
 			// Levels are displayed in-game with +1, but counting starts from 0
-			s_Logger.AddLog(std::format("App::SetCurrentLevel: Level #{} can't be assigned. It's equal or higher than amount of levels ({})", level, m_Levels.size()));
+			App::s_Logger.AddLog(std::format("App::SetCurrentLevel: Level #{} can't be assigned. It's equal or higher than amount of levels ({})", level, m_Levels.size()));
 			return false;
 		}
 
-		s_CurrentLevel = &m_Levels.at(level);
+		App::s_CurrentLevel = &m_Levels[level];
 		return true;
 	}
 
@@ -228,6 +228,22 @@ public:
 	void ManageBuildingState() const;
 
 	[[nodiscard]] static uint16_t GetDamageOf(ProjectileType type);
+
+	static inline void SetCameraBorder()
+	{
+		App::s_CameraMovement.border = {
+			static_cast<float>(App::s_CurrentLevel->m_MapData[3]) - App::s_Camera.w,
+			static_cast<float>(App::s_CurrentLevel->m_MapData[4]) - App::s_Camera.h
+		};
+	}
+
+	static inline void ResetCameraPos()
+	{
+		const Vector2D& basePos = App::s_CurrentLevel->GetBase()->GetPos();
+
+		App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
+		App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
+	}
 
 	inline void SwitchCameraMode() {
 		if (s_IsCameraLocked)
@@ -361,7 +377,7 @@ public:
 	// Arg is not required, adds 1 by default
 	static inline void AddLifes(uint16_t lifes = 1)
 	{ 
-		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
+		if (lifes == 0 || !s_CurrentLevel->IsBaseActive())
 			return;
 
 		s_CurrentLevel->GetBase()->m_Lifes += lifes;
@@ -373,7 +389,7 @@ public:
 	{
 		static Mix_Chunk *hurtSound = App::s_Textures.GetSound("hurt");
 
-		if (lifes == 0 || !s_CurrentLevel->GetBase()->m_IsActive)
+		if (lifes == 0 || !s_CurrentLevel->IsBaseActive())
 			return;
 
 		Mix_PlayChannel(-1, hurtSound, 0);
@@ -398,7 +414,7 @@ public:
 	// Updates lifes displayed in UI
 	static inline void UpdateLifes()
 	{
-		App::s_UIElements[2].m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_UIElements[2].m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBaseCurrentLifes()));
 	}
 
 	// Updates coins displayed in UI + resets alpha of amount of took or added coins

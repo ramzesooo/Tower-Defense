@@ -157,9 +157,9 @@ Level::Level(uint16_t levelID)
 		{
 			std::stringstream ss(line);
 
-			WaveContainer newWave{};
+			WavesArray container{};
 
-			for (auto &wave : newWave.container)
+			for (auto &wave : container)
 			{
 				if (!std::getline(ss, value, ','))
 					break;
@@ -167,15 +167,7 @@ Level::Level(uint16_t levelID)
 				wave = static_cast<uint16_t>(std::stoi(value));
 			}
 
-			/*for (std::size_t i = 0u; i < newWave.container.size(); ++i)
-			{
-				if (!std::getline(ss, value, ','))
-					break;
-
-				newWave.container[i] = static_cast<uint16_t>(std::stoi(value));
-			}*/
-
-			m_Waves.emplace_back(newWave);
+			m_Waves.emplace_back(container);
 
 			continue;
 		}
@@ -654,7 +646,7 @@ void Level::InitWave()
 		spawnerDistr.param(std::uniform_int_distribution<std::size_t>::param_type(0, m_Spawners.size() - 1));
 	}
 
-	const Tile *spawner = m_Spawners.at(spawnerDistr(g_Rng));
+	const Tile *spawner = m_Spawners[spawnerDistr(g_Rng)];
 
 	const Vector2D spawnPos(Vector2D(spawner->GetPos()) / static_cast<float>(m_ScaledTileSize));
 
@@ -666,7 +658,8 @@ void Level::InitWave()
 	for (; enemyTypeIterator < static_cast<std::size_t>(EnemyType::size); ++enemyTypeIterator)
 	{
 		// if currently iterated enemy type didn't reach still the expected amount of spawned enemies
-		if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave).container.at(enemyTypeIterator))
+		//if (m_SpecificEnemiesAmount.at(enemyTypeIterator) < m_Waves.at(m_CurrentWave).at(enemyTypeIterator))
+		if (m_SpecificEnemiesAmount[enemyTypeIterator] < m_Waves.at(m_CurrentWave)[enemyTypeIterator])
 		{
 			type = static_cast<EnemyType>(enemyTypeIterator);
 			m_SpecificEnemiesAmount[enemyTypeIterator]++;
@@ -731,7 +724,7 @@ void Level::ManageWaves()
 
 			m_SpawnedEnemies = 0u;
 			m_ExpectedEnemiesAmount = 0u;
-			for (const auto &i : m_Waves.at(m_CurrentWave).container)
+			for (const auto &i : m_Waves.at(m_CurrentWave))
 			{
 				m_ExpectedEnemiesAmount += i;
 			}

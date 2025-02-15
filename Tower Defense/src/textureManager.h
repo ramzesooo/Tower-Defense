@@ -115,7 +115,7 @@ public:
 	void AddFont(std::string_view fontID, const char* path, uint16_t fontSize);
 	TTF_Font *GetFont(std::string_view fontID) const;
 
-	void LoadSound(const std::string &soundID, const char *path);
+	void AddSound(const std::string &soundID, const char *path);
 	Mix_Chunk *GetSound(std::string_view soundID);
 private:
 	std::unordered_map<std::string, SDL_Texture*, proxy_hash, std::equal_to<void>> textures;

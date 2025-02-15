@@ -34,14 +34,14 @@ void UIElement::InitUI()
 	//static SDL_Rect destRect{ static_cast<int32_t>(App::s_Camera.w / 30.0f), static_cast<int32_t>(App::s_Camera.h / 30.0f), UIElement::srcRect.w * 3, UIElement::srcRect.h * 3};
 	SDL_Rect destRect{ startX, startY, UIElement::srcRect.w * 3, UIElement::srcRect.h * 3 };
 
-	App::s_UIElements.at(0).m_DefaultText = "Wave: 1/1";
-	App::s_UIElements.at(1).m_DefaultText = "100";
-	App::s_UIElements.at(2).m_DefaultText = "100";
-	App::s_UIElements.at(3).m_DefaultText = "0.000";
+	App::s_UIElements[0].m_DefaultText = "Wave: 1/1";
+	App::s_UIElements[1].m_DefaultText = "100";
+	App::s_UIElements[2].m_DefaultText = "100";
+	App::s_UIElements[3].m_DefaultText = "0.000";
 
 	for (std::size_t i = 0u; i < App::s_UIElements.size(); i++)
 	{
-		auto &element = App::s_UIElements.at(i);
+		auto &element = App::s_UIElements[i];
 		element.destRect = destRect;
 		element.m_Label = Label(destRect.x, destRect.y, element.m_DefaultText, font);
 		const SDL_Rect &labelRect = element.m_Label.GetRect();
@@ -80,11 +80,11 @@ void UIElement::InitUI()
 		element.destRect.y += (element.destRect.h * (i / 2)) + element.destRect.h;
 	}
 
-	App::s_ExpandingTowers.at(0).m_IsPressed = true;
+	App::s_ExpandingTowers.front().m_IsPressed = true;
 
-	UIElement::sellDestRect = { startX + destRect.w + destRect.w / 4, startY, destRect.w / 3, destRect.h };
+	UIElement::sellDestRect = UIElement::upgradeDestRect = { startX + destRect.w + destRect.w / 4, startY, destRect.w / 3, destRect.h };
 
-	UIElement::upgradeDestRect = UIElement::sellDestRect;
+	//UIElement::upgradeDestRect = UIElement::sellDestRect;
 	UIElement::upgradeDestRect.y += destRect.h;
 }
 
@@ -92,7 +92,7 @@ void UIElement::DrawUI()
 {
 	for (std::size_t i = 0u; i < App::s_UIElements.size(); i++)
 	{
-		App::s_UIElements.at(i).DrawElement();
+		App::s_UIElements[i].DrawElement();
 	}
 
 	if (App::s_UIState == UIState::building)

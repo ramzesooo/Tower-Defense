@@ -93,7 +93,6 @@ Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
 Enemy::~Enemy()
 {
 	m_RectHP.labelHP.m_AttachedTo = nullptr;
-	m_RectHP.labelHP.Destroy();
 }
 
 void Enemy::Destroy()
@@ -329,7 +328,7 @@ void Enemy::UpdateMovement()
 void Enemy::Move()
 {
 	// Assign position of next tile to m_Destination to let enemy reach it
-	m_Destination = m_Path.at(m_MoveCount);
+	m_Destination = m_Path[m_MoveCount];
 
 	// Check the direction
 	if (m_Destination.x > m_Pos.x)
@@ -361,15 +360,17 @@ void Enemy::Move()
 
 void Enemy::UpdateHealthBar()
 {
-	m_RectHP.squareRect.x = m_ScaledPos.x - App::s_Camera.x;
-	m_RectHP.squareRect.y = static_cast<float>(destRect.y) - static_cast<float>(destRect.h) / 12.0f;
+	m_RectHP.squareRect.x = m_RectHP.barRect.x = m_ScaledPos.x - App::s_Camera.x;
+	m_RectHP.squareRect.y = m_RectHP.barRect.y = static_cast<float>(destRect.y) - static_cast<float>(destRect.h) / 12.0f;
 
-	m_RectHP.barRect.x = m_RectHP.squareRect.x;
-	m_RectHP.barRect.y = m_RectHP.squareRect.y;
+	//m_RectHP.barRect.x = m_RectHP.squareRect.x;
+	//m_RectHP.barRect.y = m_RectHP.squareRect.y;
 	m_RectHP.barRect.w = std::fabsf(m_RectHP.onePercent * (-m_HPPercent));
 
-	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
-	m_RectHP.labelHP.UpdatePos(HPPos);
+	m_RectHP.labelHP.UpdatePos(
+		m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f),
+		m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f)
+	);
 }
 
 void Enemy::AdjustToView()
@@ -384,6 +385,9 @@ void Enemy::AdjustToView()
 
 void Enemy::OnHit(uint16_t dmg)
 {
+	static TTF_Font* defaultFont = App::s_Textures.GetFont("default");
+	static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
+
 	if (m_HP <= dmg)
 	{
 		App::Instance().AddCoins(m_Coins);
@@ -393,21 +397,20 @@ void Enemy::OnHit(uint16_t dmg)
 		return;
 	}
 
-	static TTF_Font *defaultFont = App::s_Textures.GetFont("default");
-	static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
-
 	m_HP -= dmg;
 
-	const Vector2D &pos = m_RectHP.labelHP.GetPos();
+	const SDL_Rect &labelRect = m_RectHP.labelHP.GetRect();
 
 	DamageInfo newTakenDamage;
 
-	newTakenDamage.label = Label(static_cast<int32_t>(pos.x), static_cast<int32_t>(pos.y), std::format("-{}", dmg), defaultFont, takenDamageColor);
+	newTakenDamage.label = Label(static_cast<int32_t>(labelRect.x), static_cast<int32_t>(labelRect.y), std::format("-{}", dmg), defaultFont, takenDamageColor);
 	const SDL_Rect &rect = newTakenDamage.label.GetRect();
 	newTakenDamage.label.UpdatePos(rect.x - rect.w / 2, rect.y);
 
-	newTakenDamage.lifespanTicks = SDL_GetTicks() - g_PausedTicks + newTakenDamage.lifespan;
-	newTakenDamage.updateTicks = SDL_GetTicks() - g_PausedTicks;
+	auto ticks = SDL_GetTicks() - g_PausedTicks;
+
+	newTakenDamage.lifespanTicks = ticks + newTakenDamage.lifespan;
+	newTakenDamage.updateTicks = ticks;
 
 	m_TakenDamages.emplace_back(newTakenDamage);
 

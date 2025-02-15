@@ -36,7 +36,8 @@ public:
 
 	virtual void AdjustToView() override;
 
-	Vector2D GetPos() const override { return m_Pos; }
+	//Vector2D GetPos() const { return m_Pos; }
+	const Vector2D &GetPos() const { return m_Pos; }
 
 	void PlayAnim(std::string_view animID);
 
@@ -47,15 +48,18 @@ public:
 
 	// arg bool toErase is true by default
 	virtual void StopAttacking(bool toErase = true);
-	bool IsAttacking() const { return m_Target != nullptr; }
+	const bool IsAttacking() const { return m_Target != nullptr; }
 
 	virtual bool ValidTarget();
 
 	Enemy *GetTarget() const { return m_Target; }
 	void SetTarget(Enemy *target) { m_Target = target; }
 protected:
+	SDL_Rect srcRect{ 0, 0, 32, 32 };
+	SDL_Rect destRect{ 0, 0, 32, 32 };
+
 	uint32_t m_ShotCooldown = 300 * 4; // 300 is delay between frames in Shoot anim times 4 frames (milliseconds)
-	Tower *m_OccupiedTower;
+	Tower *m_OccupiedTower = nullptr;
 	AttackerType m_Type;
 	ProjectileType m_ProjectileType = ProjectileType::arrow;
 	SDL_Texture *m_Texture = nullptr;
@@ -66,9 +70,7 @@ protected:
 	// The difference is (float)App::s_CurrentLevel->m_ScaledTileSize / 3.0f has been added to m_Pos.x
 	// to make it look more like it's on the tower
 	Vector2D m_Pos{};
-
-	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
-
+	
 	Animation m_CurrentAnim;
 	std::unordered_map<std::string, Animation, proxy_hash, std::equal_to<void>> animations;
 

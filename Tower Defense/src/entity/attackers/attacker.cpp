@@ -7,8 +7,9 @@ extern uint32_t g_PausedTicks;
 extern std::vector<Entity*> &g_Enemies;
 
 Attacker::Attacker(Tower *occupiedTower, AttackerType type, uint32_t shotCooldown, uint16_t scale)
-	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(App::s_Textures.GetTextureOf(type)), m_Scale(scale), m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown),
-	destRect({ destRect.x, destRect.y, Attacker::s_AttackerWidth * m_Scale, Attacker::s_AttackerHeight * m_Scale })
+	: m_OccupiedTower(occupiedTower), m_Type(type), m_Texture(App::s_Textures.GetTextureOf(type)), m_Scale(scale),
+	m_Pos(m_OccupiedTower->GetPos()), m_ShotCooldown(shotCooldown),
+	destRect{ destRect.x, destRect.y, Attacker::s_AttackerWidth * scale, Attacker::s_AttackerHeight * scale }
 {}
 
 void Attacker::Destroy()

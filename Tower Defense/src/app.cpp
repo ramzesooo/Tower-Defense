@@ -117,8 +117,7 @@ App::App()
 	}
 	else
 	{
-		s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData.at(3)) - s_Camera.w;
-		s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData.at(4)) - s_Camera.h;
+		App::SetCameraBorder();
 
 		s_Building.buildingPlace.InitSpecialTile();
 	}
@@ -131,7 +130,7 @@ App::App()
 	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
 	m_PauseLabel = Label(static_cast<int32_t>(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
-	m_PauseLabel.m_Drawable = false;
+	m_PauseLabel.m_IsDrawable = false;
 
 	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
 	m_PauseLabel.UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
@@ -247,9 +246,9 @@ void App::AssignStaticAssets()
 
 void App::EventHandler()
 {
-	SDL_PollEvent(&s_Event);
+	SDL_PollEvent(&App::s_Event);
 
-	switch (s_Event.type)
+	switch (App::s_Event.type)
 	{
 	case SDL_WINDOWEVENT:
 		HandleWindowEvent();
@@ -257,20 +256,20 @@ void App::EventHandler()
 	
 	// MOUSE EVENTS
 	case SDL_MOUSEMOTION:
-		s_MouseX = s_Event.motion.x;
-		s_MouseY = s_Event.motion.y;
+		App::s_MouseX = App::s_Event.motion.x;
+		App::s_MouseY = App::s_Event.motion.y;
 
 		OnCursorMove();
 		return;
 	//case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
-		if (s_UIState == UIState::mainMenu)
+		if (App::s_UIState == UIState::mainMenu)
 		{
-			s_MainMenu.HandleMouseButtonEvent();
+			App::s_MainMenu.HandleMouseButtonEvent();
 		}
 		else
 		{
-			App::s_CurrentLevel->HandleMouseButtonEvent(s_Event.button.button);
+			App::s_CurrentLevel->HandleMouseButtonEvent(App::s_Event.button.button);
 		}
 		return;
 	// END OF MOUSE EVENTS
@@ -281,7 +280,7 @@ void App::EventHandler()
 		return;
 	// END OF KEYBOARD EVENTS
 	case SDL_QUIT:
-		s_IsRunning = false;
+		App::s_IsRunning = false;
 		return;
 	default:
 		return;
@@ -293,7 +292,7 @@ void App::Update()
 	if (IsGamePaused())
 		return;
 
-	if (!s_CameraMovement.move.IsEqualZero())
+	if (!App::s_CameraMovement.move.IsEqualZero())
 	{
 		UpdateCamera();
 	}
@@ -333,19 +332,19 @@ void App::HandleWindowEvent()
 {
 	static uint32_t windowMinimizedTicks = 0u;
 
-	switch (s_Event.window.event)
+	switch (App::s_Event.window.event)
 	{
 	case SDL_WINDOWEVENT_SIZE_CHANGED:
 		OnResolutionChange();
 		return;
 	case SDL_WINDOWEVENT_MINIMIZED:
 		windowMinimizedTicks = SDL_GetTicks();
-		s_IsWindowMinimized = true;
+		App::s_IsWindowMinimized = true;
 		return;
 	case SDL_WINDOWEVENT_RESTORED:
 		g_PausedTicks += SDL_GetTicks() - windowMinimizedTicks;
 		windowMinimizedTicks = 0u;
-		s_IsWindowMinimized = false;
+		App::s_IsWindowMinimized = false;
 		return;
 	default:
 		return;
@@ -360,15 +359,9 @@ void App::HandleKeyboardEvent()
 		SwitchCameraMode();
 		return;
 	case SDLK_TAB: // move the camera to the primary point (base)
-	{
-		const Vector2D &basePos = s_CurrentLevel->GetBase()->m_Pos;
-
-		s_Camera.x = basePos.x - s_Camera.w / 2.0f;
-		s_Camera.y = basePos.y - s_Camera.h / 2.0f;
-
+		ResetCameraPos();
 		UpdateCamera();
-	}
-	return;
+		return;
 	// Function keys
 	case SDLK_F1: // resolution 800x600
 		SDL_SetWindowSize(m_Window, 800, 600);
@@ -386,18 +379,18 @@ void App::HandleKeyboardEvent()
 	{
 		static std::string_view debugSpeedName;
 
-		switch (s_Speedy)
+		switch (App::s_Speedy)
 		{
 		case EnemyDebugSpeed::none:
-			s_Speedy = EnemyDebugSpeed::faster;
+			App::s_Speedy = EnemyDebugSpeed::faster;
 			debugSpeedName = "EnemyDebugSpeed::faster";
 			break;
 		case EnemyDebugSpeed::faster:
-			s_Speedy = EnemyDebugSpeed::stay;
+			App::s_Speedy = EnemyDebugSpeed::stay;
 			debugSpeedName = "EnemyDebugSpeed::stay";
 			break;
 		case EnemyDebugSpeed::stay:
-			s_Speedy = EnemyDebugSpeed::none;
+			App::s_Speedy = EnemyDebugSpeed::none;
 			debugSpeedName = "EnemyDebugSpeed::none";
 			break;
 		}
@@ -410,10 +403,10 @@ void App::HandleKeyboardEvent()
 			dynamic_cast<Enemy*>(e)->DebugSpeed();
 		}
 
-		s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
-		s_Logger.AddLog(debugSpeedName);
+		App::s_Logger.AddLog(std::string_view("Enemies' speed up: "), false);
+		App::s_Logger.AddLog(debugSpeedName);
 	}
-	return;
+		return;
 #endif
 	case SDLK_F5: // Add life
 		AddLifes();
@@ -447,7 +440,7 @@ void App::HandleKeyboardEvent()
 		return;
 		// End of function keys
 	case SDLK_ESCAPE:
-		s_IsRunning = false;
+		App::s_IsRunning = false;
 		return;
 	default:
 		return;
@@ -458,65 +451,62 @@ void App::UpdateCamera()
 {
 	CameraMovement::realVelocity = s_CameraMovement.move * App::s_ElapsedTime;
 
-	s_Camera.x += CameraMovement::realVelocity.x;
-	s_Camera.y += CameraMovement::realVelocity.y;
+	App::s_Camera.x += CameraMovement::realVelocity.x;
+	App::s_Camera.y += CameraMovement::realVelocity.y;
 
 	MakeCameraCorrect();
 
 	IF_DEBUG(
-		s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
-			s_MouseX,
-			s_MouseY,
-			static_cast<int32_t>(s_Camera.x) + s_MouseX,
-			static_cast<int32_t>(s_Camera.y) + s_MouseY,
-			s_Building.coordinates.x,
-			s_Building.coordinates.y)
+		App::s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
+			App::s_MouseX,
+			App::s_MouseY,
+			static_cast<int32_t>(App::s_Camera.x) + App::s_MouseX,
+			static_cast<int32_t>(App::s_Camera.y) + App::s_MouseY,
+			App::s_Building.coordinates.x,
+			App::s_Building.coordinates.y)
 		);
-	)
+	);
 
-	s_CurrentLevel->OnUpdateCamera();
+	App::s_CurrentLevel->OnUpdateCamera();
 
 	CameraMovement::realVelocity.Zero();
 }
 
 void App::OnResolutionChange()
 {
-	SDL_GetRendererOutputSize(s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
+	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
 	IF_DEBUG(
-		s_PointedPosition->UpdatePos(0, App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h);
+		App::s_PointedPosition->UpdatePos(0, App::WINDOW_HEIGHT - App::s_PointedPosition->GetRect().h);
 	);
 
-	if (s_UIState == UIState::mainMenu)
+	if (App::s_UIState == UIState::mainMenu)
 	{
-		s_MainMenu.OnResolutionChange();
+		App::s_MainMenu.OnResolutionChange();
 		return;
 	}
 
-	m_PauseLabel.UpdatePos(m_PauseLabel.GetRect().x + App::WINDOW_WIDTH - static_cast<int32_t>(s_Camera.w), 10);
+	m_PauseLabel.UpdatePos(m_PauseLabel.GetRect().x + App::WINDOW_WIDTH - static_cast<int32_t>(App::s_Camera.w), 10);
 
-	if (static_cast<float>(App::WINDOW_WIDTH) > s_Camera.w)
-		s_Camera.x -= static_cast<float>(App::WINDOW_WIDTH) - s_Camera.w;
-	else if (static_cast<float>(App::WINDOW_WIDTH) < s_Camera.w)
-		s_Camera.x += s_Camera.w - static_cast<float>(App::WINDOW_WIDTH);
+	if (static_cast<float>(App::WINDOW_WIDTH) > App::s_Camera.w)
+		App::s_Camera.x -= static_cast<float>(App::WINDOW_WIDTH) - App::s_Camera.w;
+	else if (static_cast<float>(App::WINDOW_WIDTH) < App::s_Camera.w)
+		App::s_Camera.x += App::s_Camera.w - static_cast<float>(App::WINDOW_WIDTH);
 
-	if (static_cast<float>(App::WINDOW_HEIGHT) > s_Camera.h)
-		s_Camera.y -= static_cast<float>(App::WINDOW_HEIGHT) - s_Camera.h;
-	else if (static_cast<float>(App::WINDOW_HEIGHT) < s_Camera.h)
-		s_Camera.y += s_Camera.h - static_cast<float>(App::WINDOW_HEIGHT);
+	if (static_cast<float>(App::WINDOW_HEIGHT) > App::s_Camera.h)
+		App::s_Camera.y -= static_cast<float>(App::WINDOW_HEIGHT) - App::s_Camera.h;
+	else if (static_cast<float>(App::WINDOW_HEIGHT) < App::s_Camera.h)
+		App::s_Camera.y += App::s_Camera.h - static_cast<float>(App::WINDOW_HEIGHT);
 
-	s_Camera.w = static_cast<float>(App::WINDOW_WIDTH);
-	s_Camera.h = static_cast<float>(App::WINDOW_HEIGHT);
+	App::s_Camera.w = static_cast<float>(App::WINDOW_WIDTH);
+	App::s_Camera.h = static_cast<float>(App::WINDOW_HEIGHT);
 
-	s_CameraMovement.border = {
-		static_cast<float>(App::s_CurrentLevel->m_MapData[3]) - s_Camera.w,
-		static_cast<float>(App::s_CurrentLevel->m_MapData[4]) - s_Camera.h
-	};
-	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
-	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
+	App::SetCameraBorder();
+	App::s_CameraMovement.rangeW = static_cast<int32_t>(App::s_Camera.w / 6.0f);
+	App::s_CameraMovement.rangeH = static_cast<int32_t>(App::s_Camera.h / 6.0f);
 
 	MakeCameraCorrect();
-	s_CurrentLevel->OnUpdateCamera();
+	App::s_CurrentLevel->OnUpdateCamera();
 }
 
 void App::SetUIState(UIState state)
@@ -543,7 +533,7 @@ void App::SetUIState(UIState state)
 		startPausedTicks = 0u; // Assign 0 to startPausedTicks, so next time it'll be possible to say is it already counting ticks
 	}
 
-	m_PauseLabel.m_Drawable = IsGamePaused(state);
+	m_PauseLabel.m_IsDrawable = IsGamePaused(state);
 
 	switch (state)
 	{
@@ -561,21 +551,17 @@ void App::SetUIState(UIState state)
 void App::LoadLevel()
 {
 	Layer::s_MapWidth = App::s_CurrentLevel->m_MapData[0];
-	App::s_CameraMovement.border.x = static_cast<float>(App::s_CurrentLevel->m_MapData[3]) - App::s_Camera.w;
-	App::s_CameraMovement.border.y = static_cast<float>(App::s_CurrentLevel->m_MapData[4]) - App::s_Camera.h;
+	App::SetCameraBorder();
 
 	App::s_Building.buildingPlace.InitSpecialTile();
 
 	App::s_CurrentLevel->Init();
 
-	const Vector2D &basePos = App::s_CurrentLevel->GetBase()->m_Pos;
-
-	App::s_Camera.x = basePos.x - App::s_Camera.w / 2.0f;
-	App::s_Camera.y = basePos.y - App::s_Camera.h / 2.0f;
+	App::ResetCameraPos();
 
 	App::Instance().SetCoins(15u);
 
-	App::s_Logger.AddLog(std::format("Loaded level {}", s_CurrentLevel->GetID() + 1));
+	App::s_Logger.AddLog(std::format("Loaded level {}", App::s_CurrentLevel->GetID() + 1));
 }
 
 void App::SwitchBuildingState(UIState newState)
@@ -697,7 +683,7 @@ void App::ManageBuildingState() const
 
 uint16_t App::GetDamageOf(ProjectileType type)
 {
-	uint16_t minDmg = 0, maxDmg = 0;
+	static uint16_t minDmg = 0, maxDmg = 0;
 	static std::uniform_int_distribution<uint16_t> dmg(minDmg, maxDmg);
 
 	switch (type)
@@ -707,11 +693,15 @@ uint16_t App::GetDamageOf(ProjectileType type)
 			maxDmg = 30;
 			break;
 		case ProjectileType::thunder:
-			minDmg = 15;
-			maxDmg = 25;
+			minDmg = 11;
+			maxDmg = 16;
 			break;
 	}
 	
-	dmg.param(std::uniform_int_distribution<uint16_t>::param_type(minDmg, maxDmg));
+	if (minDmg != dmg.a() || maxDmg != dmg.b())
+	{
+		dmg.param(std::uniform_int_distribution<uint16_t>::param_type(minDmg, maxDmg));
+	}
+
 	return dmg(g_Rng);
 }

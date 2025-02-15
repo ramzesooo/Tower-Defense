@@ -54,8 +54,10 @@ public:
 
 	void PlayAnim(std::string_view animID);
 
-	Vector2D GetPos() const override { return m_Pos; }
-	Vector2D GetScaledPos() const { return m_ScaledPos; }
+	//Vector2D GetPos() const override { return m_Pos; }
+	const Vector2D &GetPos() const { return m_Pos; }
+	//Vector2D GetScaledPos() const { return m_ScaledPos; }
+	const Vector2D &GetScaledPos() const { return m_ScaledPos; }
 	const SDL_Rect &GetRect() const { return destRect; }
 
 	// Vector2D destination is a difference between current position and next tile
@@ -91,6 +93,9 @@ public:
 private:
 	IF_DEBUG(EnemyDebugSpeed m_Speedy = EnemyDebugSpeed::none;);
 	IF_DEBUG(float m_MovementDebugSpeed = 1.4f;);
+
+	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
+
 	float m_MovementSpeed = 1.4f;
 	SDL_Texture *m_Texture = nullptr;
 	EnemyType m_Type = EnemyType::elf;
@@ -105,7 +110,6 @@ private:
 	std::vector<Vector2D> m_Path;
 	std::size_t m_MoveCount = 0;
 
-	SDL_Rect srcRect{ 0, 0, 32, 32 }, destRect{ 0, 0, 32, 32 };
 	uint16_t m_Scale = 1;
 
 	Tile *m_OccupiedTile = nullptr;

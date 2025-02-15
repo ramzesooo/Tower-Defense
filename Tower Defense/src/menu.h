@@ -12,7 +12,6 @@ enum class MenuState
 	levels
 };
 
-// Menu is initialized in App::App()
 class MainMenu
 {
 public:
@@ -41,4 +40,10 @@ public:
 
 	void OnCursorMove();
 	void OnResolutionChange();
+
+	void SetHoveredButton(Button *button);
+
+	void LoadLevel() const;
+
+	[[nodiscard]] const bool IsMousePointingAt(const Button &button) const;
 };

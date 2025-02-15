@@ -20,6 +20,7 @@ struct AssetData
 
 static constexpr AssetData texturesToLoad[]
 {
+	//{ "id",						"path" }
 	{ "mapSheet",					"tileset.png" },
 	{ "szpaku",						"szpaku.jpg" },
 
@@ -79,6 +80,7 @@ struct FontData
 
 static constexpr FontData fontsToLoad[]
 {
+	//{ "id",			"path",					fontSize }
 	{ "default",		"F25_Bank_Printer.ttf",	15u },
 	{ "enemyHealth",	"Rostack.otf",			13u }
 };
@@ -89,6 +91,7 @@ static constexpr FontData fontsToLoad[]
 
 static constexpr AssetData soundsToLoad[]
 {
+	//{ "id",			"path" },
 	{ "hoverButton",	"hover_button.wav" },
 	{ "selectButton",	"select_button.wav" },
 	{ "thunderAttack",	"thunder_attack.wav" },
@@ -135,7 +138,7 @@ void TextureManager::LoadAssets() // Initialize
 
 	for (const auto &[id, path] : soundsToLoad)
 	{
-		LoadSound(std::string(id), (soundPathEntry + std::string(path)).c_str());
+		AddSound(std::string(id), (soundPathEntry + std::string(path)).c_str());
 	}
 }
 
@@ -228,7 +231,7 @@ TTF_Font* TextureManager::GetFont(std::string_view fontID) const
 
 // SOUNDS
 
-void TextureManager::LoadSound(const std::string &soundID, const char *path)
+void TextureManager::AddSound(const std::string &soundID, const char *path)
 {
 	Mix_Chunk *sound = Mix_LoadWAV(path);
 	if (!sound)
