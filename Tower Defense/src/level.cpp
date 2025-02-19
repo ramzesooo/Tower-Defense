@@ -406,7 +406,7 @@ void Level::Clear()
 void Level::Lost()
 {
 	m_Base.m_Lifes = 0u;
-	m_Base.m_IsActive = false;
+	SetBaseActive(false);
 	Clear();
 
 	App::Instance().SetUIState(UIState::mainMenu);

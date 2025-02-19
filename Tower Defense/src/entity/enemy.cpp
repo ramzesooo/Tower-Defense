@@ -407,10 +407,8 @@ void Enemy::OnHit(uint16_t dmg)
 	const SDL_Rect &rect = newTakenDamage.label.GetRect();
 	newTakenDamage.label.UpdatePos(rect.x - rect.w / 2, rect.y);
 
-	auto ticks = SDL_GetTicks() - g_PausedTicks;
-
-	newTakenDamage.lifespanTicks = ticks + newTakenDamage.lifespan;
-	newTakenDamage.updateTicks = ticks;
+	newTakenDamage.updateTicks = SDL_GetTicks() - g_PausedTicks;
+	newTakenDamage.lifespanTicks = newTakenDamage.updateTicks + newTakenDamage.lifespan;
 
 	m_TakenDamages.emplace_back(newTakenDamage);
 

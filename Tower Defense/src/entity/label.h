@@ -58,8 +58,8 @@ public:
 	void SetAlpha(uint8_t alpha) { m_Alpha = alpha; }
 
 	const SDL_Rect &GetRect() const { return destRect; }
-	const std::string &GetText() const { return m_Text; }
-	const SDL_Color& GetColor() const { return m_Color; }
+	const std::string& GetText() const { return m_Text; }
+	const SDL_Color &GetColor() const { return m_Color; }
 private:
 	const uint32_t m_VanishDelay = NULL;
 	const double m_DelayPerAlphaUnit = NULL;

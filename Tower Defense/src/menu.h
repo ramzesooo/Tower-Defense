@@ -3,8 +3,6 @@
 
 #include <array>
 
-class App;
-
 enum class MenuState
 {
 	primary = 0,
@@ -34,13 +32,17 @@ public:
 	void Render();
 
 	void HandleMouseButtonEvent();
+
+private:
 	void HandleTitleButtons(); // Primary
 	void HandleOptionsButtons(); // Options
 	void HandleLevelsButtons(); // Levels
 
+public:
 	void OnCursorMove();
 	void OnResolutionChange();
 
+private:
 	void SetHoveredButton(Button *button);
 
 	void LoadLevel() const;

@@ -252,8 +252,7 @@ void MainMenu::HandleLevelsButtons()
 		break;
 	}
 
-	auto centerY = App::WINDOW_HEIGHT / 2;
-	m_ReturnButton.destRect.y = centerY - m_ReturnButton.destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
+	m_ReturnButton.destRect.y = (App::WINDOW_HEIGHT / 2) - (m_ReturnButton.destRect.h / 2) + (static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons);
 	m_ReturnButton.m_Label.UpdateText(quitText);
 	const SDL_Rect &labelRect = m_ReturnButton.m_Label.GetRect();
 	m_ReturnButton.m_Label.UpdatePos((m_ReturnButton.destRect.x + m_ReturnButton.destRect.w / 2) - labelRect.w / 2,
@@ -388,7 +387,7 @@ void MainMenu::OnResolutionChange()
 
 void MainMenu::SetHoveredButton(Button *button)
 {
-	static Mix_Chunk* hoverSound = App::s_Textures.GetSound("hoverButton");
+	static Mix_Chunk *hoverSound = App::s_Textures.GetSound("hoverButton");
 
 	if (m_HoveredButton)
 	{
@@ -412,7 +411,7 @@ void MainMenu::LoadLevel() const
 	App::Instance().UpdateCamera();
 }
 
-const bool MainMenu::IsMousePointingAt(const Button& button) const
+const bool MainMenu::IsMousePointingAt(const Button &button) const
 {
 	const SDL_Rect &destRect = button.destRect;
 

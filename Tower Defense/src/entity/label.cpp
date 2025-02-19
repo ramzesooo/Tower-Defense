@@ -67,6 +67,8 @@ Label::~Label()
 		SDL_DestroyTexture(m_Texture);
 		m_Texture = nullptr;
 	}
+
+	Destroy();
 }
 
 void Label::Destroy()

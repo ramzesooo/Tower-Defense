@@ -152,7 +152,7 @@ public:
 	[[nodiscard]] uint16_t GetID() const { return m_LevelID; }
 
 	[[nodiscard]] Base *GetBase() { return &m_Base; }
-	void SetBaseActive(bool active) { m_Base.m_IsActive = true; }
+	void SetBaseActive(bool active) { m_Base.m_IsActive = active; }
 	[[nodiscard]] const bool IsBaseActive() const { return m_Base.m_IsActive; }
 	[[nodiscard]] uint16_t GetBaseCurrentLifes() const { return m_Base.m_Lifes; }
 

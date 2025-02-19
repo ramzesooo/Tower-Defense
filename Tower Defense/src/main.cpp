@@ -69,6 +69,7 @@ int main(int argc, char** arg)
 	tp1 = tp2;
 
 	IF_DEBUG(uint32_t frames = 0;);
+	IF_DEBUG(SDL_Window *window = SDL_RenderGetWindow(App::s_Renderer););
 
 	while (app.IsRunning())
 	{
@@ -83,7 +84,7 @@ int main(int argc, char** arg)
 
 			if (SDL_GetTicks() >= logsTime)
 			{
-				SDL_SetWindowTitle(SDL_RenderGetWindow(App::s_Renderer), std::format("Tower Defense (FPS: {})", frames).c_str());
+				SDL_SetWindowTitle(window, std::format("Tower Defense (FPS: {})", frames).c_str());
 				logsTime = SDL_GetTicks() + logsCooldown;
 				frames = 0u;
 				App::s_Logger.PrintQueuedLogs();
