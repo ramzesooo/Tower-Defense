@@ -13,19 +13,19 @@ class Label
 public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_IsDrawable = true;
-
+public:
 	Label() : m_OnStack(true), m_VanishDelay(NULL), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(NULL) {}
 	Label(uint32_t vanishable) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(vanishable / 255.0) {}
-	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr);
-	Label(const Label &r) : m_AttachedTo(r.m_AttachedTo), m_Text(r.m_Text), m_Font(r.m_Font), m_Texture(r.m_Texture), destRect(r.destRect),
-		m_Color(r.m_Color)
-	{}
+	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr, bool toCopy = false);
+	Label(const Label& other);
 	~Label();
 
 	Label &operator=(const Label &other);
 
 	void Destroy();
-
+private:
+	[[nodiscard]] bool MakeTextureFromText();
+public:
 	void Draw();
 
 	void UpdateText(const std::string &text);
@@ -60,6 +60,7 @@ public:
 	const SDL_Rect &GetRect() const { return destRect; }
 	const std::string& GetText() const { return m_Text; }
 	const SDL_Color &GetColor() const { return m_Color; }
+	[[nodiscard]] constexpr bool IsVanishable() const { return m_VanishDelay > 0; }
 private:
 	const uint32_t m_VanishDelay = NULL;
 	const double m_DelayPerAlphaUnit = NULL;

@@ -38,7 +38,7 @@ public:
 	void Destroy() override;
 
 	virtual void Update() override { m_Attacker->Update(); };
-	virtual void Draw() override;
+	virtual void Draw() const override;
 	inline void DrawHighlight() const
 	{
 		for (const auto &tile : m_TilesInRange)

@@ -322,19 +322,21 @@ public:
 		ManageCameraY();
 	}
 
+	[[nodiscard]] inline uint16_t GetCoins() const { return m_Coins; }
+
 	inline void SetCoins(uint16_t coins, bool notify = false)
 	{
 		m_Coins = coins;
 
-		if (notify)
+		UpdateCoins();
+
+		if (!notify)
 		{
-			App::s_UICoinsNotification.UpdateText(std::format("={}", coins));
-			UpdateCoins();
+			return;
 		}
-		else
-		{
-			App::s_UIElements[1].m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
-		}
+
+		App::s_UICoinsNotification.UpdateText(std::format("={}", coins));
+		App::s_UICoinsNotification.ResetAlpha();
 	}
 
 	// Arg is not required, adds 1 by default
@@ -345,6 +347,7 @@ public:
 
 		m_Coins += coins;
 		App::s_UICoinsNotification.UpdateText(std::format("+{}", coins));
+		App::s_UICoinsNotification.ResetAlpha();
 		UpdateCoins();
 	}
 
@@ -360,6 +363,7 @@ public:
 			m_Coins -= coins;
 
 		App::s_UICoinsNotification.UpdateText(std::format("-{}", coins));
+		App::s_UICoinsNotification.ResetAlpha();
 		UpdateCoins();
 	}
 
@@ -377,11 +381,11 @@ public:
 	// Arg is not required, adds 1 by default
 	static inline void AddLifes(uint16_t lifes = 1)
 	{ 
-		if (lifes == 0 || !s_CurrentLevel->IsBaseActive())
+		if (lifes == 0 || !App::s_CurrentLevel->IsBaseActive())
 			return;
 
-		s_CurrentLevel->GetBase()->m_Lifes += lifes;
-		App::s_UIElements[2].m_Label.UpdateText(std::to_string(s_CurrentLevel->GetBase()->m_Lifes));
+		App::s_CurrentLevel->GetBase()->m_Lifes += lifes;
+		App::s_UIElements[2].m_Label.UpdateText(std::to_string(App::s_CurrentLevel->GetBase()->m_Lifes));
 	}
 
 	// Arg is not required, takes 1 by default
@@ -421,7 +425,6 @@ public:
 	static inline void UpdateCoins()
 	{
 		App::s_UIElements[1].m_Label.UpdateText(std::to_string(App::Instance().m_Coins));
-		App::s_UICoinsNotification.ResetAlpha();
 	}
 
 	static inline void SetCantBuild()

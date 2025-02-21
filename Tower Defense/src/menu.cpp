@@ -44,7 +44,7 @@ void MainMenu::Init()
 		btn->destRect.h = App::WINDOW_HEIGHT / 14;
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + static_cast<int32_t>(m_PrimaryButtons.size()) * MainMenu::s_GapBetweenButtons;
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Quit", defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Quit", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -63,7 +63,7 @@ void MainMenu::Init()
 	// Button "Play"
 	{
 		btn = &m_PrimaryButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Play", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -71,7 +71,7 @@ void MainMenu::Init()
 	// Button "Options"
 	{
 		btn = &m_PrimaryButtons.at(1);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "Options", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -90,7 +90,7 @@ void MainMenu::Init()
 	// Button "V-Sync"
 	{
 		btn = &m_OptionsButtons.at(0);
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "V-Sync", defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, "V-Sync", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 
@@ -108,7 +108,7 @@ void MainMenu::Init()
 		btn->destRect.x = centerX - btn->destRect.w / 2;
 		btn->destRect.y = centerY - btn->destRect.h / 2 + (static_cast<int32_t>(i) - 1) * MainMenu::s_GapBetweenButtons;
 
-		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, std::format("Level #{}", i + 1), defaultFont);
+		btn->m_Label = Label(btn->destRect.x + btn->destRect.w / 2, btn->destRect.y + btn->destRect.h / 4, std::format("Level #{}", i + 1), defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = btn->m_Label.GetRect();
 		btn->m_Label.UpdatePos(labelRect.x - labelRect.w / 2, labelRect.y);
 	}
@@ -392,6 +392,12 @@ void MainMenu::SetHoveredButton(Button *button)
 	if (m_HoveredButton)
 	{
 		m_HoveredButton->m_IsHovered = false;
+	}
+
+	if (!button)
+	{
+		m_HoveredButton = nullptr;
+		return;
 	}
 
 	button->m_IsHovered = true;

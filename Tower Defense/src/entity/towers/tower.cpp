@@ -107,7 +107,7 @@ void Tower::Destroy()
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
-void Tower::Draw()
+void Tower::Draw() const
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 

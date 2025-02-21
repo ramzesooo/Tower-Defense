@@ -15,6 +15,20 @@ IF_DEBUG(extern std::vector<Entity*> &g_Enemies;);
 
 SDL_Texture *Enemy::s_ArrowTexture = nullptr;
 
+DamageInfo::DamageInfo(const SDL_Rect& enemyHP, uint32_t dmg, uint32_t currentTicks)
+	: updateTicks(currentTicks), lifespanTicks(currentTicks + DamageInfo::lifespan)
+{
+	static TTF_Font* defaultFont = App::s_Textures.GetFont("default");
+	static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
+
+	this->label = Label(static_cast<int32_t>(enemyHP.x), static_cast<int32_t>(enemyHP.y), std::format("-{}", dmg), defaultFont, takenDamageColor, nullptr, true);
+	const SDL_Rect& rect = this->label.GetRect();
+	this->label.UpdatePos(rect.x - rect.w / 2, rect.y);
+
+	//this->updateTicks = SDL_GetTicks() - g_PausedTicks;
+	//this->lifespanTicks = this->updateTicks + this->lifespan;
+}
+
 Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
 	: m_Pos(posX, posY), m_Type(type), m_Texture(App::s_Textures.GetTextureOf(type)), m_Scale(scale), m_Destination(m_Pos),
 	m_ScaledPos(m_Pos * App::s_CurrentLevel->m_ScaledTileSize)
@@ -78,15 +92,19 @@ Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
 
 	PlayAnim("Idle");
 
-	m_RectHP.labelHP = Label(0, 0, "-0", healthFont, SDL_Color(255, 255, 255, 255), this);
+	m_RectHP.labelHP = Label(0, 0, "-0", healthFont, SDL_Color(255, 255, 255, 255), this, true);
 
 	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 
 	m_RectHP.barRect = m_RectHP.squareRect;
 	m_RectHP.barRect.w = std::fabsf(m_RectHP.squareRect.w / 100.0f * (-m_HPPercent));
 
-	Vector2D HPPos(m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f), m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f));
-	m_RectHP.labelHP.UpdatePos(HPPos);
+	m_RectHP.labelHP.UpdatePos(
+		{
+			m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f),
+			m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f)
+		}
+	);
 	m_RectHP.labelHP.UpdateText(std::format("{}%", m_HPPercent));
 }
 
@@ -125,11 +143,28 @@ void Enemy::Destroy()
 
 void Enemy::Update()
 {
-	IF_DEBUG(
-		if (m_Speedy == EnemyDebugSpeed::stay)
-			return;
-	);
+#ifdef DEBUG
+	if (m_Speedy != EnemyDebugSpeed::stay)
+	{
+		// Check if the enemy has stopped
+		if (m_Velocity.IsEqualZero())
+		{
+			// Check if the enemy has already done its last step (has reached destination) and destroy it if true
+			if (m_MoveCount == m_Path.size())
+			{
+				Destroy();
+				App::TakeLifes();
+				return;
+			}
 
+			// Look for next step to destination if not reached
+			Move();
+			m_MoveCount++;
+		}
+
+		UpdateMovement();
+	}
+#else
 	// Check if the enemy has stopped
 	if (m_Velocity.IsEqualZero())
 	{
@@ -147,10 +182,13 @@ void Enemy::Update()
 	}
 
 	UpdateMovement();
+#endif
 
 	// Animation
 	srcRect.x = srcRect.w * static_cast<int32_t>((SDL_GetTicks() / m_CurrentAnim.speed) % m_CurrentAnim.frames);
 	srcRect.y = m_CurrentAnim.index * Enemy::s_EnemyHeight;
+
+	bool erasedDmgInfo = false;
 
 	// Iterate through all info about damage associated with the enemy
 	for (auto it = m_TakenDamages.begin(); it != m_TakenDamages.end();)
@@ -162,6 +200,7 @@ void Enemy::Update()
 		{
 			// Erase from vector and skip the rest
 			it = m_TakenDamages.erase(it);
+			erasedDmgInfo = true;
 			continue;
 		}
 
@@ -176,6 +215,11 @@ void Enemy::Update()
 		(*it).label.UpdatePos(rect.x - rect.w / 2, rect.y + (*it).updatedPosY);
 
 		it++;
+	}
+
+	if (erasedDmgInfo)
+	{
+		m_TakenDamages.shrink_to_fit();
 	}
 }
 
@@ -366,11 +410,12 @@ void Enemy::UpdateHealthBar()
 	//m_RectHP.barRect.x = m_RectHP.squareRect.x;
 	//m_RectHP.barRect.y = m_RectHP.squareRect.y;
 	m_RectHP.barRect.w = std::fabsf(m_RectHP.onePercent * (-m_HPPercent));
-
+	
 	m_RectHP.labelHP.UpdatePos(
 		m_RectHP.barRect.x + (m_RectHP.squareRect.w / 3.0f),
 		m_RectHP.barRect.y + (m_RectHP.squareRect.h / 6.0f)
 	);
+	
 }
 
 void Enemy::AdjustToView()
@@ -385,8 +430,8 @@ void Enemy::AdjustToView()
 
 void Enemy::OnHit(uint16_t dmg)
 {
-	static TTF_Font* defaultFont = App::s_Textures.GetFont("default");
-	static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
+	//static TTF_Font* defaultFont = App::s_Textures.GetFont("default");
+	//static constexpr SDL_Color takenDamageColor{ 255, 50, 50, 255 };
 
 	if (m_HP <= dmg)
 	{
@@ -399,6 +444,7 @@ void Enemy::OnHit(uint16_t dmg)
 
 	m_HP -= dmg;
 
+	/*
 	const SDL_Rect &labelRect = m_RectHP.labelHP.GetRect();
 
 	DamageInfo newTakenDamage;
@@ -411,6 +457,10 @@ void Enemy::OnHit(uint16_t dmg)
 	newTakenDamage.lifespanTicks = newTakenDamage.updateTicks + newTakenDamage.lifespan;
 
 	m_TakenDamages.emplace_back(newTakenDamage);
+	*/
+
+	m_TakenDamages.reserve(m_TakenDamages.size() + 1);
+	m_TakenDamages.emplace_back(m_RectHP.labelHP.GetRect(), dmg, SDL_GetTicks() - g_PausedTicks);
 
 	m_HPPercent = std::ceilf(static_cast<float>(m_HP) / static_cast<float>(m_MaxHP) * 100.0f);
 	
@@ -419,6 +469,7 @@ void Enemy::OnHit(uint16_t dmg)
 	UpdateHealthBar();
 }
 
+/*
 void Enemy::ValidAttacker()
 {
 	if (!m_IsActive)
@@ -444,6 +495,7 @@ void Enemy::ValidAttacker()
 		}
 	}
 }
+*/
 
 bool Enemy::IsTowerInRange(Tower *tower) const
 {

@@ -11,7 +11,7 @@ public:
 
 	ClassicTower &operator=(const ClassicTower &) = delete;
 
-	void Draw() override;
+	void Draw() const override;
 
 	void Upgrade() override;
 

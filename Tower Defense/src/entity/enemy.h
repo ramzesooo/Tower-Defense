@@ -14,16 +14,21 @@
 #include <vector>
 #include <unordered_map>
 #include <string_view>
+#include <memory>
 
 class Tower;
 class Attacker;
 
-struct DamageInfo
+class DamageInfo
 {
 public:
 	static constexpr uint32_t lifespan = 1100u;
 	static constexpr uint32_t updatePosTime = 40u;
-
+public:
+	DamageInfo() = delete;
+	DamageInfo(const SDL_Rect &enemyHP, uint32_t dmg, uint32_t currentTicks);
+	~DamageInfo() = default;
+public:
 	Label label;
 	uint32_t lifespanTicks;
 	uint32_t updateTicks;
@@ -77,7 +82,7 @@ public:
 
 	// Verifies all possible attackers and forces them to attack the enemy if they should
 	// Or stops them from attacking if they are out of range
-	void ValidAttacker();
+	//void ValidAttacker();
 
 	// Returns true if specific tower has been found in forwarded range
 	// Range works in loop for every tower's tile

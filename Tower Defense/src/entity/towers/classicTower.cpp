@@ -18,7 +18,7 @@ ClassicTower::ClassicTower(float posX, float posY) : Tower(posX, posY, TowerType
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }
 
-void ClassicTower::Draw()
+void ClassicTower::Draw() const
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 
@@ -45,7 +45,7 @@ void ClassicTower::Upgrade()
 	m_SellPrice = (Level::GetBuildPrice(m_Type) / 2) * m_Tier;
 	m_UpgradePrice = static_cast<uint16_t>(std::ceilf(Level::GetBuildPrice(m_Type) / 3.0f)) * m_Tier;
 
-	if (!CanUpgrade())
+	if (!CanUpgrade() || App::Instance().GetCoins() < m_UpgradePrice)
 	{
 		App::SetCantBuild();
 		return;

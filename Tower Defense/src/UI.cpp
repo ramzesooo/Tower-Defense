@@ -43,7 +43,7 @@ void UIElement::InitUI()
 	{
 		auto &element = App::s_UIElements[i];
 		element.destRect = destRect;
-		element.m_Label = Label(destRect.x, destRect.y, element.m_DefaultText, font);
+		element.m_Label = Label(destRect.x, destRect.y, element.m_DefaultText, font, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 		const SDL_Rect &labelRect = element.m_Label.GetRect();
 		element.m_Label.UpdatePos(labelRect.x + (destRect.w / 2 - labelRect.w / 2), labelRect.y + (destRect.h / 2 - labelRect.h / 2));
 
@@ -51,7 +51,7 @@ void UIElement::InitUI()
 		{
 		case 1: // coins
 			UIElement::coinDestRect = { destRect.x + UIElement::coinRect.w, destRect.y + destRect.h / 4, UIElement::coinRect.w * 3, element.destRect.h / 2 };
-			App::s_UICoinsNotification = Label(labelRect.x + labelRect.w + labelRect.w / 2, labelRect.y, "+0", font);
+			App::s_UICoinsNotification = Label(labelRect.x + labelRect.w, labelRect.y, "+0", font, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 			App::s_UICoinsNotification.SetAlpha(0);
 			break;
 		case 2: // lifes

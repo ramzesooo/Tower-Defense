@@ -129,7 +129,7 @@ App::App()
 
 	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
-	m_PauseLabel = Label(static_cast<int32_t>(s_Camera.w) - 10, 10, "PAUSED", defaultFont);
+	m_PauseLabel = Label(static_cast<int32_t>(s_Camera.w) - 10, 10, "PAUSED", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 	m_PauseLabel.m_IsDrawable = false;
 
 	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
@@ -307,23 +307,23 @@ void App::Render()
 {
 	SDL_RenderClear(App::s_Renderer);
 
-	if (s_UIState == UIState::mainMenu)
+	if (App::s_UIState == UIState::mainMenu)
 	{
-		s_MainMenu.Render();
+		App::s_MainMenu.Render();
 	}
 	else
 	{
 		App::s_CurrentLevel->Render();
 
-		IF_DEBUG(s_EnemiesAmountLabel->Draw(););
+		IF_DEBUG(App::s_EnemiesAmountLabel->Draw(););
 
 		m_PauseLabel.Draw();
 
 		UIElement::DrawUI();
 	}
 
-	IF_DEBUG(s_FrameDelay->Draw(););
-	IF_DEBUG(s_PointedPosition->Draw(););
+	IF_DEBUG(App::s_FrameDelay->Draw(););
+	IF_DEBUG(App::s_PointedPosition->Draw(););
 
 	SDL_RenderPresent(App::s_Renderer);
 }
@@ -559,7 +559,7 @@ void App::LoadLevel()
 
 	App::ResetCameraPos();
 
-	App::Instance().SetCoins(15u);
+	App::Instance().SetCoins(15u, false);
 
 	App::s_Logger.AddLog(std::format("Loaded level {}", App::s_CurrentLevel->GetID() + 1));
 }
@@ -651,7 +651,7 @@ void App::ManageBuildingState() const
 	case UIState::upgrading:
 		{
 			Tower* tower = s_Building.pointedTile->GetTowerOccupying();
-			if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u) || !tower->CanUpgrade())
+			if (!tower || s_Building.pointedTile != tower->GetOccupiedTile(0u) || !tower->CanUpgrade() || m_Coins < tower->GetUpgradePrice())
 			{
 				App::SetCantBuild();
 				return;
