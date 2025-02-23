@@ -1,5 +1,4 @@
 #pragma once
-#include "../Vector2D.h"
 #include "label.h"
 
 #include <vector>
@@ -42,7 +41,7 @@ public:
 protected:
 	bool m_IsActive = true;
 private:
-	std::bitset<s_EntityGroupSize> m_GroupBitSet;
+	std::bitset<Entity::s_EntityGroupSize> m_GroupBitSet;
 };
 
 class Manager
@@ -117,6 +116,7 @@ public:
 		return dynamic_cast<T*>(m_Entities.back().get());
 	}
 	
+	/*
 	template<class... Args>
 	inline Label *NewLabel(Args&&... args)
 	{
@@ -138,6 +138,7 @@ public:
 			}
 		}
 	}
+	*/
 
 	inline void DestroyAllEntities()
 	{ 
@@ -175,7 +176,7 @@ public:
 		towers.shrink_to_fit();
 	}
 private:
-	std::vector<std::unique_ptr<Label>> m_Labels;
+	//std::vector<std::unique_ptr<Label>> m_Labels;
 	std::vector<std::unique_ptr<Entity>> m_Entities;
 	std::array<std::vector<Entity*>, Entity::s_EntityGroupSize> m_GroupedEntities;
 };

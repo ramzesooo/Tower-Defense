@@ -28,7 +28,7 @@ void Attacker::Destroy()
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
 
-void Attacker::Draw() const
+void Attacker::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }

@@ -24,7 +24,9 @@ int main(int argc, char** arg)
 	IF_DEBUG(
 		App::s_Logger.AddLog(std::string_view("DEBUG MODE"));
 		for (int i = 0; i < argc; i++)
+		{
 			App::s_Logger.AddLog(std::format("Arg: {}: {}", i, arg[i]));
+		}
 
 		{
 			SDL_version SDLVersion{};
@@ -59,6 +61,7 @@ int main(int argc, char** arg)
 	IF_DEBUG(App::s_Logger.ClearLogs(););
 
 	IF_DEBUG(uint32_t logsTime = SDL_GetTicks() + logsCooldown;);
+	//IF_NDEBUG(uint32_t logsTime = SDL_GetTicks() + logsCooldown;);
 
 	auto tp1 = std::chrono::system_clock::now();
 
@@ -69,7 +72,9 @@ int main(int argc, char** arg)
 	tp1 = tp2;
 
 	IF_DEBUG(uint32_t frames = 0;);
+	//IF_NDEBUG(uint32_t frames = 0;);
 	IF_DEBUG(SDL_Window *window = SDL_RenderGetWindow(App::s_Renderer););
+	//IF_NDEBUG(SDL_Window *window = SDL_RenderGetWindow(App::s_Renderer););
 
 	while (app.IsRunning())
 	{
@@ -90,9 +95,20 @@ int main(int argc, char** arg)
 				App::s_Logger.PrintQueuedLogs();
 				App::s_Logger.ClearLogs();
 
-				App::s_FrameDelay->UpdateText(std::format("{}{} ms", lastFrameTimeString, App::s_ElapsedTime * 1000.0f));
+				App::s_FrameDelay.UpdateText(std::format("{}{} ms", lastFrameTimeString, App::s_ElapsedTime * 1000.0f));
 			}
 		);
+
+		/*IF_NDEBUG(
+			frames++;
+
+			if (SDL_GetTicks() >= logsTime)
+			{
+				SDL_SetWindowTitle(window, std::format("Tower Defense (FPS: {})", frames).c_str());
+				logsTime = SDL_GetTicks() + 1000u;
+				frames = 0u;
+			}
+		);*/
 
 		app.EventHandler();
 		app.Update();

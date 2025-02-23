@@ -284,12 +284,12 @@ void Level::SetupLayer(std::ifstream &mapFile, uint16_t layerID)
 
 	// This code can be improved
 	std::string line;
-	std::vector<std::vector<int>> mapData;
+	std::vector<std::vector<int32_t>> mapData;
 
 	while (std::getline(mapFile, line))
 	{
 		std::istringstream ss(line);
-		std::vector<int> row;
+		std::vector<int32_t> row;
 		std::string value;
 
 		while (std::getline(ss, value, ','))
@@ -375,7 +375,7 @@ void Level::SetupBase()
 	int32_t scaledPosX = static_cast<int32_t>(m_BasePos.x) * m_ScaledTileSize;
 	int32_t scaledPosY = static_cast<int32_t>(m_BasePos.y) * m_ScaledTileSize;
 	m_Base.m_Texture = App::s_Textures.GetTexture(m_BaseTextureID);
-	m_Base.destRect = { scaledPosX, scaledPosY, Base::srcRect.w * 2, Base::srcRect.h * 2 };
+	m_Base.destRect = { scaledPosX, scaledPosY, m_ScaledTileSize, m_ScaledTileSize };
 	m_Base.m_Pos = { static_cast<float>(scaledPosX), static_cast<float>(scaledPosY) };
 	m_Base.m_MaxLifes = m_Base.m_Lifes = 5u;
 	m_Base.m_Tile = GetTileFrom(m_BasePos.x, m_BasePos.y, 0);
@@ -678,7 +678,7 @@ void Level::InitWave()
 
 	enemy->AddToGroup(EntityGroup::enemy);
 
-	IF_DEBUG(App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size())););
+	IF_DEBUG(App::s_EnemiesAmountLabel.UpdateText(std::format("Enemies: {}", g_Enemies.size())););
 
 	// Check whether X is more expensive for enemy's movement than Y
 	// Basically if there is more difference between enemy's X and base's X than in Y-axis,

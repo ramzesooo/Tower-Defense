@@ -168,6 +168,12 @@ public:
 		y = std::truncf(y);
 	}
 
+	inline void Fabsf()
+	{
+		x = std::fabsf(x);
+		y = std::fabsf(y);
+	}
+
 	inline bool IsEqualZero() const
 	{
 		return x == 0.0f && y == 0.0f;

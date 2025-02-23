@@ -8,17 +8,12 @@ ClassicTower::ClassicTower(float posX, float posY) : Tower(posX, posY, TowerType
 {
 	static constexpr AttackerType attackerType = AttackerType::archer;
 
-	//m_ImageSize = { 144, 64 };
-	//srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / 3);
-	//srcRect.x = srcRect.y = 0;
 	srcRect.w = m_ImageSize[0] / m_MaxTier;
-	//srcRect.h = 64;
-	//srcRect.h = m_ImageSize[1];
 
 	App::s_CurrentLevel->AddAttacker(this, attackerType);
 }
 
-void ClassicTower::Draw() const
+void ClassicTower::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 
@@ -28,7 +23,7 @@ void ClassicTower::Draw() const
 void ClassicTower::Upgrade()
 {
 	m_Tier++;
-	srcRect.x = (m_Tier - 1) * (m_ImageSize[0] / m_MaxTier);
+	srcRect.x = (m_Tier - 1) * srcRect.w;
 
 	if (m_Attacker)
 	{

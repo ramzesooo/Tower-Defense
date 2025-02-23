@@ -32,7 +32,7 @@ public:
 	void Destroy() override;
 
 	virtual void Update() override = 0;
-	virtual void Draw() const override;
+	virtual void Draw() override;
 
 	virtual void AdjustToView() override;
 

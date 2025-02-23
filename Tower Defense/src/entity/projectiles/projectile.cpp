@@ -19,26 +19,3 @@ void Projectile::Destroy()
 
 	App::s_Manager.m_EntitiesToDestroy = true;
 }
-
-void Projectile::Update()
-{
-	if (!m_Owner || !m_Target)
-	{
-		Destroy();
-		return;
-	}
-}
-
-void Projectile::Draw()
-{
-	TextureManager::DrawTextureF(m_Texture, srcRect, destRect, m_Angle, SDL_FLIP_NONE);
-}
-
-void Projectile::AdjustToView()
-{
-	if (m_Type == ProjectileType::thunder)
-	{
-		destRect.x -= CameraMovement::realVelocity.x;
-		destRect.y -= CameraMovement::realVelocity.y;
-	}
-}

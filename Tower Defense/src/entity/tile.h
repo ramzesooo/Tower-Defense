@@ -54,7 +54,7 @@ public:
 	int32_t GetWidth() const { return destRect.w; }
 	int32_t GetHeight() const { return destRect.h; }
 
-	Entity* GetOccupyingEntity() const { return m_EntityOccupying; }
+	Entity *GetOccupyingEntity() const { return m_EntityOccupying; }
 	void SetOccupyingEntity(Entity *entity) { m_EntityOccupying = entity; }
 
 	// if it's nullptr then it's not occupied by any tower

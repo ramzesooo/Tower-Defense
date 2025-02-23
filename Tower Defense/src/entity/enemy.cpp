@@ -24,9 +24,6 @@ DamageInfo::DamageInfo(const SDL_Rect& enemyHP, uint32_t dmg, uint32_t currentTi
 	this->label = Label(static_cast<int32_t>(enemyHP.x), static_cast<int32_t>(enemyHP.y), std::format("-{}", dmg), defaultFont, takenDamageColor, nullptr, true);
 	const SDL_Rect& rect = this->label.GetRect();
 	this->label.UpdatePos(rect.x - rect.w / 2, rect.y);
-
-	//this->updateTicks = SDL_GetTicks() - g_PausedTicks;
-	//this->lifespanTicks = this->updateTicks + this->lifespan;
 }
 
 Enemy::Enemy(float posX, float posY, EnemyType type, uint16_t scale)
@@ -135,7 +132,7 @@ void Enemy::Destroy()
 	}
 
 	IF_DEBUG(
-		App::s_EnemiesAmountLabel->UpdateText(std::format("Enemies: {}", g_Enemies.size() - 1));
+		App::s_EnemiesAmountLabel.UpdateText(std::format("Enemies: {}", g_Enemies.size() - 1));
 	);
 
 	App::s_Manager.m_EntitiesToDestroy = true;
@@ -231,8 +228,8 @@ void Enemy::Draw()
 	{
 		TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 
-		TextureManager::DrawTextureF(App::s_GreenTex, RectHP::srcRect, m_RectHP.barRect);
-		TextureManager::DrawTextureF(App::s_Square, RectHP::srcRect, m_RectHP.squareRect);
+		TextureManager::DrawFullTextureF(App::s_GreenTex, m_RectHP.barRect);
+		TextureManager::DrawFullTextureF(App::s_Square, m_RectHP.squareRect);
 		m_RectHP.labelHP.Draw();
 		
 		for (auto &dmg : m_TakenDamages)
@@ -280,7 +277,8 @@ void Enemy::Draw()
 		m_PointingArrowDest.y = destRect.y;
 	}
 
-	SDL_RenderCopyEx(App::s_Renderer, Enemy::s_ArrowTexture, nullptr, &m_PointingArrowDest, angle, NULL, SDL_FLIP_NONE);
+	TextureManager::DrawFullTexture(Enemy::s_ArrowTexture, m_PointingArrowDest, angle);
+	//SDL_RenderCopyEx(App::s_Renderer, Enemy::s_ArrowTexture, nullptr, &m_PointingArrowDest, angle, NULL, SDL_FLIP_NONE);
 }
 
 void Enemy::PlayAnim(std::string_view animID)

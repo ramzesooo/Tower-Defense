@@ -3,13 +3,14 @@
 #include "../../app.h"
 #include "../../Vector2D.h"
 
+#include "../../textureManager.h"
+
 ArrowProjectile::ArrowProjectile(Attacker* owner, Enemy* target) : Projectile(ProjectileType::arrow, owner, target)
 {
 	m_Pos.x += App::s_CurrentLevel->m_ScaledTileSize / 2.0f;
 	destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
 	destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;
 }
-
 
 void ArrowProjectile::Update()
 {
@@ -32,8 +33,6 @@ void ArrowProjectile::Update()
 		Destroy();
 		return;
 	}
-
-	//m_Destination = m_Target->GetPos() * App::s_CurrentLevel->m_ScaledTileSize;
 
 	m_Destination = m_Target->GetScaledPos();
 	Vector2D truncatedPos(m_Pos);
@@ -64,11 +63,8 @@ void ArrowProjectile::Update()
 		return;
 	}
 
-	Vector2D fixedVelocity(m_Velocity);
-
 	float magnitude = std::sqrtf(m_Velocity.x * m_Velocity.x + m_Velocity.y * m_Velocity.y);
-	if (magnitude > 0.0f)
-		fixedVelocity /= magnitude;
+	Vector2D fixedVelocity(m_Velocity / magnitude);
 
 	m_Pos += (m_Velocity + fixedVelocity) * App::s_ElapsedTime;
 
@@ -78,8 +74,13 @@ void ArrowProjectile::Update()
 	// If angle is equal to zero, then it is supposed to be directed into right
 	// std::atan2(dy, dx) returns radian
 	// To convert it to degrees it has to be multiplied by 180 and divided by PI
-	m_Angle = std::atan2(dy, dx) * 180.0f / M_PI;
+	m_Angle = std::atan2(dy, dx) * 180.0 / M_PI;
 
 	destRect.x = m_Pos.x + App::s_CurrentLevel->m_ScaledTileSize / 2.0f - App::s_Camera.x;
 	destRect.y = m_Pos.y + destRect.h / 2.0f - App::s_Camera.y;
+}
+
+void ArrowProjectile::Draw()
+{
+	TextureManager::DrawFullTextureF(m_Texture, destRect, m_Angle, SDL_FLIP_NONE);
 }

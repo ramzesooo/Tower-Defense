@@ -29,7 +29,7 @@ Manager App::s_Manager;
 
 SDL_Renderer *App::s_Renderer = nullptr;
 SDL_Event App::s_Event;
-SDL_FRect App::s_Camera { 0.0f, 0.0f, static_cast<float>(App::WINDOW_WIDTH), static_cast<float>(App::WINDOW_HEIGHT) };
+SDL_FRect App::s_Camera{ 0.0f, 0.0f, static_cast<float>(App::WINDOW_WIDTH), static_cast<float>(App::WINDOW_HEIGHT) };
 
 Level *App::s_CurrentLevel = nullptr;
 
@@ -58,11 +58,11 @@ bool App::s_IsCameraLocked = true;
 
 CameraMovement App::s_CameraMovement{};
 
-IF_DEBUG(Label *App::s_EnemiesAmountLabel = nullptr;);
-IF_DEBUG(Label *App::s_PointedPosition = nullptr;);
-IF_DEBUG(Label *App::s_FrameDelay = nullptr;);
+IF_DEBUG(Label App::s_EnemiesAmountLabel;);
+IF_DEBUG(Label App::s_PointedPosition;);
+IF_DEBUG(Label App::s_FrameDelay;);
 
-IF_DEBUG(EnemyDebugSpeed App::s_Speedy;);
+IF_DEBUG(EnemyDebugSpeed App::s_Speedy = EnemyDebugSpeed::none;);
 // class App STATIC VARIABLES
 
 Vector2D CameraMovement::realVelocity{};
@@ -119,42 +119,44 @@ App::App()
 	{
 		App::SetCameraBorder();
 
-		s_Building.buildingPlace.InitSpecialTile();
+		App::s_Building.buildingPlace.InitSpecialTile();
 	}
 	
-	s_CameraMovement.rangeW = static_cast<int32_t>(s_Camera.w / 6.0f);
-	s_CameraMovement.rangeH = static_cast<int32_t>(s_Camera.h / 6.0f);
+	App::s_CameraMovement.rangeW = static_cast<int32_t>(App::s_Camera.w / 6.0f);
+	App::s_CameraMovement.rangeH = static_cast<int32_t>(App::s_Camera.h / 6.0f);
 
 	UIElement::InitUI();
 
-	s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
+	App::s_Building.buildingPlace.SetTexture(BuildingState::transparentTexture);
 
-	m_PauseLabel = Label(static_cast<int32_t>(s_Camera.w) - 10, 10, "PAUSED", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
+	m_PauseLabel = Label(static_cast<int32_t>(App::s_Camera.w) - 10, 10, "PAUSED", defaultFont, SDL_Color{ 255, 255, 255, 255 }, nullptr, true);
 	m_PauseLabel.m_IsDrawable = false;
 
 	const SDL_Rect &pauseLabelRect = m_PauseLabel.GetRect();
 	m_PauseLabel.UpdatePos(pauseLabelRect.x - pauseLabelRect.w, pauseLabelRect.y);
 
-	IF_DEBUG(s_EnemiesAmountLabel = s_Manager.NewLabel(10, 200, " ", defaultFont););
-	IF_DEBUG(s_PointedPosition = s_Manager.NewLabel(0, App::WINDOW_HEIGHT, " ", defaultFont););
-	IF_DEBUG(s_FrameDelay = s_Manager.NewLabel(400, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 }););
-
 	IF_DEBUG(
-		s_PointedPosition->UpdatePos({ 0.0f, static_cast<float>(App::WINDOW_HEIGHT - s_PointedPosition->GetRect().h) });
+		App::s_EnemiesAmountLabel = Label(10, 200, " ", defaultFont);
+		App::s_PointedPosition = Label(0, App::WINDOW_HEIGHT, " ", defaultFont);
+		App::s_FrameDelay = Label(400, 10, " ", defaultFont, SDL_Color{ 0, 200, 0, 255 });
 	);
 
-	s_MainMenu.Init();
+	IF_DEBUG(
+		App::s_PointedPosition.MoveY(-s_PointedPosition.GetRect().h);
+	);
+
+	App::s_MainMenu.Init();
 
 	App::s_IsRunning = m_Initialized;
 }
 
 App::~App()
 {
-	if (s_Renderer)
+	if (App::s_Renderer)
 	{
-		SDL_DestroyRenderer(s_Renderer);
+		SDL_DestroyRenderer(App::s_Renderer);
 		IF_DEBUG(App::s_Logger.AddInstantLog(std::string_view("App::~App: Renderer has been destroyed")););
-		s_Renderer = nullptr;
+		App::s_Renderer = nullptr;
 	}
 
 	if (m_Window)
@@ -315,15 +317,15 @@ void App::Render()
 	{
 		App::s_CurrentLevel->Render();
 
-		IF_DEBUG(App::s_EnemiesAmountLabel->Draw(););
+		IF_DEBUG(App::s_EnemiesAmountLabel.Draw(););
 
 		m_PauseLabel.Draw();
 
 		UIElement::DrawUI();
 	}
 
-	IF_DEBUG(App::s_FrameDelay->Draw(););
-	IF_DEBUG(App::s_PointedPosition->Draw(););
+	IF_DEBUG(App::s_FrameDelay.Draw(););
+	IF_DEBUG(App::s_PointedPosition.Draw(););
 
 	SDL_RenderPresent(App::s_Renderer);
 }
@@ -457,7 +459,7 @@ void App::UpdateCamera()
 	MakeCameraCorrect();
 
 	IF_DEBUG(
-		App::s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
+		App::s_PointedPosition.UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			App::s_MouseX,
 			App::s_MouseY,
 			static_cast<int32_t>(App::s_Camera.x) + App::s_MouseX,
@@ -477,7 +479,7 @@ void App::OnResolutionChange()
 	SDL_GetRendererOutputSize(App::s_Renderer, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 
 	IF_DEBUG(
-		App::s_PointedPosition->UpdatePos(0, App::WINDOW_HEIGHT - App::s_PointedPosition->GetRect().h);
+		App::s_PointedPosition.UpdatePos(0, App::WINDOW_HEIGHT - App::s_PointedPosition.GetRect().h);
 	);
 
 	if (App::s_UIState == UIState::mainMenu)

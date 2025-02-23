@@ -17,12 +17,6 @@ class Tower;
 
 using WavesArray = std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)>;
 
-//struct WaveContainer
-//{
-//	//std::array<uint16_t, static_cast<std::size_t>(EnemyType::size)> container{};
-//	WavesArray container{};
-//};
-
 //Layer references to just map's layer of tiles
 class Layer
 {
@@ -99,7 +93,18 @@ public:
 public:
 	Level() = delete;
 	Level(uint16_t levelID);
+	Level(const Level &other) : m_MapData(other.m_MapData), m_ScaledTileSize(other.m_ScaledTileSize), m_BasePos(other.m_BasePos),
+		m_MovementSpeedRate(other.m_MovementSpeedRate), m_BaseTextureID(other.m_BaseTextureID), m_Base(other.m_Base),
+		m_LevelID(other.m_LevelID), m_Layers(other.m_Layers), m_Spawners(other.m_Spawners), m_SpecificEnemiesAmount(other.m_SpecificEnemiesAmount),
+		m_Waves(other.m_Waves), m_ExpectedEnemiesAmount(other.m_ExpectedEnemiesAmount), m_SpawnedEnemies(other.m_SpawnedEnemies), m_CurrentWave(other.m_CurrentWave),
+		m_WaveProgress(other.m_WaveProgress), m_WaveCooldown(other.m_WaveCooldown), m_NextSpawn(other.m_NextSpawn), m_HighlightedTower(other.m_HighlightedTower)
+#if ASYNC_TILES == 1
+		, m_Futures(other.m_Futures)
+#endif
+	{}
 	~Level() = default;
+
+	Level& operator=(const Level&) = delete;
 
 	void Init();
 private:
@@ -170,10 +175,7 @@ public:
 	inline bool IsTileWalkable(const Vector2D &pos)
 	{
 		const Tile *tile = GetTileFrom(pos.x, pos.y, 2u);
-		if (tile && tile->IsWalkable())
-			return true;
-
-		return false;
+		return tile && tile->IsWalkable();
 	}
 
 	static constexpr inline uint16_t GetBuildPrice(TowerType type)

@@ -8,7 +8,7 @@
 class Base
 {
 public:
-	static constexpr SDL_Rect srcRect{ 0, 0, 24, 24 };
+	//static constexpr SDL_Rect srcRect{ 0, 0, 24, 24 };
 	bool m_IsActive = true;
 	SDL_Rect destRect{ 0, 0, 24, 24 };
 	Vector2D m_Pos{ 0.0f, 0.0f };

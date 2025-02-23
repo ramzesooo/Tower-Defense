@@ -97,9 +97,9 @@ public:
 	static bool s_IsCameraLocked;
 	static CameraMovement s_CameraMovement;
 
-	IF_DEBUG(static Label *s_EnemiesAmountLabel;);
-	IF_DEBUG(static Label *s_PointedPosition;);
-	IF_DEBUG(static Label *s_FrameDelay;);
+	IF_DEBUG(static Label s_EnemiesAmountLabel;);
+	IF_DEBUG(static Label s_PointedPosition;);
+	IF_DEBUG(static Label s_FrameDelay;);
 
 	IF_DEBUG(static EnemyDebugSpeed s_Speedy;);
 public:
@@ -138,7 +138,7 @@ public:
 		//s_Building.coordinates.x = std::floorf((App::s_Camera.x / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseX) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 		//s_Building.coordinates.y = std::floorf((App::s_Camera.y / static_cast<float>(s_CurrentLevel->m_ScaledTileSize)) + static_cast<float>(s_MouseY) / static_cast<float>(s_CurrentLevel->m_ScaledTileSize));
 
-		App::s_PointedPosition->UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
+		App::s_PointedPosition.UpdateText(std::format("({}, {}), ({}, {}), ({}, {})",
 			App::s_MouseX,
 			App::s_MouseY,
 			static_cast<int32_t>(App::s_Camera.x + App::s_MouseX),

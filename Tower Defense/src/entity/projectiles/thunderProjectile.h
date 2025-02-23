@@ -12,5 +12,6 @@ public:
 	ThunderProjectile& operator=(const ThunderProjectile&) = delete;
 
 	void Update() override;
+	void Draw() override;
 	void AdjustToView() override;
 };

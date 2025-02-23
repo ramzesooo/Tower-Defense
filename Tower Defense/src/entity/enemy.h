@@ -14,7 +14,6 @@
 #include <vector>
 #include <unordered_map>
 #include <string_view>
-#include <memory>
 
 class Tower;
 class Attacker;
@@ -27,7 +26,23 @@ public:
 public:
 	DamageInfo() = delete;
 	DamageInfo(const SDL_Rect &enemyHP, uint32_t dmg, uint32_t currentTicks);
+	DamageInfo(const DamageInfo &other)
+		: label(other.label), lifespanTicks(other.lifespanTicks), updateTicks(other.updateTicks), updatedPosY(other.updatedPosY)
+	{}
 	~DamageInfo() = default;
+
+	DamageInfo& operator=(const DamageInfo &other)
+	{
+		if (&other == this)
+			return *this;
+
+		label = other.label;
+		lifespanTicks = other.lifespanTicks;
+		updateTicks = other.updateTicks;
+		updatedPosY = other.updatedPosY;
+
+		return *this;
+	}
 public:
 	Label label;
 	uint32_t lifespanTicks;

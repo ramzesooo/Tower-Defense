@@ -33,7 +33,7 @@ public:
 	void Destroy() override;
 
 	virtual void Update() override = 0;
-	void Draw() override;
+	virtual void Draw() override = 0;
 
 	virtual void AdjustToView() override = 0;
 
@@ -55,7 +55,7 @@ protected:
 	Vector2D m_Pos{ 0.0f, 0.0f };
 	Vector2D m_Velocity{ 0.0f, 0.0f };
 	Vector2D m_Destination{ 0.0f, 0.0f };
-	float m_BaseVelocity = 330.0f;
+	static constexpr float m_BaseVelocity = 350.0f;
 
 	ProjectileType m_Type = ProjectileType::arrow;
 

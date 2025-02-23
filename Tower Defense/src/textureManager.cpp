@@ -147,11 +147,21 @@ void TextureManager::DrawTexture(SDL_Texture *texture, const SDL_Rect &src, cons
 	SDL_RenderCopyEx(App::s_Renderer, texture, &src, &dest, angle, nullptr, flip);
 }
 
+void TextureManager::DrawFullTexture(SDL_Texture* texture, const SDL_Rect &dest, double angle, SDL_RendererFlip flip)
+{
+	SDL_RenderCopyEx(App::s_Renderer, texture, nullptr, &dest, angle, nullptr, flip);
+}
+
 void TextureManager::DrawTextureF(SDL_Texture *texture, const SDL_Rect &src, const SDL_FRect &dest, double angle, SDL_RendererFlip flip)
 {
 	SDL_RenderCopyExF(App::s_Renderer, texture, &src, &dest, angle, nullptr, flip);
 	// Basically could be if (SDL_RenderCopyExF(...) != 0) to print errors as well as TextureManager::DrawTexture
 	// But already GetTexture() throws log about missing texture or whatever
+}
+
+void TextureManager::DrawFullTextureF(SDL_Texture* texture, const SDL_FRect &dest, double angle, SDL_RendererFlip flip)
+{
+	SDL_RenderCopyExF(App::s_Renderer, texture, nullptr, &dest, angle, nullptr, flip);
 }
 
 // TEXTURES

@@ -26,7 +26,7 @@ public:
 	static constexpr SDL_Rect sellRect{ 0, 0, 24, 24 }; // sell rectangle
 	static constexpr SDL_Rect upgradeRect{ 0, 0, 24, 24 }; // upgrading hammer rectangle
 
-	static constexpr SDL_Rect expandingTowerSrcRect{ 0, 0, 34, 34 };
+	//static constexpr SDL_Rect expandingTowerSrcRect{ 0, 0, 34, 34 };
 
 	static SDL_Rect coinDestRect;
 	static SDL_Rect heartDestRect;
@@ -69,8 +69,6 @@ enum class ButtonType
 class Button
 {
 public:
-	static constexpr SDL_Rect srcRect{ 0, 0, 30, 14 };
-	static constexpr SDL_Rect checkSrcRect{ 0, 0, 32, 32 };
 	static SDL_Texture *s_DefaultButton;
 	static SDL_Texture *s_DefaultButtonChecked;
 	static SDL_Texture *s_DefaultButtonUnchecked;

@@ -14,15 +14,15 @@ public:
 	Entity* m_AttachedTo = nullptr;
 	bool m_IsDrawable = true;
 public:
-	Label() : m_OnStack(true), m_VanishDelay(NULL), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(NULL) {}
-	Label(uint32_t vanishable) : m_OnStack(true), m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(vanishable / 255.0) {}
+	Label() : /*m_OnStack(true),*/ m_VanishDelay(NULL), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(NULL) {}
+	Label(uint32_t vanishable) : /*m_OnStack(true),*/ m_VanishDelay(vanishable), m_Ticks(SDL_GetTicks()), m_DelayPerAlphaUnit(vanishable / 255.0) {}
 	Label(int32_t posX, int32_t posY, const std::string &text, TTF_Font *font, SDL_Color color = { 255, 255, 255, 255 }, Entity *attachedTo = nullptr, bool toCopy = false);
 	Label(const Label& other);
 	~Label();
 
 	Label &operator=(const Label &other);
 
-	void Destroy();
+	//void Destroy();
 private:
 	[[nodiscard]] bool MakeTextureFromText();
 public:
@@ -49,6 +49,11 @@ public:
 		destRect.y = posY;
 	}
 
+	inline void MoveY(int32_t y)
+	{
+		destRect.y += y;
+	}
+
 	inline void ResetAlpha()
 	{
 		m_Alpha = 255;
@@ -64,7 +69,7 @@ public:
 private:
 	const uint32_t m_VanishDelay = NULL;
 	const double m_DelayPerAlphaUnit = NULL;
-	const bool m_OnStack = false; // false if it's unique pointer in Manager's vector
+	//const bool m_OnStack = false; // false if it's unique pointer in Manager's vector
 
 	uint32_t m_Ticks = NULL;
 	uint8_t m_Alpha = 255;

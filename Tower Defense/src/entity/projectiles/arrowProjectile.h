@@ -12,5 +12,6 @@ public:
 	ArrowProjectile& operator=(const ArrowProjectile&) = delete;
 
 	void Update() override;
+	void Draw() override;
 	void AdjustToView() override {};
 };

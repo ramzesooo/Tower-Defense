@@ -23,8 +23,8 @@ public:
 
 	Button m_ReturnButton;
 	
-	std::array<Button, 2> m_PrimaryButtons; // [0] = Play, [1] = Options, [2] = Exit
-	std::array<Button, 1> m_OptionsButtons; // [0] = V-Sync, [1] = Return
+	std::array<Button, 2> m_PrimaryButtons; // [0] = Play, [1] = Options
+	std::array<Button, 1> m_OptionsButtons; // [0] = V-Sync
 	std::array<Button, s_LevelsToLoad> m_LevelsButtons;
 public:
 	void Init();

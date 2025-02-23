@@ -24,7 +24,7 @@ void DarkTower::Update()
 	m_Attacker->Update();
 }
 
-void DarkTower::Draw() const
+void DarkTower::Draw()
 {
 	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
 }

@@ -38,7 +38,7 @@ public:
 	void Destroy() override;
 
 	virtual void Update() override { m_Attacker->Update(); };
-	virtual void Draw() const override;
+	virtual void Draw() override;
 	inline void DrawHighlight() const
 	{
 		for (const auto &tile : m_TilesInRange)
@@ -88,7 +88,7 @@ protected:
 	Vector2D m_Pos{};
 	SDL_Rect srcRect{ 0, 0, 144, 64 }, destRect{ 0, 0, 48, 21 };
 	std::array<Tile*, 4> m_OccupiedTiles;
-	Attacker* m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown on the tower
+	Attacker *m_Attacker = nullptr; // m_Attacker is the entity supposed to be shown on the tower
 	uint16_t m_Tier = 1;
 	uint16_t m_MaxTier = 3;
 	TowerAnimation m_AnimData;

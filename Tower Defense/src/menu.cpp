@@ -117,9 +117,8 @@ void MainMenu::Init()
 
 void MainMenu::Render()
 {
-	static constexpr SDL_Rect srcRect{ 0, 0, 1500, 1500 };
 	static SDL_Texture *background = App::s_Textures.GetTexture("szpaku");
-	TextureManager::DrawTexture(background, srcRect, s_BgDestRect);
+	TextureManager::DrawFullTexture(background, s_BgDestRect);
 
 	m_ReturnButton.Draw();
 

@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <string>
 
-class TextureManager // wrong name, but too lazy for change it everywhere
+class TextureManager // wrong name, but too lazy for changing it everywhere
 {
 public:
 	TextureManager() = default;
@@ -24,10 +24,12 @@ public:
 	// DrawTexture is responsible for drawing rectangles with integer values
 	// angle is NULL and flip is SDL_FLIP_NONE by default
 	static void DrawTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	static void DrawFullTexture(SDL_Texture* texture, const SDL_Rect &dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
 	// DrawTextureF is responsible for drawing rectangles with float values
 	// angle is NULL and flip is SDL_FLIP_NONE by default
 	static void DrawTextureF(SDL_Texture* texture, const SDL_Rect& src, const SDL_FRect& dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	static void DrawFullTextureF(SDL_Texture* texture, const SDL_FRect& dest, double angle = 0, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
 	static constexpr inline std::string_view TextureOf(AttackerType type)
 	{

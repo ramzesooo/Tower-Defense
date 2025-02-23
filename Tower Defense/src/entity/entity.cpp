@@ -9,7 +9,8 @@ void Entity::AddToGroup(EntityGroup group)
 
 void Entity::RemoveFromGroup(EntityGroup group)
 {
-	if (!m_GroupBitSet[static_cast<std::size_t>(group)])
+	//if (!m_GroupBitSet[static_cast<std::size_t>(group)])
+	if (!HasGroup(group))
 		return;
 
 	std::erase(App::s_Manager.GetGroup(group), this);

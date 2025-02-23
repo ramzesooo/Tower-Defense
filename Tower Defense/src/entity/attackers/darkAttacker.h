@@ -12,7 +12,7 @@ public:
 	DarkAttacker &operator=(const DarkAttacker &) = delete;
 
 	void Update() override;
-	void Draw() const override {};
+	void Draw() override {};
 
 	void AdjustToView() override {};
 

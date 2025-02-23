@@ -4,7 +4,7 @@
 
 void Base::Draw() const
 {
-	TextureManager::DrawTexture(m_Texture, srcRect, destRect);
+	TextureManager::DrawFullTexture(m_Texture, destRect);
 }
 
 void Base::AdjustToView()

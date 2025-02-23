@@ -25,10 +25,11 @@ Label::Label(const Label& other)
 {
 	if (!MakeTextureFromText())
 	{
-		App::s_Logger.AddLog(std::string_view("Label::Label(reference): Failed creating texture from text"));
+		App::s_Logger.AddLog(std::format("Label::Label(reference): Failed creating texture from text \"{}\"", m_Text));
 		m_IsDrawable = false;
 	}
 }
+
 
 Label &Label::operator=(const Label &other)
 {
@@ -44,13 +45,14 @@ Label &Label::operator=(const Label &other)
 
 	if (!MakeTextureFromText())
 	{
-		App::s_Logger.AddLog(std::string_view("Label::operator=: Failed creating texture from text"));
+		App::s_Logger.AddLog(std::format("Label::operator=: Failed creating texture from text \"{}\"", m_Text));
 		m_IsDrawable = false;
 		return *this;
 	}
 
 	return *this;
 }
+
 
 Label::~Label()
 {
@@ -61,15 +63,17 @@ Label::~Label()
 	}
 }
 
+/*
 void Label::Destroy()
 {
 	if (!m_OnStack)
 		App::s_Manager.DestroyLabel(this);
 }
+*/
 
 bool Label::MakeTextureFromText()
 {
-	SDL_Surface* surface = TTF_RenderText_Blended(m_Font, m_Text.c_str(), m_Color);
+	SDL_Surface *surface = TTF_RenderText_Blended(m_Font, m_Text.c_str(), m_Color);
 	if (!surface)
 	{
 		App::s_Logger.AddLog(std::format("Failed to create a surface in Label::MakeTextureFromText\nLast SDL Error: {}", SDL_GetError()));
@@ -84,13 +88,14 @@ bool Label::MakeTextureFromText()
 		return false;
 	}
 
+	SDL_FreeSurface(surface);
+
 	if (m_Texture)
 	{
 		SDL_DestroyTexture(m_Texture);
 	}
 
 	m_Texture = texture;
-	SDL_FreeSurface(surface);
 
 	SDL_QueryTexture(m_Texture, nullptr, nullptr, &destRect.w, &destRect.h);
 	return true;
@@ -128,11 +133,13 @@ void Label::UpdateColor(const SDL_Color &newColor)
 	if (newColor.a == m_Color.a && newColor.r == m_Color.r && newColor.g == m_Color.g && newColor.b == m_Color.b)
 		return;
 
+	SDL_Color tempColor = m_Color;
+	m_Color = newColor;
+
 	if (!MakeTextureFromText())
 	{
 		App::s_Logger.AddLog(std::format("Label::UpdateColor: Failed to create new texture \"{}\"\nLast SDL Error: {}", m_Text, SDL_GetError()));
+		m_Color = tempColor;
 		return;
 	}
-
-	m_Color = newColor;
 }
